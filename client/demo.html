@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0e503d" />
+    <title>Estate Management | Preview</title>
+    <style>
+      :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #17231e; background: #f5f7f5; }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; }
+      header { display: flex; align-items: center; gap: 12px; padding: 18px max(20px, calc((100vw - 1120px) / 2)); background: white; border-bottom: 1px solid #e4eae6; }
+      .mark { display: grid; width: 40px; height: 40px; place-items: center; border-radius: 13px; background: #e9f2ed; color: #0e503d; font-size: 20px; }
+      header strong { font-size: 17px; } header small { display: block; margin-top: 2px; color: #6d7b74; font-size: 11px; }
+      main { width: min(1120px, calc(100% - 36px)); margin: 58px auto; }
+      .eyebrow { color: #258565; font-size: 10px; font-weight: 800; letter-spacing: 1.5px; }
+      h1 { margin: 8px 0; font-size: clamp(28px, 5vw, 42px); letter-spacing: -1.4px; }
+      .intro { max-width: 600px; margin: 0; color: #6d7b74; line-height: 1.6; }
+      .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; margin-top: 30px; }
+      a.card { display: block; min-height: 150px; padding: 20px; border: 1px solid #e4eae6; border-radius: 19px; background: white; color: inherit; text-decoration: none; transition: transform .15s, border-color .15s, box-shadow .15s; }
+      a.card:hover { transform: translateY(-2px); border-color: #a9c7b5; box-shadow: 0 12px 30px #0e503d12; }
+      .icon { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 12px; background: #e9f2ed; color: #0e503d; font-size: 17px; }
+      h2 { margin: 14px 0 5px; font-size: 15px; } .desc { margin: 0; color: #6d7b74; font-size: 12px; line-height: 1.5; }
+      .note { margin-top: 24px; padding: 14px 16px; border-radius: 14px; background: #edf4ef; color: #315e48; font-size: 12px; line-height: 1.6; }
+      .walkthrough { margin-top: 20px; padding: 20px; border: 1px solid #dce8df; border-radius: 18px; background: white; }
+      .walkthrough h2 { margin: 0 0 12px; font-size: 16px; }
+      .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+      .step { padding: 14px; border-radius: 13px; background: #f5f8f5; color: #617168; font-size: 12px; line-height: 1.55; }
+      .step strong { display: block; margin-bottom: 5px; color: #17231e; font-size: 13px; }
+      code { display: inline-block; padding: 3px 6px; border-radius: 5px; background: #edf2ee; color: #234c3b; font-size: 11px; overflow-wrap: anywhere; }
+      footer { margin-top: 30px; color: #6d7b74; font-size: 11px; }
+    </style>
+  </head>
+  <body>
+    <header><span class="mark">&#8962;</span><div><strong>Estate Management</strong><small>Local product previews</small></div></header>
+    <main>
+      <div class="eyebrow">PROJECT PREVIEW</div>
+      <h1>Estate operations, in one place.</h1>
+      <p class="intro">Start with estate onboarding, then open the estate team dashboard from the onboarding header. The resident, manager and landlord workspaces use this product's API for their connected features.</p>
+      <section class="grid" aria-label="Available previews">
+        <a class="card" href="/login/"><span class="icon">&#128274;</span><h2>Sign in once</h2><p class="desc">Use the main login page. Managers, residents, landlords, platform admins and security staff are taken to the right workspace automatically.</p></a>
+        <a class="card" href="/onboarding/"><span class="icon">&#65291;</span><h2>Start: estate onboarding</h2><p class="desc">Sign in or create an account, complete the estate application and continue to the estate team dashboard.</p></a>
+        <a class="card" href="/admin/"><span class="icon">&#9638;</span><h2>Estate manager dashboard</h2><p class="desc">Sign in as a manager to review live estate operations, residents, properties and finance.</p></a>
+        <a class="card" href="/web/"><span class="icon">&#8962;</span><h2>Resident app</h2><p class="desc">Request estate access, view approved tenancy terms, report maintenance and use resident services.</p></a>
+        <a class="card" href="/resident-review/"><span class="icon">&#10003;</span><h2>Resident access review</h2><p class="desc">Estate administrators review membership requests from the product API.</p></a>
+        <a class="card" href="/join-estate/"><span class="icon">&#8594;</span><h2>Join an estate</h2><p class="desc">Residents can find an active estate, request access and track the review decision.</p></a>
+        <a class="card" href="/tenant-rent/"><span class="icon">&#9734;</span><h2>Tenant tenancy</h2><p class="desc">Tenants see their approved rent terms, landlord and tenancy dates.</p></a>
+        <a class="card" href="/properties/"><span class="icon">&#9633;</span><h2>Properties and tenancies</h2><p class="desc">Managers register homes and owners, create tenancy terms, approve occupancy and end tenancies.</p></a>
+        <a class="card" href="/map/"><span class="icon">&#9678;</span><h2>Estate map</h2><p class="desc">Explore an illustrative estate layout, authorized place layers and unmapped locations.</p></a>
+        <a class="card" href="/landlord/"><span class="icon">&#8962;</span><h2>Landlord portfolio preview</h2><p class="desc">Explore the landlord workspace with illustrative properties, tenancy, invoice and maintenance rows.</p></a>
+        <a class="card" href="/platform/"><span class="icon">&#10003;</span><h2>Platform review</h2><p class="desc">Estate application queue with reviewer assignment and approval, plus a connected estate list and platform team management for super administrators.</p></a>
+        <a class="card" href="/security/"><span class="icon">&#9881;</span><h2>Gate and security</h2><p class="desc">API-backed gate assignment, expected and current visitors, pass verification, check-out and incident reports. Use the security demo login below.</p></a>
+        <a class="card" href="/landlord-live/"><span class="icon">&#10003;</span><h2>Connected landlord portfolio</h2><p class="desc">Sign in to view verified ownership, occupancy, tenancy and maintenance from the estate API. Demo login: <code>estate.landlord.demo@example.test</code> / <code>Demo-Landlord-8Wq3-Jt6e</code>.</p></a>
+      </section>
+      <section class="walkthrough" aria-label="Gate and security walkthrough">
+        <h2>Gate and visitor walkthrough</h2>
+        <div class="steps">
+          <div class="step"><strong>1 · Sign in at the gate</strong>Open <a href="/security/">Gate and security</a> and sign in:<br><code>estate.security.demo@example.test</code><br><code>Demo-Gate-6Qm2-Vr8w</code><br>Main Gate at Palm Crest Residences (Demo) is assigned to this officer.</div>
+          <div class="step"><strong>2 · Admit an expected visitor</strong>On the Visitors tab, choose <strong>Enter pass code</strong> beside Adaeze Nnadi and paste this local demo code:<br><code>w4ZeO_aBE6pJ64zK-zDDIcTBBgFvugn_C8ZCyMNggDg</code><br>The check-in is written through the estate API; the visitor moves to Currently inside.</div>
+          <div class="step"><strong>3 · Check out, admit manually and report</strong>Check the visitor out from Currently inside, use <strong>Manual admission</strong> to record a contractor against <code>PC-001</code>, then submit a gate incident. Both writes are audited and appear in the new <strong>Access log</strong> tab.</div>
+        </div>
+        <div class="note">The demo gate has three expected visitors and one visitor already inside (Samuel Eze). Codes and logins are local presentation credentials only. To restore the gate data before presenting, run <code>npm run seed:gate-demo -- --confirm-local-gate-demo --reset</code> from <code>backend/</code>.</div>
+      </section>
+      <section class="walkthrough" aria-label="Full estate onboarding walkthrough">
+        <h2>Full walkthrough: application to active estate</h2>
+        <div class="steps">
+          <div class="step"><strong>1 · Start with the applicant</strong>Open <a href="/onboarding/">Estate onboarding</a> and sign in:<br><code>estate.applicant.demo@example.test</code><br><code>Demo-Apply-5Nm8-Vt2q</code><br>Open the saved Meadow Gate draft and submit it. Documents are optional for this demo.</div>
+          <div class="step"><strong>2 · Review the application</strong>Open <a href="/platform/">Platform review</a> and sign in:<br><code>estate.platform.demo@example.test</code><br><code>Demo-Review-7Kp4-nQ8v</code><br>Start review, reopen the application, choose an initial administrator, then approve.</div>
+          <div class="step"><strong>3 · Enter the estate dashboard</strong>Open <a href="/admin/">Estate manager dashboard</a> and sign in:<br><code>estate.manager.demo@example.test</code><br><code>Demo-kYCMk-QoRFM0htEs</code><br>The approved Meadow Gate estate is available in the estate selector.</div>
+        </div>
+        <div class="note"><strong>If an application says “Only a draft or returned application can be edited”:</strong> that account's application has already been submitted or decided. Sign out and use the applicant demo login above to open its saved draft. The resident demo login is <code>estate.resident.demo@example.test</code> / <code>Demo-MpQZ7VxHvpkFF0L-</code>.</div>
+      </section>
+      <div class="note">Local presentation build · Applicant, reviewer, manager, resident and gate-security logins were checked against the running product API. The gate app uses API-backed assignments, visitor check-in/out and incident reports; the map and some legacy report screens remain illustrative.</div>
+      <footer>Built with Flutter · Estate Management</footer>
+    </main>
+  </body>
+</html>
+

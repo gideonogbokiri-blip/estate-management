@@ -228,6 +228,7 @@
     }
     document.getElementById('tab-signin').addEventListener('click', () => showTab('signin'));
     document.getElementById('tab-create').addEventListener('click', () => showTab('create'));
+    if (new URLSearchParams(window.location.search).get('tab') === 'create') showTab('create');
 
     async function get(path, token) {
       const response = await fetch(API + path, { headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' } });

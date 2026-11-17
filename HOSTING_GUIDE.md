@@ -2,7 +2,7 @@
 
 ## Live deployment
 
-- **Hub / single sign-in:** https://estate-management-zarox-energy.vercel.app/ → choose **Sign in once**, or open https://estate-management-zarox-energy.vercel.app/login/ directly.
+The public homepage at `/` is a product landing page with the family-photo hero and clear **Sign in / Create account** actions. Detailed developer walkthrough text and demo credentials live at `/demo/` so the homepage stays clean.
 - **API health:** https://estate-management-zarox-energy.vercel.app/api/v1/health/ready
 
 ### One login, role-based dashboards
