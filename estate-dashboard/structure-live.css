@@ -1,0 +1,2 @@
+.structure-live-loading,.structure-live-empty,.structure-live-error{padding:22px!important;text-align:center;color:#738076;font-size:12px}.structure-live-error{color:#9b3c32}.estate-structure-panel [data-action="add-structure-node"]:disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:580px){.structure-live-loading,.structure-live-empty,.structure-live-error{padding:18px 10px!important;font-size:10px}}

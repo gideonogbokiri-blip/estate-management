@@ -1,0 +1,26 @@
+# Secrets and local configuration
+.env
+.env.*
+!backend/.env.example
+backend/.env
+backend/.env.local
+*.local
+
+# Local data and generated backend output
+node_modules/
+backend/dist/
+backend/.private-documents/
+backend/.local/
+*.log
+
+# Flutter/Dart tooling (build output is intentionally committed for static hosting)
+client/.dart_tool/
+client/.flutter-plugins-dependencies
+client/.pub-cache/
+client/.widget_preview/
+
+# Editor / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

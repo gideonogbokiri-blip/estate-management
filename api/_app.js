@@ -1,0 +1,48 @@
+require('reflect-metadata');
+const { NestFactory } = require('@nestjs/core');
+const { ValidationPipe } = require('@nestjs/common');
+const helmetModule = require('helmet');
+const { AppModule } = require('../backend/dist/src/app.module.js');
+
+let appPromise;
+
+function configuredOrigins() {
+  const origins = (process.env.APP_ORIGINS ?? '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+  if (process.env.VERCEL_URL) origins.push(`https://${process.env.VERCEL_URL}`);
+  if (origins.length === 0) origins.push('http://localhost:8765', 'http://127.0.0.1:8765');
+  return origins;
+}
+
+async function getApp() {
+  if (!appPromise) {
+    appPromise = (async () => {
+      const app = await NestFactory.create(AppModule, {
+        logger: ['error', 'warn'],
+        bodyParser: true,
+      });
+      const helmet = helmetModule.default ?? helmetModule;
+      app.use(helmet());
+      app.enableCors({ origin: configuredOrigins(), credentials: true });
+      app.useGlobalPipes(
+        new ValidationPipe({
+          whitelist: true,
+          forbidNonWhitelisted: true,
+          transform: true,
+          transformOptions: { enableImplicitConversion: false },
+        }),
+      );
+      app.setGlobalPrefix('api/v1');
+      await app.init();
+      return app;
+    })().catch((error) => {
+      appPromise = undefined;
+      throw error;
+    });
+  }
+  return appPromise;
+}
+
+module.exports = { getApp };

@@ -1,0 +1,34 @@
+.property-view-switch{display:flex;justify-content:flex-end;gap:3px;margin:0 0 10px}
+.property-view-switch button{min-width:65px;height:29px;border:1px solid #e7ece6;background:#fff;color:#788278;font-size:8px;cursor:pointer}
+.property-view-switch button:first-child{border-radius:6px 0 0 6px}.property-view-switch button:last-child{border-radius:0 6px 6px 0}
+.property-view-switch button.selected{border-color:#dce9de;background:#edf4ef;color:#396b46;font-weight:700}
+.property-map-panel{margin:0 0 16px}
+.estate-map-layout{display:grid;grid-template-columns:minmax(0,1fr) 235px;gap:12px}
+.estate-map-canvas{position:relative;aspect-ratio:720/430;min-height:300px;overflow:hidden;border:1px solid #e0e8dd;border-radius:10px;background:#edf2e8}
+.estate-map-art{position:absolute;inset:0;width:100%;height:100%}
+.estate-map-art .map-park{fill:#dce9d3;stroke:#cadbc3;stroke-width:2}
+.estate-map-art .map-water{fill:#c9e0df;opacity:.85}
+.estate-map-art .map-road{fill:none;stroke:#fffdf7;stroke-width:27;stroke-linecap:round}
+.estate-map-art .map-road-main{stroke-width:33}.estate-map-art .map-road-side{stroke-width:17}
+.estate-map-art .map-zone-line{fill:none;stroke:#c7d3c1;stroke-width:1.5;stroke-dasharray:5 5}
+.estate-map-art text{fill:#8c9b89;font-family:Inter,'Segoe UI',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.2px}
+.estate-map-art .map-central-label{fill:#7c8c7b;font-size:11px;letter-spacing:2px;text-anchor:middle}
+.map-property-marker{position:absolute;z-index:3;min-width:35px;height:28px;padding:0 6px;transform:translate(-50%,-50%);border:2px solid #fff;border-radius:7px;color:#fff;font-size:7px;font-weight:800;cursor:pointer;box-shadow:0 3px 10px #243b2938;transition:transform .15s,box-shadow .15s}
+.map-property-marker:hover,.map-property-marker.selected{z-index:4;transform:translate(-50%,-50%) scale(1.12);box-shadow:0 0 0 4px #ffffff91,0 5px 13px #243b294a}
+.marker-occupied{background:#4f865b}.marker-vacant{background:#c69a48}.marker-maintenance{background:#4f865b;border:2px solid #72849a;box-shadow:0 0 0 2px #ffffffc9}
+.marker-p1{left:30%;top:31%}.marker-p2{left:70%;top:38%}.marker-p3{left:78%;top:76%}.marker-p4{left:62%;top:58%}.marker-p5{left:25%;top:77%}
+.map-feature{position:absolute;z-index:2;padding:5px 7px;border:1px solid #ffffffb0;border-radius:12px;background:#fffdf2d9;color:#6c786b;font-size:6px;font-weight:700;box-shadow:0 2px 6px #37433516}
+.map-main-gate{left:45%;top:4%}.map-clubhouse{left:51%;top:64%}.map-parking{left:84%;top:51%}
+.map-scale{position:absolute;z-index:2;left:12px;bottom:11px;display:flex;align-items:center;gap:6px;padding:5px 7px;border-radius:5px;background:#ffffffdf;color:#869087;font-size:6px}
+.map-scale i{width:22px;height:5px;border-bottom:1px solid #889587;border-left:1px solid #889587;border-right:1px solid #889587}
+.map-property-detail{display:flex;flex-direction:column;align-items:flex-start;min-width:0;padding:15px;border:1px solid #e7ece6;border-radius:9px;background:#fff}
+.map-property-detail h3{margin:10px 0 5px;color:#354238;font-family:Manrope,'Segoe UI',sans-serif;font-size:14px;letter-spacing:-.3px}
+.map-property-detail>p{margin:0;color:#8b958b;font-size:8px;line-height:1.5}
+.map-detail-status{margin-top:12px;padding:5px 7px;border-radius:12px;font-size:7px;font-weight:700}.map-status-occupied{background:#edf4ef;color:#54805d}.map-status-vacant{background:#fbf3e5;color:#a17b38}.map-status-maintenance{background:#edf1f5;color:#637b93}
+.map-privacy-note{margin-top:auto;padding-top:16px;color:#949c94;font-size:7px;line-height:1.55}
+.map-legend{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:10px 3px;color:#7f897f;font-size:7px}
+.map-legend span{display:flex;align-items:center;gap:5px}.map-legend i{width:8px;height:8px;border-radius:3px}
+.legend-occupied-marker{background:#4f865b}.legend-vacant-marker{background:#c69a48}.legend-maint-marker{background:#72849a}.legend-feature-marker{background:#dce9d3;border:1px solid #b6c8af}
+@media(max-width:900px){.estate-map-layout{grid-template-columns:minmax(0,1fr) 190px}.estate-map-canvas{min-height:260px}}
+@media(max-width:650px){.estate-map-layout{grid-template-columns:1fr}.estate-map-canvas{min-height:0}.map-property-detail{min-height:150px}.map-property-detail .map-privacy-note{margin-top:14px}.map-legend{gap:9px 13px}}
+@media(max-width:420px){.estate-map-canvas{aspect-ratio:1.25}.estate-map-art .map-road{stroke-width:33}.estate-map-art .map-road-side{stroke-width:18}.map-property-marker{min-width:30px;height:24px;font-size:6px}.map-feature{font-size:5px}.map-legend{font-size:6px}}

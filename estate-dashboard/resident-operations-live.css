@@ -1,0 +1,4 @@
+.resident-live-feedback{margin:.75rem 0 0;color:#526153;font-size:.86rem;min-height:1.2em}
+.resident-live-feedback[data-state="error"]{color:#9f2f26}
+.resident-live-feedback[data-state="success"]{color:#286442}
+.resident-live-loading,.resident-live-empty{padding:1.25rem;border:1px solid #e1e7df;border-radius:14px;background:#fff;color:#657064}

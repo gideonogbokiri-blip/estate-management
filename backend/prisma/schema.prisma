@@ -1,0 +1,1545 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum AccountStatus {
+  ACTIVE
+  DISABLED
+}
+
+enum ApplicationStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  MORE_INFORMATION_REQUIRED
+  APPROVED
+  REJECTED
+}
+
+enum ApplicationDocumentStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+  MORE_INFORMATION_REQUIRED
+}
+
+enum EstateStatus {
+  ACTIVE
+  SUSPENDED
+  DEACTIVATED
+}
+
+enum EstateExpenseStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  CANCELLED
+  PARTIALLY_PAID
+  PAID
+}
+
+enum EstateBudgetStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  SUPERSEDED
+}
+
+enum EstateNotificationType {
+  EXPENSE
+  INCIDENT
+}
+
+enum EstateMembershipStatus {
+  ACTIVE
+  SUSPENDED
+  REVOKED
+}
+
+enum PropertyStatus {
+  ACTIVE
+  UNDER_DEVELOPMENT
+  RESERVED
+  UNDER_MAINTENANCE
+  INACTIVE
+  ARCHIVED
+}
+
+enum EstateRole {
+  ESTATE_ADMINISTRATOR
+  ESTATE_MANAGER
+  FINANCE_MANAGER
+  SECURITY_OFFICER
+  RESIDENT
+  LANDLORD
+}
+
+model User {
+  id                    String                      @id @default(uuid()) @db.Uuid
+  emailNormalized       String                      @unique @map("email_normalized") @db.VarChar(254)
+  displayName           String                      @map("display_name") @db.VarChar(200)
+  phone                 String?                     @db.VarChar(50)
+  passwordHash          String                      @map("password_hash") @db.VarChar(255)
+  status                AccountStatus               @default(ACTIVE)
+  emailVerifiedAt       DateTime?                   @map("email_verified_at") @db.Timestamptz(3)
+  createdAt             DateTime                    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime                    @updatedAt @map("updated_at") @db.Timestamptz(3)
+  applications          EstateApplication[]         @relation("ApplicationApplicant")
+  assignedApplications  EstateApplication[]         @relation("ApplicationReviewer")
+  approvedApplications  EstateApplication[]         @relation("ApplicationApprover")
+  initialAdminFor       EstateApplication[]         @relation("ApplicationInitialAdmin")
+  sessions              UserSession[]
+  platformGrants        PlatformRoleGrant[]
+  estateMemberships     EstateMembership[]
+  createdProperties     EstateProperty[]            @relation("PropertyCreator")
+  updatedProperties     EstateProperty[]            @relation("PropertyUpdater")
+  createdStructureNodes EstateStructureNode[]       @relation("StructureCreator")
+  updatedStructureNodes EstateStructureNode[]       @relation("StructureUpdater")
+  residentJoinRequests  EstateResidentJoinRequest[] @relation("JoinRequestApplicant")
+  reviewedJoinRequests  EstateResidentJoinRequest[] @relation("JoinRequestReviewer")
+  occupancies           PropertyOccupancy[]         @relation("OccupancyResident")
+  createdOccupancies    PropertyOccupancy[]         @relation("OccupancyCreator")
+  endedOccupancies      PropertyOccupancy[]         @relation("OccupancyEnder")
+  ownershipInterests    EstateOwnershipInterest[]   @relation("PropertyOwner")
+  createdOwnerships     EstateOwnershipInterest[]   @relation("OwnershipCreator")
+  reviewedOwnerships    EstateOwnershipInterest[]   @relation("OwnershipReviewer")
+  tenantTenancies       EstateTenancy[]             @relation("TenancyTenant")
+  payeeTenancies        EstateTenancy[]             @relation("TenancyPayee")
+  createdTenancies      EstateTenancy[]             @relation("TenancyCreator")
+  approvedTenancies     EstateTenancy[]             @relation("TenancyApprover")
+  terminatedTenancies   EstateTenancy[]             @relation("TenancyTerminator")
+  auditEvents           AuditEvent[]                @relation("AuditActor")
+
+  maintenanceRequests        EstateMaintenanceRequest[]     @relation("MaintenanceRequester")
+  assignedMaintenance        EstateMaintenanceRequest[]     @relation("MaintenanceAssignee")
+  maintenanceUpdates         EstateMaintenanceUpdate[]      @relation("MaintenanceUpdateAuthor")
+  maintenanceHistory         EstateMaintenanceHistory[]     @relation("MaintenanceHistoryActor")
+  maintenanceIdempotency     EstateMaintenanceIdempotency[]
+  visitorPasses              EstateVisitorPass[]            @relation("VisitorPassHost")
+  visitorPassIdempotency     EstateVisitorPassIdempotency[]
+  gateAssignments            EstateGateAssignment[]         @relation("GateAssignee")
+  createdGateAssignments     EstateGateAssignment[]         @relation("GateAssignmentCreator")
+  gateVisitsCheckedIn        EstateVisitorVisit[]           @relation("GateVisitCheckInActor")
+  gateVisitsCheckedOut       EstateVisitorVisit[]           @relation("GateVisitCheckOutActor")
+  gateCheckInAttempts        EstateGateCheckInIdempotency[]
+  createdChargeDefinitions   EstateChargeDefinition[]       @relation("EstateChargeCreator")
+  createdChargeVersions      EstateChargeVersion[]          @relation("EstateChargeVersionCreator")
+  activatedChargeVersions    EstateChargeVersion[]          @relation("EstateChargeVersionActivator")
+  invoiceDraftsPaid          EstateInvoiceDraft[]           @relation("EstateInvoicePayer")
+  invoiceDraftsCreated       EstateInvoiceDraft[]           @relation("EstateInvoiceCreator")
+  verifiedInvoiceSettlements EstateInvoiceSettlement[]      @relation("InvoiceSettlementVerifier")
+  createdSettlementPolicies  EstateSettlementPolicy[]       @relation("EstateSettlementPolicyCreator")
+  createdEstateAnnouncements EstateAnnouncement[]           @relation("EstateAnnouncementCreator")
+  announcementReads          EstateAnnouncementRead[]       @relation("EstateAnnouncementReader")
+  facilityBookings           EstateFacilityBooking[]        @relation("FacilityBookingRequester")
+  reviewedFacilityBookings   EstateFacilityBooking[]        @relation("FacilityBookingReviewer")
+  facilityBookingHistory     EstateFacilityBookingHistory[] @relation("FacilityBookingHistoryActor")
+  createdFacilities          EstateFacility[]               @relation("EstateFacilityCreator")
+  reportedIncidents          EstateSecurityIncident[]       @relation("IncidentReporter")
+  reviewedIncidents           EstateSecurityIncident[]       @relation("IncidentReviewer")
+  securityIncidentHistory     EstateSecurityIncidentHistory[] @relation("IncidentHistoryActor")
+  uploadedIncidentEvidence   EstateSecurityIncidentEvidence[] @relation("IncidentEvidenceUploader")
+  createdExpenseCategories  EstateExpenseCategory[]         @relation("ExpenseCategoryCreator")
+  createdExpensePayees      EstateExpensePayee[]             @relation("ExpensePayeeCreator")
+  verifiedExpensePayees     EstateExpensePayee[]             @relation("ExpensePayeeVerifier")
+  requestedExpenses         EstateExpenseRequest[]           @relation("ExpenseRequester")
+  decidedExpenses           EstateExpenseDecision[]          @relation("ExpenseDecisionActor")
+  updatedExpensePolicies    EstateExpensePolicy[]             @relation("ExpensePolicyUpdater")
+  createdEstateBudgets      EstateBudget[]                    @relation("EstateBudgetCreator")
+  approvedEstateBudgets     EstateBudget[]                    @relation("EstateBudgetApprover")
+  estateBudgetDecisions     EstateBudgetDecision[]            @relation("EstateBudgetDecisionActor")
+  verifiedExpenseSettlements EstateExpenseSettlement[]        @relation("ExpenseSettlementVerifier")
+  estateNotifications       EstateNotification[]              @relation("EstateNotificationRecipient")
+  createdStaffInvitations     EstateStaffInvitation[]          @relation("StaffInvitationCreator")
+  acceptedStaffInvitations    EstateStaffInvitation[]          @relation("StaffInvitationAcceptor")
+
+  @@map("users")
+}
+
+model UserSession {
+  id               String    @id @default(uuid()) @db.Uuid
+  userId           String    @map("user_id") @db.Uuid
+  refreshTokenHash String    @unique @map("refresh_token_hash") @db.VarChar(128)
+  expiresAt        DateTime  @map("expires_at") @db.Timestamptz(3)
+  revokedAt        DateTime? @map("revoked_at") @db.Timestamptz(3)
+  rotatedFromId    String?   @map("rotated_from_id") @db.Uuid
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@index([revokedAt, expiresAt])
+  @@map("user_sessions")
+}
+
+model PlatformRoleGrant {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  roleKey     String   @map("role_key") @db.VarChar(80)
+  grantedById String?  @map("granted_by_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, roleKey])
+  @@index([roleKey, userId])
+  @@map("platform_role_grants")
+}
+
+model EstateApplication {
+  id                     String                      @id @default(uuid()) @db.Uuid
+  applicationCode        String                      @unique @map("application_code") @db.VarChar(40)
+  applicantUserId        String                      @map("applicant_user_id") @db.Uuid
+  proposedName           String                      @default("") @map("proposed_name") @db.VarChar(200)
+  estateType             String                      @default("") @map("estate_type") @db.VarChar(80)
+  address                String                      @default("") @db.VarChar(300)
+  state                  String                      @default("") @db.VarChar(100)
+  lga                    String                      @default("") @db.VarChar(100)
+  latitude               Decimal?                    @db.Decimal(9, 6)
+  longitude              Decimal?                    @db.Decimal(9, 6)
+  applicantRelationship  String                      @default("") @map("applicant_relationship") @db.VarChar(100)
+  applicantContactName   String                      @default("") @map("applicant_contact_name") @db.VarChar(200)
+  applicantContactEmail  String                      @default("") @map("applicant_contact_email") @db.VarChar(254)
+  applicantContactPhone  String                      @default("") @map("applicant_contact_phone") @db.VarChar(50)
+  managementEntityName   String                      @default("") @map("management_entity_name") @db.VarChar(200)
+  registrationNumber     String?                     @map("registration_number") @db.VarChar(100)
+  homeCount              Int?                        @map("home_count")
+  phaseCount             Int?                        @map("phase_count")
+  structureSummary       String?                     @map("structure_summary") @db.VarChar(500)
+  status                 ApplicationStatus           @default(DRAFT)
+  submittedAt            DateTime?                   @map("submitted_at") @db.Timestamptz(3)
+  assignedReviewerUserId String?                     @map("assigned_reviewer_user_id") @db.Uuid
+  decisionReason         String?                     @map("decision_reason") @db.VarChar(2000)
+  decidedByUserId        String?                     @map("decided_by_user_id") @db.Uuid
+  decidedAt              DateTime?                   @map("decided_at") @db.Timestamptz(3)
+  initialAdministratorId String?                     @map("initial_administrator_id") @db.Uuid
+  createdAt              DateTime                    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt              DateTime                    @updatedAt @map("updated_at") @db.Timestamptz(3)
+  applicant              User                        @relation("ApplicationApplicant", fields: [applicantUserId], references: [id], onDelete: Restrict)
+  assignedReviewer       User?                       @relation("ApplicationReviewer", fields: [assignedReviewerUserId], references: [id], onDelete: Restrict)
+  decidedBy              User?                       @relation("ApplicationApprover", fields: [decidedByUserId], references: [id], onDelete: Restrict)
+  initialAdministrator   User?                       @relation("ApplicationInitialAdmin", fields: [initialAdministratorId], references: [id], onDelete: Restrict)
+  documents              EstateApplicationDocument[]
+  approvedEstate         Estate?
+
+  @@index([applicantUserId, createdAt])
+  @@index([status, submittedAt])
+  @@index([assignedReviewerUserId, status, submittedAt])
+  @@map("estate_applications")
+}
+
+model EstateApplicationDocument {
+  id                 String                    @id @default(uuid()) @db.Uuid
+  applicationId      String                    @map("application_id") @db.Uuid
+  category           String                    @db.VarChar(80)
+  displayName        String                    @map("display_name") @db.VarChar(160)
+  objectKey          String                    @map("object_key") @db.VarChar(500)
+  contentType        String                    @map("content_type") @db.VarChar(120)
+  byteSize           BigInt                    @map("byte_size")
+  checksum           String?                   @db.VarChar(128)
+  status             ApplicationDocumentStatus @default(PENDING)
+  uploadedAt         DateTime                  @default(now()) @map("uploaded_at") @db.Timestamptz(3)
+  reviewedAt         DateTime?                 @map("reviewed_at") @db.Timestamptz(3)
+  reviewNote         String?                   @map("review_note") @db.VarChar(1000)
+  idempotencyKeyHash String?                   @map("idempotency_key_hash") @db.VarChar(64)
+  payloadHash        String?                   @map("payload_hash") @db.VarChar(64)
+  application        EstateApplication         @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+
+  @@unique([applicationId, idempotencyKeyHash])
+  @@index([applicationId, status])
+  @@map("estate_application_documents")
+}
+
+model Estate {
+  id                      String                          @id @default(uuid()) @db.Uuid
+  estateCode              String                          @unique @map("estate_code") @db.VarChar(40)
+  approvedApplicationId   String                          @unique @map("approved_application_id") @db.Uuid
+  name                    String                          @db.VarChar(200)
+  estateType              String                          @map("estate_type") @db.VarChar(80)
+  address                 String                          @db.VarChar(300)
+  state                   String                          @db.VarChar(100)
+  lga                     String                          @db.VarChar(100)
+  status                  EstateStatus                    @default(ACTIVE)
+  activatedAt             DateTime                        @map("activated_at") @db.Timestamptz(3)
+  createdAt               DateTime                        @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt               DateTime                        @updatedAt @map("updated_at") @db.Timestamptz(3)
+  approvedApplication     EstateApplication               @relation(fields: [approvedApplicationId], references: [id], onDelete: Restrict)
+  memberships             EstateMembership[]
+  properties              EstateProperty[]
+  structureNodes          EstateStructureNode[]
+  residentJoinRequests    EstateResidentJoinRequest[]
+  occupancies             PropertyOccupancy[]
+  ownershipInterests      EstateOwnershipInterest[]
+  tenancies               EstateTenancy[]
+  maintenanceNoticeOutbox EstateMaintenanceNoticeOutbox[]
+
+  maintenanceRequests     EstateMaintenanceRequest[]
+  visitorPasses           EstateVisitorPass[]
+  visitorPassIdempotency  EstateVisitorPassIdempotency[]
+  visitorPassNoticeOutbox EstateVisitorPassNoticeOutbox[]
+  gates                   EstateGate[]
+  gateAssignments         EstateGateAssignment[]
+  visitorVisits           EstateVisitorVisit[]
+  accessEvents            EstateAccessEvent[]
+  gateCheckInIdempotency  EstateGateCheckInIdempotency[]
+
+  chargeDefinitions  EstateChargeDefinition[]
+  invoiceDrafts      EstateInvoiceDraft[]
+  settlementPolicies EstateSettlementPolicy[]
+  invoiceSettlements EstateInvoiceSettlement[]
+  announcements      EstateAnnouncement[]
+  facilities         EstateFacility[]
+  facilityBookings   EstateFacilityBooking[]
+  securityIncidents  EstateSecurityIncident[]
+  staffInvitations   EstateStaffInvitation[]
+  expensePolicy      EstateExpensePolicy?
+  expenseCategories  EstateExpenseCategory[]
+  expensePayees      EstateExpensePayee[]
+  expenseRequests    EstateExpenseRequest[]
+  budgets            EstateBudget[]
+  notifications      EstateNotification[]
+
+  @@map("estates")
+}
+
+model EstateMembership {
+  id        String                 @id @default(uuid()) @db.Uuid
+  estateId  String                 @map("estate_id") @db.Uuid
+  userId    String                 @map("user_id") @db.Uuid
+  role      EstateRole
+  status    EstateMembershipStatus @default(ACTIVE)
+  createdAt DateTime               @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime               @updatedAt @map("updated_at") @db.Timestamptz(3)
+  estate    Estate                 @relation(fields: [estateId], references: [id], onDelete: Restrict)
+  user      User                   @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@unique([estateId, userId, role])
+  @@index([userId, status])
+  @@index([estateId, status])
+  @@map("estate_memberships")
+}
+
+model EstateProperty {
+  id                   String                      @id @default(uuid()) @db.Uuid
+  estateId             String                      @map("estate_id") @db.Uuid
+  code                 String                      @db.VarChar(80)
+  propertyType         String                      @map("property_type") @db.VarChar(80)
+  status               PropertyStatus              @default(ACTIVE)
+  unitNumber           String?                     @map("unit_number") @db.VarChar(80)
+  address              String?                     @db.VarChar(240)
+  description          String?                     @db.VarChar(700)
+  latitude             Decimal?                    @db.Decimal(9, 6)
+  longitude            Decimal?                    @db.Decimal(9, 6)
+  archivedAt           DateTime?                   @map("archived_at") @db.Timestamptz(3)
+  createdByUserId      String                      @map("created_by_user_id") @db.Uuid
+  updatedByUserId      String?                     @map("updated_by_user_id") @db.Uuid
+  createdAt            DateTime                    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt            DateTime                    @updatedAt @map("updated_at") @db.Timestamptz(3)
+  estate               Estate                      @relation(fields: [estateId], references: [id], onDelete: Restrict)
+  structureLinks       EstatePropertyStructure[]
+  residentJoinRequests EstateResidentJoinRequest[]
+  occupancies          PropertyOccupancy[]
+  ownershipInterests   EstateOwnershipInterest[]
+  tenancies            EstateTenancy[]
+  createdBy            User                        @relation("PropertyCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  updatedBy            User?                       @relation("PropertyUpdater", fields: [updatedByUserId], references: [id], onDelete: Restrict)
+  maintenanceRequests  EstateMaintenanceRequest[]
+  visitorPasses        EstateVisitorPass[]
+  visitorVisits        EstateVisitorVisit[]
+  chargeVersions       EstateChargeVersion[]
+  invoiceDrafts        EstateInvoiceDraft[]
+  facilityBookings     EstateFacilityBooking[]
+
+  @@unique([estateId, code])
+  @@unique([estateId, id])
+  @@index([estateId, status, createdAt])
+  @@map("estate_properties")
+}
+
+enum StructureNodeType {
+  ZONE
+  STREET
+  BUILDING
+  FLOOR
+}
+
+enum StructureNodeStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum ResidentJoinRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum PropertyOccupancyRelationship {
+  OWNER
+  TENANT
+  HOUSEHOLD_MEMBER
+  AUTHORIZED_OCCUPANT
+}
+
+enum PropertyOccupancyStatus {
+  ACTIVE
+  ENDED
+}
+
+enum OwnershipInterestStatus {
+  ACTIVE
+  ENDED
+}
+
+enum OwnershipVerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum TenancyStatus {
+  PENDING_APPROVAL
+  ACTIVE
+  ENDED
+  TERMINATED
+  CANCELLED
+}
+
+enum MaintenanceRequestStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  ASSIGNED
+  IN_PROGRESS
+  AWAITING_PARTS
+  RESOLVED
+  CLOSED
+  REJECTED
+  REOPENED
+}
+
+enum MaintenanceUpdateVisibility {
+  RESIDENT_VISIBLE
+  INTERNAL
+}
+
+enum RentFrequency {
+  MONTHLY
+  QUARTERLY
+  ANNUALLY
+}
+
+enum EstateChargeRecurrence {
+  ONE_TIME
+  MONTHLY
+  QUARTERLY
+  ANNUALLY
+}
+
+enum EstateChargeScope {
+  ESTATE
+  PROPERTY
+  PROPERTY_TYPE
+}
+
+enum EstateChargeVersionStatus {
+  DRAFT
+  ACTIVE
+  RETIRED
+}
+
+enum EstateInvoiceDraftStatus {
+  DRAFT
+  ISSUED
+  PARTIALLY_PAID
+  PAID
+  CANCELLED
+}
+
+enum EstateSettlementPolicyStatus {
+  DRAFT
+  ACTIVE
+  RETIRED
+}
+
+enum EstateAnnouncementStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum EstateAnnouncementPriority {
+  NORMAL
+  EMERGENCY
+}
+
+enum EstateFacilityApprovalMode {
+  MANUAL
+  AUTOMATIC
+}
+
+enum EstateFacilityBookingStatus {
+  PENDING_REVIEW
+  CONFIRMED
+  DECLINED
+  CANCELLED
+  COMPLETED
+}
+
+model EstateStructureNode {
+  id           String                    @id @default(uuid()) @db.Uuid
+  estateId     String                    @map("estate_id") @db.Uuid
+  type         StructureNodeType
+  name         String                    @db.VarChar(120)
+  code         String?                   @db.VarChar(60)
+  buildingType String?                   @map("building_type") @db.VarChar(80)
+  floorCount   Int?                      @map("floor_count")
+  sortOrder    Int                       @default(0) @map("sort_order")
+  status       StructureNodeStatus       @default(ACTIVE)
+  createdById  String                    @map("created_by_id") @db.Uuid
+  updatedById  String?                   @map("updated_by_id") @db.Uuid
+  archivedAt   DateTime?                 @map("archived_at") @db.Timestamptz(3)
+  createdAt    DateTime                  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  estate       Estate                    @relation(fields: [estateId], references: [id], onDelete: Restrict)
+  createdBy    User                      @relation("StructureCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy    User?                     @relation("StructureUpdater", fields: [updatedById], references: [id], onDelete: Restrict)
+  parents      EstateStructureParent[]   @relation("StructureChild")
+  children     EstateStructureParent[]   @relation("StructureParent")
+  properties   EstatePropertyStructure[]
+
+  @@unique([estateId, type, code])
+  @@index([estateId, type, status, sortOrder])
+  @@map("estate_structure_nodes")
+}
+
+model EstateStructureParent {
+  childId  String              @map("child_id") @db.Uuid
+  parentId String              @map("parent_id") @db.Uuid
+  child    EstateStructureNode @relation("StructureChild", fields: [childId], references: [id], onDelete: Restrict)
+  parent   EstateStructureNode @relation("StructureParent", fields: [parentId], references: [id], onDelete: Restrict)
+
+  @@id([childId, parentId])
+  @@index([parentId])
+  @@map("estate_structure_parents")
+}
+
+model EstatePropertyStructure {
+  propertyId String              @map("property_id") @db.Uuid
+  nodeId     String              @map("node_id") @db.Uuid
+  property   EstateProperty      @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  node       EstateStructureNode @relation(fields: [nodeId], references: [id], onDelete: Restrict)
+
+  @@id([propertyId, nodeId])
+  @@index([nodeId])
+  @@map("estate_property_structure")
+}
+
+model EstateResidentJoinRequest {
+  id             String                         @id @default(uuid()) @db.Uuid
+  estateId       String                         @map("estate_id") @db.Uuid
+  propertyId     String?                        @map("property_id") @db.Uuid
+  applicantId    String                         @map("applicant_id") @db.Uuid
+  relationship   PropertyOccupancyRelationship?
+  note           String?                        @db.VarChar(1000)
+  status         ResidentJoinRequestStatus      @default(PENDING)
+  submittedAt    DateTime                       @default(now()) @map("submitted_at") @db.Timestamptz(3)
+  reviewedById   String?                        @map("reviewed_by_id") @db.Uuid
+  reviewedAt     DateTime?                      @map("reviewed_at") @db.Timestamptz(3)
+  decisionReason String?                        @map("decision_reason") @db.VarChar(1000)
+  createdAt      DateTime                       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime                       @updatedAt @map("updated_at") @db.Timestamptz(3)
+  estate         Estate                         @relation(fields: [estateId], references: [id], onDelete: Restrict)
+  property       EstateProperty?                @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  applicant      User                           @relation("JoinRequestApplicant", fields: [applicantId], references: [id], onDelete: Restrict)
+  reviewedBy     User?                          @relation("JoinRequestReviewer", fields: [reviewedById], references: [id], onDelete: Restrict)
+
+  @@index([estateId, status, submittedAt])
+  @@index([applicantId, submittedAt])
+  @@map("estate_resident_join_requests")
+}
+
+model PropertyOccupancy {
+  id                    String                        @id @default(uuid()) @db.Uuid
+  estateId              String                        @map("estate_id") @db.Uuid
+  propertyId            String                        @map("property_id") @db.Uuid
+  residentId            String                        @map("resident_id") @db.Uuid
+  relationship          PropertyOccupancyRelationship
+  status                PropertyOccupancyStatus       @default(ACTIVE)
+  effectiveFrom         DateTime                      @map("effective_from") @db.Date
+  effectiveTo           DateTime?                     @map("effective_to") @db.Date
+  approvedFromRequestId String?                       @unique @map("approved_from_request_id") @db.Uuid
+  tenancyId             String?                       @unique @map("tenancy_id") @db.Uuid
+  createdById           String                        @map("created_by_id") @db.Uuid
+  endedById             String?                       @map("ended_by_id") @db.Uuid
+  createdAt             DateTime                      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime                      @updatedAt @map("updated_at") @db.Timestamptz(3)
+  estate                Estate                        @relation(fields: [estateId], references: [id], onDelete: Restrict)
+  property              EstateProperty                @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  resident              User                          @relation("OccupancyResident", fields: [residentId], references: [id], onDelete: Restrict)
+  createdBy             User                          @relation("OccupancyCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  endedBy               User?                         @relation("OccupancyEnder", fields: [endedById], references: [id], onDelete: Restrict)
+  tenancy               EstateTenancy?                @relation(fields: [tenancyId], references: [id], onDelete: Restrict)
+
+  @@index([estateId, propertyId, status])
+  @@index([residentId, status, effectiveFrom])
+  @@map("property_occupancies")
+}
+
+model EstateTenancy {
+  id                       String             @id @default(uuid()) @db.Uuid
+  estateId                 String             @map("estate_id") @db.Uuid
+  propertyId               String             @map("property_id") @db.Uuid
+  tenantUserId             String             @map("tenant_user_id") @db.Uuid
+  payeeUserId              String             @map("payee_user_id") @db.Uuid
+  status                   TenancyStatus      @default(PENDING_APPROVAL)
+  rentAmount               Decimal            @map("rent_amount") @db.Decimal(12, 2)
+  currency                 String             @db.VarChar(3)
+  rentFrequency            RentFrequency      @map("rent_frequency")
+  rentDueDay               Int                @map("rent_due_day")
+  depositAmount            Decimal?           @map("deposit_amount") @db.Decimal(12, 2)
+  effectiveFrom            DateTime           @map("effective_from") @db.Date
+  effectiveTo              DateTime?          @map("effective_to") @db.Date
+  termsNote                String?            @map("terms_note") @db.VarChar(2000)
+  createdById              String             @map("created_by_id") @db.Uuid
+  approvedById             String?            @map("approved_by_id") @db.Uuid
+  approvedAt               DateTime?          @map("approved_at") @db.Timestamptz(3)
+  terminatedById           String?            @map("terminated_by_id") @db.Uuid
+  terminatedAt             DateTime?          @map("terminated_at") @db.Timestamptz(3)
+  terminationEffectiveDate DateTime?          @map("termination_effective_date") @db.Date
+  terminationReason        String?            @map("termination_reason") @db.VarChar(1000)
+  createdAt                DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+  estate                   Estate             @relation(fields: [estateId], references: [id], onDelete: Restrict)
+  property                 EstateProperty     @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  tenant                   User               @relation("TenancyTenant", fields: [tenantUserId], references: [id], onDelete: Restrict)
+  payee                    User               @relation("TenancyPayee", fields: [payeeUserId], references: [id], onDelete: Restrict)
+  createdBy                User               @relation("TenancyCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  approvedBy               User?              @relation("TenancyApprover", fields: [approvedById], references: [id], onDelete: Restrict)
+  terminatedBy             User?              @relation("TenancyTerminator", fields: [terminatedById], references: [id], onDelete: Restrict)
+  occupancy                PropertyOccupancy?
+
+  @@index([estateId, status, effectiveFrom])
+  @@index([tenantUserId, status, effectiveFrom])
+  @@index([payeeUserId, status, effectiveFrom])
+  @@index([propertyId, status, effectiveFrom])
+  @@map("estate_tenancies")
+}
+
+model EstateChargeDefinition {
+  id          String                @id @default(uuid()) @db.Uuid
+  estateId    String                @map("estate_id") @db.Uuid
+  code        String                @db.VarChar(40)
+  createdById String                @map("created_by_id") @db.Uuid
+  createdAt   DateTime              @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime              @updatedAt @map("updated_at") @db.Timestamptz(3)
+  estate      Estate                @relation(fields: [estateId], references: [id], onDelete: Restrict)
+  createdBy   User                  @relation("EstateChargeCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  versions    EstateChargeVersion[]
+
+  @@unique([estateId, code])
+  @@index([estateId, createdAt])
+  @@map("estate_charge_definitions")
+}
+
+model EstateChargeVersion {
+  id            String                    @id @default(uuid()) @db.Uuid
+  chargeId      String                    @map("charge_id") @db.Uuid
+  versionNumber Int                       @map("version_number")
+  name          String                    @db.VarChar(120)
+  description   String?                   @db.VarChar(500)
+  category      String                    @db.VarChar(40)
+  amount        Decimal                   @db.Decimal(12, 2)
+  currency      String                    @db.VarChar(3)
+  recurrence    EstateChargeRecurrence
+  effectiveFrom DateTime                  @map("effective_from") @db.Date
+  effectiveTo   DateTime?                 @map("effective_to") @db.Date
+  dueDay        Int                       @map("due_day")
+  graceDays     Int                       @default(0) @map("grace_days")
+  appliesTo     EstateChargeScope         @map("applies_to")
+  propertyId    String?                   @map("property_id") @db.Uuid
+  propertyType  String?                   @map("property_type") @db.VarChar(80)
+  status        EstateChargeVersionStatus @default(DRAFT)
+  createdById   String                    @map("created_by_id") @db.Uuid
+  activatedById String?                   @map("activated_by_id") @db.Uuid
+  activatedAt   DateTime?                 @map("activated_at") @db.Timestamptz(3)
+  createdAt     DateTime                  @default(now()) @map("created_at") @db.Timestamptz(3)
+  charge        EstateChargeDefinition    @relation(fields: [chargeId], references: [id], onDelete: Restrict)
+  property      EstateProperty?           @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  createdBy     User                      @relation("EstateChargeVersionCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  activatedBy   User?                     @relation("EstateChargeVersionActivator", fields: [activatedById], references: [id], onDelete: Restrict)
+  invoiceDrafts EstateInvoiceDraft[]
+
+  @@unique([chargeId, versionNumber])
+  @@index([chargeId, status, effectiveFrom])
+  @@map("estate_charge_versions")
+}
+
+model EstateInvoiceDraft {
+  id                 String                    @id @default(uuid()) @db.Uuid
+  estateId           String                    @map("estate_id") @db.Uuid
+  invoiceNumber      String                    @map("invoice_number") @db.VarChar(40)
+  chargeVersionId    String                    @map("charge_version_id") @db.Uuid
+  propertyId         String                    @map("property_id") @db.Uuid
+  payerUserId        String                    @map("payer_user_id") @db.Uuid
+  createdById        String                    @map("created_by_id") @db.Uuid
+  periodStart        DateTime                  @map("period_start") @db.Date
+  periodEnd          DateTime                  @map("period_end") @db.Date
+  dueDate            DateTime                  @map("due_date") @db.Date
+  currency           String                    @db.VarChar(3)
+  subtotal           Decimal                   @db.Decimal(12, 2)
+  total              Decimal                   @db.Decimal(12, 2)
+  lineSnapshot       Json                      @map("line_snapshot")
+  status             EstateInvoiceDraftStatus  @default(DRAFT)
+  idempotencyKeyHash String                    @map("idempotency_key_hash") @db.VarChar(64)
+  payloadHash        String                    @map("payload_hash") @db.VarChar(64)
+  settlementPolicyId String?                   @map("settlement_policy_id") @db.Uuid
+  settlementSnapshot Json?                     @map("settlement_snapshot")
+  issuedAt           DateTime?                 @map("issued_at") @db.Timestamptz(3)
+  createdAt          DateTime                  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  estate             Estate                    @relation(fields: [estateId], references: [id], onDelete: Restrict)
+  chargeVersion      EstateChargeVersion       @relation(fields: [chargeVersionId], references: [id], onDelete: Restrict)
+  property           EstateProperty            @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  payer              User                      @relation("EstateInvoicePayer", fields: [payerUserId], references: [id], onDelete: Restrict)
+  createdBy          User                      @relation("EstateInvoiceCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  settlementPolicy   EstateSettlementPolicy?   @relation(fields: [settlementPolicyId], references: [id], onDelete: Restrict)
+  settlements        EstateInvoiceSettlement[]
+
+  @@unique([estateId, invoiceNumber])
+  @@unique([createdById, estateId, idempotencyKeyHash])
+  @@unique([estateId, chargeVersionId, propertyId, payerUserId, periodStart, periodEnd])
+  @@index([estateId, status, dueDate])
+  @@index([payerUserId, status, dueDate])
+  @@map("estate_invoice_drafts")
+}
+
+model EstateSettlementPolicy {
+  id                     String                       @id @default(uuid()) @db.Uuid
+  estateId               String                       @map("estate_id") @db.Uuid
+  currency               String                       @db.VarChar(3)
+  bankName               String                       @map("bank_name") @db.VarChar(100)
+  accountName            String                       @map("account_name") @db.VarChar(120)
+  accountNumber          String                       @map("account_number") @db.VarChar(34)
+  paymentReferenceFormat String                       @map("payment_reference_format") @db.VarChar(200)
+  status                 EstateSettlementPolicyStatus @default(DRAFT)
+  createdById            String                       @map("created_by_id") @db.Uuid
+  createdAt              DateTime                     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt              DateTime                     @updatedAt @map("updated_at") @db.Timestamptz(3)
+  estate                 Estate                       @relation(fields: [estateId], references: [id], onDelete: Restrict)
+  createdBy              User                         @relation("EstateSettlementPolicyCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  invoices               EstateInvoiceDraft[]
+
+  @@index([estateId, currency, status])
+  @@map("estate_settlement_policies")
+}
+
+model EstateInvoiceSettlement {
+  id                      String             @id @default(uuid()) @db.Uuid
+  estateId                String             @map("estate_id") @db.Uuid
+  invoiceId               String             @map("invoice_id") @db.Uuid
+  verifiedById            String             @map("verified_by_id") @db.Uuid
+  amount                  Decimal            @db.Decimal(12, 2)
+  currency                String             @db.VarChar(3)
+  bankReference           String             @map("bank_reference") @db.VarChar(120)
+  normalizedBankReference String             @map("normalized_bank_reference") @db.VarChar(120)
+  receiptNumber           String             @unique @map("receipt_number") @db.VarChar(40)
+  receivedAt              DateTime           @map("received_at") @db.Timestamptz(3)
+  verificationNote        String             @map("verification_note") @db.VarChar(500)
+  createdAt               DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  estate                  Estate             @relation(fields: [estateId], references: [id], onDelete: Restrict)
+  invoice                 EstateInvoiceDraft @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  verifiedBy              User               @relation("InvoiceSettlementVerifier", fields: [verifiedById], references: [id], onDelete: Restrict)
+
+  @@unique([estateId, normalizedBankReference])
+  @@index([invoiceId, receivedAt])
+  @@index([estateId, receivedAt])
+  @@map("estate_invoice_settlements")
+}
+
+model EstateAnnouncement {
+  id          String                     @id @default(uuid()) @db.Uuid
+  estateId    String                     @map("estate_id") @db.Uuid
+  title       String                     @db.VarChar(160)
+  body        String                     @db.VarChar(5000)
+  priority    EstateAnnouncementPriority @default(NORMAL)
+  audience    String                     @default("ALL_RESIDENTS") @db.VarChar(40)
+  status      EstateAnnouncementStatus   @default(DRAFT)
+  createdById String                     @map("created_by_id") @db.Uuid
+  publishedAt DateTime?                  @map("published_at") @db.Timestamptz(3)
+  createdAt   DateTime                   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime                   @updatedAt @map("updated_at") @db.Timestamptz(3)
+  estate      Estate                     @relation(fields: [estateId], references: [id], onDelete: Restrict)
+  createdBy   User                       @relation("EstateAnnouncementCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  reads       EstateAnnouncementRead[]
+
+  @@index([estateId, status, publishedAt])
+  @@map("estate_announcements")
+}
+
+model EstateAnnouncementRead {
+  id             String             @id @default(uuid()) @db.Uuid
+  announcementId String             @map("announcement_id") @db.Uuid
+  userId         String             @map("user_id") @db.Uuid
+  readAt         DateTime           @default(now()) @map("read_at") @db.Timestamptz(3)
+  announcement   EstateAnnouncement @relation(fields: [announcementId], references: [id], onDelete: Restrict)
+  user           User               @relation("EstateAnnouncementReader", fields: [userId], references: [id], onDelete: Restrict)
+
+  @@unique([announcementId, userId])
+  @@index([userId, readAt])
+  @@map("estate_announcement_reads")
+}
+
+enum EstateSecurityIncidentStatus {
+  REPORTED
+  ACKNOWLEDGED
+  INVESTIGATING
+  RESOLVED
+  CLOSED
+}
+
+model EstateSecurityIncident {
+  id                  String                       @id @default(uuid()) @db.Uuid
+  estateId            String                       @map("estate_id") @db.Uuid
+  reference           String                       @db.VarChar(32)
+  category            String                       @db.VarChar(60)
+  priority            String                       @db.VarChar(20)
+  description         String                       @db.VarChar(1000)
+  locationDescription String?                      @map("location_description") @db.VarChar(120)
+  observedAt          DateTime                     @map("observed_at") @db.Timestamptz(3)
+  status              EstateSecurityIncidentStatus @default(REPORTED)
+  reporterUserId      String                       @map("reporter_user_id") @db.Uuid
+  reviewedByUserId    String?                      @map("reviewed_by_user_id") @db.Uuid
+  resolutionSummary   String?                      @map("resolution_summary") @db.VarChar(1000)
+  createdAt           DateTime                     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt           DateTime                     @updatedAt @map("updated_at") @db.Timestamptz(3)
+  estate              Estate                       @relation(fields: [estateId], references: [id], onDelete: Restrict)
+  reporter            User                         @relation("IncidentReporter", fields: [reporterUserId], references: [id], onDelete: Restrict)
+  reviewer            User?                        @relation("IncidentReviewer", fields: [reviewedByUserId], references: [id], onDelete: Restrict)
+  history             EstateSecurityIncidentHistory[]
+  evidence            EstateSecurityIncidentEvidence[]
+
+  @@unique([estateId, reference])
+  @@index([estateId, status, createdAt])
+  @@index([reporterUserId, estateId, createdAt])
+  @@map("estate_security_incidents")
+}
+
+model EstateSecurityIncidentHistory {
+  id          String                       @id @default(uuid()) @db.Uuid
+  incidentId  String                       @map("incident_id") @db.Uuid
+  actorUserId String                       @map("actor_user_id") @db.Uuid
+  fromStatus  EstateSecurityIncidentStatus? @map("from_status")
+  toStatus    EstateSecurityIncidentStatus @map("to_status")
+  note        String?                      @db.VarChar(1000)
+  occurredAt  DateTime                     @map("occurred_at") @db.Timestamptz(3)
+  incident    EstateSecurityIncident       @relation(fields: [incidentId], references: [id], onDelete: Restrict)
+  actor       User                         @relation("IncidentHistoryActor", fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([incidentId, occurredAt])
+  @@map("estate_security_incident_history")
+}
+
+model EstateSecurityIncidentEvidence {
+  id                     String                @id @default(uuid()) @db.Uuid
+  incidentId             String                @map("incident_id") @db.Uuid
+  uploadedByUserId       String                @map("uploaded_by_user_id") @db.Uuid
+  displayName            String                @map("display_name") @db.VarChar(160)
+  objectKey              String                @map("object_key") @db.VarChar(500)
+  contentType            String                @map("content_type") @db.VarChar(120)
+  byteSize               BigInt                @map("byte_size")
+  checksum               String                @db.VarChar(64)
+  idempotencyKeyHash     String                @map("idempotency_key_hash") @db.VarChar(64)
+  payloadHash            String                @map("payload_hash") @db.VarChar(64)
+  uploadedAt             DateTime              @default(now()) @map("uploaded_at") @db.Timestamptz(3)
+  incident               EstateSecurityIncident @relation(fields: [incidentId], references: [id], onDelete: Restrict)
+  uploadedBy             User                  @relation("IncidentEvidenceUploader", fields: [uploadedByUserId], references: [id], onDelete: Restrict)
+
+  @@unique([incidentId, uploadedByUserId, idempotencyKeyHash])
+  @@index([incidentId, uploadedAt])
+  @@map("estate_security_incident_evidence")
+}
+
+model EstateExpensePolicy {
+  id                        String   @id @default(uuid()) @db.Uuid
+  estateId                  String   @unique @map("estate_id") @db.Uuid
+  version                   Int      @default(1)
+  approvalStages            Json     @map("approval_stages")
+  allowUnbudgeted           Boolean  @default(true) @map("allow_unbudgeted")
+  preventRequesterApproval  Boolean  @default(true) @map("prevent_requester_approval")
+  requireDistinctApprovers  Boolean  @default(true) @map("require_distinct_approvers")
+  updatedById               String   @map("updated_by_id") @db.Uuid
+  updatedAt                 DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  estate                    Estate   @relation(fields: [estateId], references: [id], onDelete: Restrict)
+  updatedBy                 User     @relation("ExpensePolicyUpdater", fields: [updatedById], references: [id], onDelete: Restrict)
+
+  @@map("estate_expense_policies")
+}
+
+model EstateExpenseCategory {
+  id          String   @id @default(uuid()) @db.Uuid
+  estateId    String   @map("estate_id") @db.Uuid
+  code        String   @db.VarChar(60)
+  name        String   @db.VarChar(120)
+  active      Boolean  @default(true)
+  createdById String   @map("created_by_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  estate      Estate   @relation(fields: [estateId], references: [id], onDelete: Restrict)
+  createdBy   User     @relation("ExpenseCategoryCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  expenses    EstateExpenseRequest[]
+  budgetLines EstateBudgetLine[]
+
+  @@unique([estateId, code])
+  @@unique([estateId, id])
+  @@index([estateId, active, name])
+  @@map("estate_expense_categories")
+}
+
+model EstateBudget {
+  id             String            @id @default(uuid()) @db.Uuid
+  estateId       String            @map("estate_id") @db.Uuid
+  version        Int               @default(1)
+  periodStart    DateTime          @map("period_start") @db.Date
+  periodEnd      DateTime          @map("period_end") @db.Date
+  currency       String            @db.VarChar(3)
+  status         EstateBudgetStatus @default(DRAFT)
+  createdById    String            @map("created_by_id") @db.Uuid
+  submittedAt    DateTime?         @map("submitted_at") @db.Timestamptz(3)
+  approvedById   String?           @map("approved_by_id") @db.Uuid
+  approvedAt     DateTime?         @map("approved_at") @db.Timestamptz(3)
+  createdAt      DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+  estate         Estate            @relation(fields: [estateId], references: [id], onDelete: Restrict)
+  createdBy      User              @relation("EstateBudgetCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  approvedBy     User?             @relation("EstateBudgetApprover", fields: [approvedById], references: [id], onDelete: Restrict)
+  lines          EstateBudgetLine[]
+  decisions      EstateBudgetDecision[]
+
+  @@unique([estateId, id])
+  @@unique([estateId, periodStart, periodEnd, version])
+  @@index([estateId, status, periodStart, periodEnd])
+  @@map("estate_budgets")
+}
+
+model EstateBudgetLine {
+  id             String               @id @default(uuid()) @db.Uuid
+  estateId       String               @map("estate_id") @db.Uuid
+  budgetId       String               @map("budget_id") @db.Uuid
+  categoryId     String               @map("category_id") @db.Uuid
+  allocatedAmount Decimal             @map("allocated_amount") @db.Decimal(12, 2)
+  createdAt      DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  budget         EstateBudget         @relation(fields: [estateId, budgetId], references: [estateId, id], onDelete: Restrict)
+  category       EstateExpenseCategory @relation(fields: [estateId, categoryId], references: [estateId, id], onDelete: Restrict)
+  expenses       EstateExpenseRequest[]
+
+  @@unique([estateId, id])
+  @@unique([budgetId, categoryId])
+  @@index([estateId, categoryId])
+  @@map("estate_budget_lines")
+}
+
+model EstateBudgetDecision {
+  id          String             @id @default(uuid()) @db.Uuid
+  budgetId    String             @map("budget_id") @db.Uuid
+  actorUserId String             @map("actor_user_id") @db.Uuid
+  decision    EstateBudgetStatus
+  reason      String?            @db.VarChar(1000)
+  occurredAt  DateTime           @map("occurred_at") @db.Timestamptz(3)
+  budget      EstateBudget       @relation(fields: [budgetId], references: [id], onDelete: Restrict)
+  actor       User               @relation("EstateBudgetDecisionActor", fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([budgetId, occurredAt])
+  @@map("estate_budget_decisions")
+}
+
+model EstateExpensePayee {
+  id                   String   @id @default(uuid()) @db.Uuid
+  estateId             String   @map("estate_id") @db.Uuid
+  reference            String   @db.VarChar(60)
+  displayName          String   @map("display_name") @db.VarChar(160)
+  currency             String   @db.VarChar(3)
+  destinationReference String   @map("destination_reference") @db.VarChar(120)
+  verifiedAt           DateTime? @map("verified_at") @db.Timestamptz(3)
+  verifiedById         String?  @map("verified_by_id") @db.Uuid
+  createdById          String   @map("created_by_id") @db.Uuid
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  estate               Estate   @relation(fields: [estateId], references: [id], onDelete: Restrict)
+  verifiedBy           User?    @relation("ExpensePayeeVerifier", fields: [verifiedById], references: [id], onDelete: Restrict)
+  createdBy            User     @relation("ExpensePayeeCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  expenses             EstateExpenseRequest[]
+
+  @@unique([estateId, reference])
+  @@unique([estateId, id])
+  @@index([estateId, verifiedAt])
+  @@map("estate_expense_payees")
+}
+
+model EstateExpenseRequest {
+  id                         String              @id @default(uuid()) @db.Uuid
+  estateId                   String              @map("estate_id") @db.Uuid
+  code                       String              @db.VarChar(40)
+  requesterUserId            String              @map("requester_user_id") @db.Uuid
+  categoryId                 String              @map("category_id") @db.Uuid
+  payeeId                    String              @map("payee_id") @db.Uuid
+  budgetLineId               String?             @map("budget_line_id") @db.Uuid
+  description                String              @db.VarChar(1000)
+  amount                     Decimal             @db.Decimal(12, 2)
+  currency                   String              @db.VarChar(3)
+  neededBy                   DateTime?           @map("needed_by") @db.Date
+  status                     EstateExpenseStatus @default(DRAFT)
+  approvalPolicyVersion      Int?                @map("approval_policy_version")
+  approvalStageIndex         Int                 @default(0) @map("approval_stage_index")
+  approvedDestinationSnapshot String?            @map("approved_destination_snapshot") @db.VarChar(120)
+  submittedAt                DateTime?           @map("submitted_at") @db.Timestamptz(3)
+  idempotencyKeyHash         String              @map("idempotency_key_hash") @db.VarChar(64)
+  payloadHash                String              @map("payload_hash") @db.VarChar(64)
+  createdAt                  DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                  DateTime            @updatedAt @map("updated_at") @db.Timestamptz(3)
+  estate                     Estate              @relation(fields: [estateId], references: [id], onDelete: Restrict)
+  requester                  User                @relation("ExpenseRequester", fields: [requesterUserId], references: [id], onDelete: Restrict)
+  category                   EstateExpenseCategory @relation(fields: [estateId, categoryId], references: [estateId, id], onDelete: Restrict)
+  payee                      EstateExpensePayee   @relation(fields: [estateId, payeeId], references: [estateId, id], onDelete: Restrict)
+  budgetLine                 EstateBudgetLine?    @relation(fields: [estateId, budgetLineId], references: [estateId, id], onDelete: Restrict)
+  decisions                  EstateExpenseDecision[]
+  settlements                EstateExpenseSettlement[]
+
+  @@unique([estateId, code])
+  @@unique([estateId, id])
+  @@unique([estateId, requesterUserId, idempotencyKeyHash])
+  @@index([estateId, status, submittedAt])
+  @@index([requesterUserId, estateId, createdAt])
+  @@map("estate_expense_requests")
+}
+
+model EstateExpenseSettlement {
+  id                      String               @id @default(uuid()) @db.Uuid
+  estateId                String               @map("estate_id") @db.Uuid
+  expenseId               String               @map("expense_id") @db.Uuid
+  verifiedById            String               @map("verified_by_id") @db.Uuid
+  amount                  Decimal              @db.Decimal(12, 2)
+  currency                String               @db.VarChar(3)
+  bankReference           String               @map("bank_reference") @db.VarChar(120)
+  normalizedBankReference String               @map("normalized_bank_reference") @db.VarChar(120)
+  verificationNote        String               @map("verification_note") @db.VarChar(1000)
+  receiptNumber           String               @unique @map("receipt_number") @db.VarChar(40)
+  receivedAt              DateTime             @map("received_at") @db.Date
+  idempotencyKeyHash      String               @map("idempotency_key_hash") @db.VarChar(64)
+  payloadHash             String               @map("payload_hash") @db.VarChar(64)
+  createdAt               DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  expense                 EstateExpenseRequest @relation(fields: [estateId, expenseId], references: [estateId, id], onDelete: Restrict)
+  verifiedBy              User                 @relation("ExpenseSettlementVerifier", fields: [verifiedById], references: [id], onDelete: Restrict)
+
+  @@unique([estateId, normalizedBankReference])
+  @@unique([estateId, verifiedById, idempotencyKeyHash])
+  @@index([estateId, expenseId, receivedAt])
+  @@map("estate_expense_settlements")
+}
+
+model EstateNotification {
+  id                String                  @id @default(uuid()) @db.Uuid
+  estateId          String                  @map("estate_id") @db.Uuid
+  recipientUserId   String                  @map("recipient_user_id") @db.Uuid
+  eventKey          String                  @map("event_key") @db.VarChar(180)
+  type              EstateNotificationType
+  title             String                  @db.VarChar(180)
+  message           String                  @db.VarChar(1000)
+  sourceId          String                  @map("source_id") @db.Uuid
+  createdAt         DateTime                @default(now()) @map("created_at") @db.Timestamptz(3)
+  readAt            DateTime?               @map("read_at") @db.Timestamptz(3)
+  estate            Estate                  @relation(fields: [estateId], references: [id], onDelete: Restrict)
+  recipient         User                    @relation("EstateNotificationRecipient", fields: [recipientUserId], references: [id], onDelete: Restrict)
+
+  @@unique([estateId, recipientUserId, eventKey])
+  @@index([recipientUserId, readAt, createdAt])
+  @@index([estateId, type, createdAt])
+  @@map("estate_notifications")
+}
+
+model EstateExpenseDecision {
+  id              String               @id @default(uuid()) @db.Uuid
+  expenseId       String               @map("expense_id") @db.Uuid
+  stageIndex      Int                  @map("stage_index")
+  actorUserId     String               @map("actor_user_id") @db.Uuid
+  role            EstateRole
+  decision        EstateExpenseStatus
+  reason          String?              @db.VarChar(1000)
+  occurredAt      DateTime             @map("occurred_at") @db.Timestamptz(3)
+  expense         EstateExpenseRequest @relation(fields: [expenseId], references: [id], onDelete: Restrict)
+  actor           User                 @relation("ExpenseDecisionActor", fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@unique([expenseId, stageIndex])
+  @@index([expenseId, occurredAt])
+  @@index([actorUserId, occurredAt])
+  @@map("estate_expense_decisions")
+}
+
+enum EstateStaffInvitationStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+  EXPIRED
+}
+
+model EstateStaffInvitation {
+  id                String                       @id @default(uuid()) @db.Uuid
+  estateId          String                       @map("estate_id") @db.Uuid
+  emailNormalized   String                       @map("email_normalized") @db.VarChar(254)
+  role              EstateRole
+  tokenHash         String                       @unique @map("token_hash") @db.VarChar(64)
+  status            EstateStaffInvitationStatus  @default(PENDING)
+  createdById       String                       @map("created_by_id") @db.Uuid
+  acceptedById      String?                      @map("accepted_by_id") @db.Uuid
+  expiresAt         DateTime                     @map("expires_at") @db.Timestamptz(3)
+  acceptedAt        DateTime?                    @map("accepted_at") @db.Timestamptz(3)
+  revokedAt         DateTime?                    @map("revoked_at") @db.Timestamptz(3)
+  createdAt         DateTime                     @default(now()) @map("created_at") @db.Timestamptz(3)
+  estate            Estate                       @relation(fields: [estateId], references: [id], onDelete: Restrict)
+  createdBy         User                         @relation("StaffInvitationCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  acceptedBy        User?                        @relation("StaffInvitationAcceptor", fields: [acceptedById], references: [id], onDelete: Restrict)
+
+  @@index([estateId, status, expiresAt])
+  @@index([emailNormalized, status, expiresAt])
+  @@map("estate_staff_invitations")
+}
+
+model EstateFacility {
+  id               String                     @id @default(uuid()) @db.Uuid
+  estateId         String                     @map("estate_id") @db.Uuid
+  code             String                     @db.VarChar(60)
+  name             String                     @db.VarChar(120)
+  category         String                     @db.VarChar(60)
+  description      String                     @db.VarChar(700)
+  location         String                     @db.VarChar(160)
+  capacity         Int
+  durationMinutes  Int                        @map("duration_minutes")
+  openingTime      String                     @map("opening_time") @db.VarChar(5)
+  closingTime      String                     @map("closing_time") @db.VarChar(5)
+  bookingLeadHours Int                        @default(2) @map("booking_lead_hours")
+  approvalMode     EstateFacilityApprovalMode @default(MANUAL) @map("approval_mode")
+  policyVersion    Int                        @default(1) @map("policy_version")
+  active           Boolean                    @default(true)
+  createdById      String                     @map("created_by_id") @db.Uuid
+  createdAt        DateTime                   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt        DateTime                   @updatedAt @map("updated_at") @db.Timestamptz(3)
+  estate           Estate                     @relation(fields: [estateId], references: [id], onDelete: Restrict)
+  createdBy        User                       @relation("EstateFacilityCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  bookings         EstateFacilityBooking[]
+
+  @@unique([estateId, code])
+  @@index([estateId, active, category])
+  @@map("estate_facilities")
+}
+
+model EstateFacilityBooking {
+  id                 String                         @id @default(uuid()) @db.Uuid
+  reference          String                         @unique @db.VarChar(32)
+  estateId           String                         @map("estate_id") @db.Uuid
+  facilityId         String                         @map("facility_id") @db.Uuid
+  propertyId         String                         @map("property_id") @db.Uuid
+  requesterUserId    String                         @map("requester_user_id") @db.Uuid
+  reviewerUserId     String?                        @map("reviewer_user_id") @db.Uuid
+  startsAt           DateTime                       @map("starts_at") @db.Timestamptz(3)
+  endsAt             DateTime                       @map("ends_at") @db.Timestamptz(3)
+  attendeeCount      Int                            @map("attendee_count")
+  purpose            String?                        @db.VarChar(500)
+  policyVersion      Int                            @map("policy_version")
+  status             EstateFacilityBookingStatus    @default(PENDING_REVIEW)
+  reviewReason       String?                        @map("review_reason") @db.VarChar(1000)
+  reviewedAt         DateTime?                      @map("reviewed_at") @db.Timestamptz(3)
+  idempotencyKeyHash String                         @map("idempotency_key_hash") @db.VarChar(64)
+  payloadHash        String                         @map("payload_hash") @db.VarChar(64)
+  createdAt          DateTime                       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime                       @updatedAt @map("updated_at") @db.Timestamptz(3)
+  estate             Estate                         @relation(fields: [estateId], references: [id], onDelete: Restrict)
+  facility           EstateFacility                 @relation(fields: [facilityId], references: [id], onDelete: Restrict)
+  property           EstateProperty                 @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  requester          User                           @relation("FacilityBookingRequester", fields: [requesterUserId], references: [id], onDelete: Restrict)
+  reviewer           User?                          @relation("FacilityBookingReviewer", fields: [reviewerUserId], references: [id], onDelete: Restrict)
+  history            EstateFacilityBookingHistory[]
+
+  @@unique([requesterUserId, estateId, idempotencyKeyHash])
+  @@index([facilityId, status, startsAt, endsAt])
+  @@index([estateId, status, createdAt])
+  @@index([requesterUserId, estateId, startsAt])
+  @@map("estate_facility_bookings")
+}
+
+model EstateFacilityBookingHistory {
+  id          String                       @id @default(uuid()) @db.Uuid
+  bookingId   String                       @map("booking_id") @db.Uuid
+  actorUserId String                       @map("actor_user_id") @db.Uuid
+  fromStatus  EstateFacilityBookingStatus? @map("from_status")
+  toStatus    EstateFacilityBookingStatus  @map("to_status")
+  reason      String?                      @db.VarChar(1000)
+  occurredAt  DateTime                     @map("occurred_at") @db.Timestamptz(3)
+  booking     EstateFacilityBooking        @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  actor       User                         @relation("FacilityBookingHistoryActor", fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([bookingId, occurredAt])
+  @@map("estate_facility_booking_history")
+}
+
+model EstateOwnershipInterest {
+  id                 String                      @id @default(uuid()) @db.Uuid
+  estateId           String                      @map("estate_id") @db.Uuid
+  propertyId         String                      @map("property_id") @db.Uuid
+  ownerUserId        String                      @map("owner_user_id") @db.Uuid
+  ownershipShare     Decimal                     @map("ownership_share") @db.Decimal(5, 2)
+  effectiveFrom      DateTime                    @map("effective_from") @db.Date
+  effectiveTo        DateTime?                   @map("effective_to") @db.Date
+  status             OwnershipInterestStatus     @default(ACTIVE)
+  verificationStatus OwnershipVerificationStatus @default(PENDING) @map("verification_status")
+  evidenceNote       String                      @map("evidence_note") @db.VarChar(1000)
+  reviewReason       String?                     @map("review_reason") @db.VarChar(1000)
+  reviewedById       String?                     @map("reviewed_by_id") @db.Uuid
+  reviewedAt         DateTime?                   @map("reviewed_at") @db.Timestamptz(3)
+  endReason          String?                     @map("end_reason") @db.VarChar(1000)
+  createdById        String                      @map("created_by_id") @db.Uuid
+  createdAt          DateTime                    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime                    @updatedAt @map("updated_at") @db.Timestamptz(3)
+  estate             Estate                      @relation(fields: [estateId], references: [id], onDelete: Restrict)
+  property           EstateProperty              @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  owner              User                        @relation("PropertyOwner", fields: [ownerUserId], references: [id], onDelete: Restrict)
+  createdBy          User                        @relation("OwnershipCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  reviewedBy         User?                       @relation("OwnershipReviewer", fields: [reviewedById], references: [id], onDelete: Restrict)
+
+  @@index([estateId, propertyId, status, verificationStatus])
+  @@index([ownerUserId, status, verificationStatus, effectiveFrom])
+  @@map("estate_ownership_interests")
+}
+
+model EstateMaintenanceRequest {
+  id              String                          @id @default(uuid()) @db.Uuid
+  estateId        String                          @map("estate_id") @db.Uuid
+  propertyId      String                          @map("property_id") @db.Uuid
+  requesterUserId String                          @map("requester_user_id") @db.Uuid
+  assigneeUserId  String?                         @map("assignee_user_id") @db.Uuid
+  reference       String                          @db.VarChar(40)
+  category        String                          @db.VarChar(40)
+  priority        String                          @db.VarChar(20)
+  description     String                          @db.VarChar(700)
+  status          MaintenanceRequestStatus        @default(SUBMITTED)
+  submittedAt     DateTime                        @map("submitted_at") @db.Timestamptz(3)
+  createdAt       DateTime                        @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime                        @updatedAt @map("updated_at") @db.Timestamptz(3)
+  estate          Estate                          @relation(fields: [estateId], references: [id], onDelete: Restrict)
+  property        EstateProperty                  @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  requester       User                            @relation("MaintenanceRequester", fields: [requesterUserId], references: [id], onDelete: Restrict)
+  assignee        User?                           @relation("MaintenanceAssignee", fields: [assigneeUserId], references: [id], onDelete: Restrict)
+  updates         EstateMaintenanceUpdate[]
+  history         EstateMaintenanceHistory[]
+  idempotency     EstateMaintenanceIdempotency?
+  notices         EstateMaintenanceNoticeOutbox[]
+
+  @@unique([estateId, reference])
+  @@index([estateId, status, submittedAt])
+  @@index([requesterUserId, estateId, submittedAt])
+  @@index([propertyId, status, submittedAt])
+  @@index([assigneeUserId, status, submittedAt])
+  @@map("estate_maintenance_requests")
+}
+
+model EstateMaintenanceUpdate {
+  id         String                      @id @default(uuid()) @db.Uuid
+  requestId  String                      @map("request_id") @db.Uuid
+  authorId   String                      @map("author_id") @db.Uuid
+  visibility MaintenanceUpdateVisibility
+  body       String                      @db.VarChar(700)
+  occurredAt DateTime                    @map("occurred_at") @db.Timestamptz(3)
+  request    EstateMaintenanceRequest    @relation(fields: [requestId], references: [id], onDelete: Restrict)
+  author     User                        @relation("MaintenanceUpdateAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([requestId, visibility, occurredAt])
+  @@map("estate_maintenance_updates")
+}
+
+model EstateMaintenanceHistory {
+  id          String                    @id @default(uuid()) @db.Uuid
+  requestId   String                    @map("request_id") @db.Uuid
+  actorUserId String                    @map("actor_user_id") @db.Uuid
+  fromStatus  MaintenanceRequestStatus? @map("from_status")
+  toStatus    MaintenanceRequestStatus  @map("to_status")
+  reason      String?                   @db.VarChar(1000)
+  occurredAt  DateTime                  @map("occurred_at") @db.Timestamptz(3)
+  request     EstateMaintenanceRequest  @relation(fields: [requestId], references: [id], onDelete: Restrict)
+  actor       User                      @relation("MaintenanceHistoryActor", fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([requestId, occurredAt])
+  @@map("estate_maintenance_history")
+}
+
+model EstateMaintenanceNoticeOutbox {
+  id          String                   @id @default(uuid()) @db.Uuid
+  estateId    String                   @map("estate_id") @db.Uuid
+  requestId   String                   @map("request_id") @db.Uuid
+  eventType   String                   @map("event_type") @db.VarChar(100)
+  payload     Json
+  state       String                   @default("queued") @db.VarChar(20)
+  attempts    Int                      @default(0)
+  availableAt DateTime                 @default(now()) @map("available_at") @db.Timestamptz(3)
+  createdAt   DateTime                 @default(now()) @map("created_at") @db.Timestamptz(3)
+  processedAt DateTime?                @map("processed_at") @db.Timestamptz(3)
+  lastError   String?                  @map("last_error") @db.VarChar(500)
+  estate      Estate                   @relation(fields: [estateId], references: [id], onDelete: Restrict)
+  request     EstateMaintenanceRequest @relation(fields: [requestId], references: [id], onDelete: Restrict)
+
+  @@index([state, availableAt])
+  @@index([estateId, createdAt])
+  @@map("estate_maintenance_notice_outbox")
+}
+
+model EstateMaintenanceIdempotency {
+  id                 String                    @id @default(uuid()) @db.Uuid
+  actorUserId        String                    @map("actor_user_id") @db.Uuid
+  estateId           String                    @map("estate_id") @db.Uuid
+  idempotencyKeyHash String                    @map("idempotency_key_hash") @db.VarChar(64)
+  payloadHash        String                    @map("payload_hash") @db.VarChar(64)
+  state              String                    @db.VarChar(20)
+  result             Json?
+  requestId          String?                   @unique @map("request_id") @db.Uuid
+  createdAt          DateTime                  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  actor              User                      @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+  request            EstateMaintenanceRequest? @relation(fields: [requestId], references: [id], onDelete: Restrict)
+
+  @@unique([actorUserId, estateId, idempotencyKeyHash])
+  @@index([estateId, createdAt])
+  @@map("estate_maintenance_idempotency")
+}
+
+model EstateVisitorPass {
+  id                 String                          @id @default(uuid()) @db.Uuid
+  estateId           String                          @map("estate_id") @db.Uuid
+  propertyId         String                          @map("property_id") @db.Uuid
+  hostUserId         String                          @map("host_user_id") @db.Uuid
+  visitorDisplayName String                          @map("visitor_display_name") @db.VarChar(100)
+  credentialHash     String                          @unique @map("credential_hash") @db.VarChar(64)
+  validFrom          DateTime                        @map("valid_from") @db.Timestamptz(3)
+  validUntil         DateTime                        @map("valid_until") @db.Timestamptz(3)
+  allowedUses        Int                             @default(1) @map("allowed_uses")
+  useCount           Int                             @default(0) @map("use_count")
+  revokedAt          DateTime?                       @map("revoked_at") @db.Timestamptz(3)
+  vehicleSummary     String?                         @map("vehicle_summary") @db.VarChar(80)
+  createdAt          DateTime                        @default(now()) @map("created_at") @db.Timestamptz(3)
+  estate             Estate                          @relation(fields: [estateId], references: [id], onDelete: Restrict)
+  property           EstateProperty                  @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  host               User                            @relation("VisitorPassHost", fields: [hostUserId], references: [id], onDelete: Restrict)
+  notices            EstateVisitorPassNoticeOutbox[]
+  visits             EstateVisitorVisit[]
+
+  @@index([estateId, hostUserId, createdAt])
+  @@index([estateId, propertyId, validUntil])
+  @@map("estate_visitor_passes")
+}
+
+model EstateVisitorPassIdempotency {
+  id                 String   @id @default(uuid()) @db.Uuid
+  actorUserId        String   @map("actor_user_id") @db.Uuid
+  estateId           String   @map("estate_id") @db.Uuid
+  idempotencyKeyHash String   @map("idempotency_key_hash") @db.VarChar(64)
+  payloadHash        String   @map("payload_hash") @db.VarChar(64)
+  state              String   @db.VarChar(20)
+  passId             String?  @unique @map("pass_id") @db.Uuid
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  actor              User     @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+  estate             Estate   @relation(fields: [estateId], references: [id], onDelete: Restrict)
+
+  @@unique([actorUserId, estateId, idempotencyKeyHash])
+  @@index([estateId, createdAt])
+  @@map("estate_visitor_pass_idempotency")
+}
+
+model EstateVisitorPassNoticeOutbox {
+  id          String            @id @default(uuid()) @db.Uuid
+  estateId    String            @map("estate_id") @db.Uuid
+  passId      String            @map("pass_id") @db.Uuid
+  eventType   String            @map("event_type") @db.VarChar(100)
+  payload     Json
+  state       String            @default("queued") @db.VarChar(20)
+  attempts    Int               @default(0)
+  availableAt DateTime          @default(now()) @map("available_at") @db.Timestamptz(3)
+  createdAt   DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  processedAt DateTime?         @map("processed_at") @db.Timestamptz(3)
+  lastError   String?           @map("last_error") @db.VarChar(500)
+  estate      Estate            @relation(fields: [estateId], references: [id], onDelete: Restrict)
+  pass        EstateVisitorPass @relation(fields: [passId], references: [id], onDelete: Restrict)
+
+  @@index([state, availableAt])
+  @@index([estateId, createdAt])
+  @@map("estate_visitor_pass_notice_outbox")
+}
+
+model EstateGate {
+  id          String                         @id @default(uuid()) @db.Uuid
+  estateId    String                         @map("estate_id") @db.Uuid
+  code        String                         @db.VarChar(40)
+  name        String                         @db.VarChar(120)
+  active      Boolean                        @default(true)
+  createdAt   DateTime                       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime                       @updatedAt @map("updated_at") @db.Timestamptz(3)
+  estate      Estate                         @relation(fields: [estateId], references: [id], onDelete: Restrict)
+  assignments EstateGateAssignment[]
+  visits      EstateVisitorVisit[]
+  events      EstateAccessEvent[]
+  idempotency EstateGateCheckInIdempotency[]
+
+  @@unique([estateId, code])
+  @@unique([estateId, id])
+  @@index([estateId, active])
+  @@map("estate_gates")
+}
+
+model EstateGateAssignment {
+  id           String     @id @default(uuid()) @db.Uuid
+  estateId     String     @map("estate_id") @db.Uuid
+  gateId       String     @map("gate_id") @db.Uuid
+  userId       String     @map("user_id") @db.Uuid
+  assignedById String     @map("assigned_by_id") @db.Uuid
+  activeFrom   DateTime   @default(now()) @map("active_from") @db.Timestamptz(3)
+  activeTo     DateTime?  @map("active_to") @db.Timestamptz(3)
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  estate       Estate     @relation(fields: [estateId], references: [id], onDelete: Restrict)
+  gate         EstateGate @relation(fields: [gateId], references: [id], onDelete: Restrict)
+  user         User       @relation("GateAssignee", fields: [userId], references: [id], onDelete: Restrict)
+  assignedBy   User       @relation("GateAssignmentCreator", fields: [assignedById], references: [id], onDelete: Restrict)
+
+  @@index([estateId, gateId, userId, activeTo])
+  @@index([userId, activeTo, activeFrom])
+  @@map("estate_gate_assignments")
+}
+
+model EstateVisitorVisit {
+  id                 String             @id @default(uuid()) @db.Uuid
+  estateId           String             @map("estate_id") @db.Uuid
+  passId             String?            @map("pass_id") @db.Uuid
+  propertyId         String             @map("property_id") @db.Uuid
+  gateId             String             @map("gate_id") @db.Uuid
+  admissionType      String             @default("pass") @map("admission_type") @db.VarChar(20)
+  visitorDisplayName String             @map("visitor_display_name") @db.VarChar(100)
+  status             String             @default("checked_in") @db.VarChar(20)
+  checkedInByUserId  String             @map("checked_in_by_user_id") @db.Uuid
+  checkedInAt        DateTime           @map("checked_in_at") @db.Timestamptz(3)
+  checkedOutByUserId String?            @map("checked_out_by_user_id") @db.Uuid
+  checkedOutAt       DateTime?          @map("checked_out_at") @db.Timestamptz(3)
+  createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  estate             Estate             @relation(fields: [estateId], references: [id], onDelete: Restrict)
+  pass               EstateVisitorPass? @relation(fields: [passId], references: [id], onDelete: Restrict)
+  property           EstateProperty     @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  gate               EstateGate         @relation(fields: [gateId], references: [id], onDelete: Restrict)
+  checkedInBy        User               @relation("GateVisitCheckInActor", fields: [checkedInByUserId], references: [id], onDelete: Restrict)
+  checkedOutBy       User?              @relation("GateVisitCheckOutActor", fields: [checkedOutByUserId], references: [id], onDelete: Restrict)
+
+  @@index([estateId, gateId, status, checkedInAt])
+  @@index([estateId, passId, status])
+  @@map("estate_visitor_visits")
+}
+
+model EstateAccessEvent {
+  id          String     @id @default(uuid()) @db.Uuid
+  estateId    String     @map("estate_id") @db.Uuid
+  passId      String?    @map("pass_id") @db.Uuid
+  visitId     String?    @map("visit_id") @db.Uuid
+  propertyId  String?    @map("property_id") @db.Uuid
+  gateId      String     @map("gate_id") @db.Uuid
+  staffUserId String     @map("staff_user_id") @db.Uuid
+  eventKind   String     @map("event_kind") @db.VarChar(30)
+  reasonCode  String?    @map("reason_code") @db.VarChar(80)
+  occurredAt  DateTime   @map("occurred_at") @db.Timestamptz(3)
+  estate      Estate     @relation(fields: [estateId], references: [id], onDelete: Restrict)
+  gate        EstateGate @relation(fields: [gateId], references: [id], onDelete: Restrict)
+
+  @@index([estateId, gateId, occurredAt])
+  @@index([estateId, passId, occurredAt])
+  @@map("estate_access_events")
+}
+
+model EstateGateCheckInIdempotency {
+  id                 String     @id @default(uuid()) @db.Uuid
+  actorUserId        String     @map("actor_user_id") @db.Uuid
+  estateId           String     @map("estate_id") @db.Uuid
+  gateId             String     @map("gate_id") @db.Uuid
+  idempotencyKeyHash String     @map("idempotency_key_hash") @db.VarChar(64)
+  credentialHash     String     @map("credential_hash") @db.VarChar(64)
+  state              String     @db.VarChar(20)
+  result             Json?
+  expiresAt          DateTime   @map("expires_at") @db.Timestamptz(3)
+  createdAt          DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  actor              User       @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+  estate             Estate     @relation(fields: [estateId], references: [id], onDelete: Restrict)
+  gate               EstateGate @relation(fields: [gateId], references: [id], onDelete: Restrict)
+
+  @@unique([actorUserId, estateId, gateId, idempotencyKeyHash])
+  @@index([expiresAt])
+  @@map("estate_gate_check_in_idempotency")
+}
+
+model EstateGateVerificationAttempt {
+  id                    String   @id @default(uuid()) @db.Uuid
+  estateId              String   @map("estate_id") @db.Uuid
+  gateId                String   @map("gate_id") @db.Uuid
+  deviceHash            String   @map("device_hash") @db.VarChar(64)
+  credentialFingerprint String   @map("credential_fingerprint") @db.VarChar(64)
+  windowStartedAt       DateTime @map("window_started_at") @db.Timestamptz(3)
+  attempts              Int      @default(1)
+  updatedAt             DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@unique([estateId, gateId, deviceHash, credentialFingerprint, windowStartedAt])
+  @@index([updatedAt])
+  @@map("estate_gate_verification_attempts")
+}
+
+model EstateGateManualAdmissionIdempotency {
+  id               String    @id @default(uuid()) @db.Uuid
+  actorUserId      String    @map("actor_user_id") @db.Uuid
+  estateId         String    @map("estate_id") @db.Uuid
+  gateId           String    @map("gate_id") @db.Uuid
+  idempotencyKeyHash String  @map("idempotency_key_hash") @db.VarChar(64)
+  payloadHash      String    @map("payload_hash") @db.VarChar(64)
+  state            String    @db.VarChar(20)
+  result           Json?
+  expiresAt        DateTime  @map("expires_at") @db.Timestamptz(3)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@unique([actorUserId, estateId, gateId, idempotencyKeyHash])
+  @@index([expiresAt])
+  @@map("estate_gate_manual_admission_idempotency")
+}
+
+model EstateSecurityContact {
+  id          String   @id @default(uuid()) @db.Uuid
+  estateId    String   @map("estate_id") @db.Uuid
+  label       String   @db.VarChar(80)
+  displayName String   @map("display_name") @db.VarChar(120)
+  phoneDisplay String  @map("phone_display") @db.VarChar(50)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@unique([estateId, label])
+  @@index([estateId, active])
+  @@map("estate_security_contacts")
+}
+
+model AuditEvent {
+  id          String   @id @default(uuid()) @db.Uuid
+  actorUserId String?  @map("actor_user_id") @db.Uuid
+  scope       String   @db.VarChar(40)
+  estateId    String?  @map("estate_id") @db.Uuid
+  action      String   @db.VarChar(120)
+  targetType  String   @map("target_type") @db.VarChar(80)
+  targetId    String   @map("target_id") @db.VarChar(100)
+  outcome     String   @db.VarChar(40)
+  reason      String?  @db.VarChar(2000)
+  metadata    Json?
+  occurredAt  DateTime @map("occurred_at") @db.Timestamptz(3)
+  actor       User?    @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([scope, estateId, occurredAt])
+  @@index([targetType, targetId, occurredAt])
+  @@index([actorUserId, occurredAt])
+  @@map("audit_events")
+}

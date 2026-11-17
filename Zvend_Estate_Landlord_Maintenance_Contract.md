@@ -1,0 +1,9 @@
+# Zvend Estate — Landlord Property Maintenance Read Contract
+
+**Status:** Connected in the standalone product API for authenticated landlord reads. Creation, status changes and attachment access remain unavailable.
+
+The landlord portfolio may show maintenance requests associated with properties the authenticated actor currently owns, including requests submitted by residents. It must not reuse the requester-only maintenance list. On each request, the service resolves the actor's active landlord estate membership and active verified ownership links. The current product policy maps that membership to the `property.maintenance.view` read capability. The repository applies this property scope before counts and pagination; the service rechecks every returned row against the resolved ownership set.
+
+The projection contains a stable request reference, property display label, category, priority, description, lifecycle status, submitted/updated timestamps and resident-visible updates. It omits requester name/contact, staff/contractor private data, internal notes, private attachment IDs and storage references. Every update must be explicitly marked `resident_visible`. The service uses bounded pages (1–100 records) and rejects duplicate or cross-estate results.
+
+The product route is `GET /api/v1/landlord/properties/maintenance?page=1&pageSize=25`. When an ownership record is verified, the same transaction creates an active landlord membership if none exists and appends an audit event. Existing suspended or revoked memberships are never reactivated automatically. A matching Dart repository method powers the connected portfolio's Maintenance & repairs section. Do not enable creation or status-changing actions until their landlord policy, maintenance command, idempotency, audit and notification paths are implemented.

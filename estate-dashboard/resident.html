@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f5f7f3" />
+    <title>My estate | Zvend</title>
+    <link rel="stylesheet" href="./resident.css" />
+    <link rel="stylesheet" href="./resident-overrides.css" />
+    <link rel="stylesheet" href="./resident-billing.css" />
+    <link rel="stylesheet" href="./resident-operations.css" />
+    <link rel="stylesheet" href="./resident-visitors.css" />
+    <link rel="stylesheet" href="./resident-landlord.css" />
+    <link rel="stylesheet" href="./resident-payments.css" />
+    <link rel="stylesheet" href="./resident-operations-live.css" />
+    <link rel="stylesheet" href="./resident-visitors-live.css" />
+    <link rel="stylesheet" href="./resident-facilities-live.css" />
+    <link rel="stylesheet" href="./resident-map.css" />
+    <link rel="stylesheet" href="./resident-join.css" />
+    <link rel="stylesheet" href="./resident-live-billing.css" />
+  </head>
+  <body>
+    <div class="resident-app">
+      <header class="resident-topbar">
+        <a class="resident-brand" href="./index.html"><span class="home-mark"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-6h-4v6H4a1 1 0 0 1-1-1V10Z"/></svg></span><span>zvend<small>ESTATE</small></span></a>
+        <span class="preview-badge">PREVIEW</span>
+        <button class="round-button" aria-label="Notifications" data-action="notifications"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><i></i></button>
+      </header>
+
+      <main class="resident-main">
+        <section class="resident-view active" data-screen="home">
+          <div class="resident-greeting"><div><span class="resident-kicker">WEDNESDAY, NOVEMBER 4</span><h1>Good morning, Amara <span>✦</span></h1><p>Welcome to your community.</p></div><button class="estate-chip" data-action="estate-select"><span class="estate-dot">O</span><span><strong>Oakwood Estate</strong><small>Lekki, Lagos</small></span><svg viewBox="0 0 16 16"><path d="m4 6 4 4 4-4"/></svg></button></div>
+
+          <article class="due-card"><div class="due-card-top"><span class="due-icon"><svg viewBox="0 0 24 24"><path d="M3 5h18v14H3zM3 10h18M7 15h4"/></svg></span><span class="due-status">DUE SOON</span></div><div class="due-label">Estate service charge</div><div class="due-amount">₦85,000</div><div class="due-meta">Due 7 November 2026 <span>·</span> Oakwood · 01</div><button class="pay-button" data-action="pay-now">View and pay <span>→</span></button><div class="due-decoration"></div></article>
+
+          <article class="resident-utility-card"><span class="resident-utility-icon"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 10-13h-7l1-7Z"/></svg></span><div class="resident-utility-copy"><span class="resident-kicker">ZVEND SERVICES</span><strong>Electricity vending</strong><small>Continue to your existing Zvend electricity service.</small></div><button type="button" data-action="existing-electricity">Open service <span>→</span></button></article>
+
+          <section class="quick-actions" aria-label="Quick actions">
+            <button data-screen-link="visitors"><span class="quick-icon quick-green"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="9"/></svg></span><span>Invite visitor</span></button>
+            <button data-screen-link="requests"><span class="quick-icon quick-blue"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a5 5 0 0 0-6.4 6.4L3 18l3 3 5.3-5.3a5 5 0 0 0 6.4-6.4L14 13l-3-3 3.7-3.7Z"/></svg></span><span>Get help</span></button>
+            <button data-screen-link="incidents"><span class="quick-icon quick-amber"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="M12 8v4m0 4h.01"/></svg></span><span>Safety report</span></button>
+            <button data-screen-link="payments"><span class="quick-icon quick-violet"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span><span>My payments</span></button>
+          </section>
+
+          <section class="resident-section">
+            <div class="section-title"><div><h2>My property</h2><p>Your home at Oakwood Estate</p></div><button class="small-link" data-screen-link="profile">Details <span>→</span></button></div>
+            <article class="property-card"><div class="property-illustration"><div class="sun"></div><div class="building"><div class="roof"></div><div class="window w1"></div><div class="window w2"></div><div class="door"></div><div class="tree tree-one"></div><div class="tree tree-two"></div></div><span class="property-tag">OWNER OCCUPIED</span></div><div class="property-info"><div><h3>Oakwood · 01</h3><p>Oakwood Drive, Lekki</p></div><span class="property-code">OW-001</span></div><div class="property-stats"><div><span>TYPE</span><strong>Detached house</strong></div><div><span>MEMBERS</span><strong>4 household members</strong></div><div><span>MY ROLE</span><strong>Property owner</strong></div></div><button class="property-map-link" data-screen-link="estate-map">View on estate map <span>→</span></button></article>
+          </section>
+
+          <section class="resident-section visitor-section">
+            <div class="section-title"><div><h2>Today's visitors</h2><p>Visitor access for your property</p></div><button class="small-link" data-screen-link="visitors">Manage <span>→</span></button></div>
+            <article class="visitor-summary"><span class="visitor-symbol"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></span><div class="visitor-summary-copy"><strong>Kelechi Madu</strong><small>Expected 10:30 am · expires 1:00 pm</small></div><span class="visitor-active"><i></i>On site</span></article>
+            <button class="wide-outline" data-screen-link="visitors"><span>＋</span> Create another visitor pass</button>
+          </section>
+
+          <section class="resident-section">
+            <div class="section-title"><div><h2>Book a facility</h2><p>Shared spaces in your community</p></div><button class="small-link" data-screen-link="amenities">See all <span>→</span></button></div>
+            <div class="amenity-preview-grid"><article class="amenity-preview amenity-hall"><span class="amenity-visual-icon">⌂</span><div><strong>Community hall</strong><small>Available this weekend</small></div><button data-screen-link="amenities" aria-label="Book community hall">→</button></article><article class="amenity-preview amenity-court"><span class="amenity-visual-icon">◎</span><div><strong>Tennis court</strong><small>Next slot · 4:00 pm</small></div><button data-screen-link="amenities" aria-label="Book tennis court">→</button></article></div>
+          </section>
+
+          <button class="emergency-strip" data-action="emergency"><span><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="M12 8v4m0 4h.01"/></svg></span><span><strong>Need urgent help?</strong><small>Contact your estate security desk</small></span><b>→</b></button>
+
+          <section class="resident-section">
+            <div class="section-title"><div><h2>Community updates</h2><p>From your estate team</p></div><button class="small-link" data-screen-link="announcements">See all <span>→</span></button></div>
+            <article class="announcement-card"><span class="announcement-icon"><svg viewBox="0 0 24 24"><path d="M4 11v2a2 2 0 0 0 2 2h2l9 5V4l-9 5H6a2 2 0 0 0-2 2ZM8 15l1 6h4l-2-5"/></svg></span><div><span class="announcement-date">ESTATE NOTICE · 3 NOV</span><strong>Water maintenance this Friday</strong><p>Water supply will pause from 10 am to 1 pm while the team completes scheduled maintenance.</p><button data-screen-link="announcements">Read notice <span>→</span></button></div></article>
+          </section>
+        </section>
+
+        <section class="resident-view hidden" data-screen="estate-map">
+          <div class="subpage-heading"><span class="resident-kicker">OAKWOOD ESTATE</span><h1>Estate map</h1><p>Your home and shared community places.</p></div>
+          <div class="resident-map-privacy"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg><span>This schematic shows estate assets only. It does not show resident locations or track your device.</span></div>
+          <div class="resident-map-layout">
+            <div class="resident-map-canvas" role="group" aria-label="Schematic Oakwood Estate map">
+              <svg class="resident-map-art" viewBox="0 0 520 430" role="img" aria-label="Illustrative estate roads, green spaces and community facilities">
+                <rect width="520" height="430" rx="12" fill="#edf2e8"/><path class="resident-map-park" d="M20 24h126v82H20zM373 24h125v75H373zM20 333h134v76H20zM370 330h128v80H370z"/><path class="resident-map-water" d="M0 235c76-27 113 18 181-6s112-25 169-1 100 22 170-9v61c-72 25-115 20-177 0s-103-8-171 10S57 264 0 292Z"/><path class="resident-map-road" d="M-20 144c103 7 138-23 239-13s132 34 326 11M-10 303c108-10 151 18 239 9s163-29 308-10M181-20c-7 79 10 121 2 190s-15 108-6 281M345-15c14 84 3 131 9 205s9 102 2 249"/><path class="resident-map-side-road" d="M36 62c42 40 56 68 59 98s-13 54-45 72m387-169c-45 38-59 66-63 97s13 53 47 73M251 12c-3 34-1 58 6 85m-5 223c6 31 9 55 3 88"/><path class="resident-map-zone" d="M162 25v380M360 24v380M23 121h474M23 319h474"/><text x="32" y="48">NORTH GARDENS</text><text x="390" y="46">OAKWOOD COURT</text><text x="36" y="385">CEDAR LANE</text><text x="401" y="380">MAPLE PHASE</text><text x="260" y="211" class="resident-map-title">OAKWOOD ESTATE</text>
+              </svg>
+              <button class="resident-map-marker resident-home-marker selected" type="button" data-map-place="home" aria-label="Your home, Oakwood 01">HOME</button>
+              <button class="resident-map-marker resident-gate-marker" type="button" data-map-place="gate" aria-label="Main gate">GATE</button>
+              <button class="resident-map-marker resident-hall-marker" type="button" data-map-place="hall" aria-label="Community hall">HALL</button>
+              <button class="resident-map-marker resident-court-marker" type="button" data-map-place="court" aria-label="Tennis court">COURT</button>
+            </div>
+            <article class="resident-map-place-card"><span class="resident-kicker" id="residentMapPlaceType">YOUR PROPERTY</span><h2 id="residentMapPlaceName">Oakwood · 01</h2><p id="residentMapPlaceDescription">Your linked home · Oakwood Drive, North Gardens</p><span id="residentMapPlaceMeta" class="resident-map-meta">Detached house · OW-001</span><button class="small-link" type="button" data-action="map-directions">Address details <span>→</span></button></article>
+          </div>
+          <div class="resident-map-legend"><span><i class="resident-home-legend"></i>Your property</span><span><i class="resident-facility-legend"></i>Shared facility</span><span><i class="resident-gate-legend"></i>Estate access</span></div>
+          <p class="resident-map-preview-note">Illustrative layout · marker placement is not surveyed GPS data. For directions, use the address details and your preferred navigation app.</p>
+        </section>
+
+        <section class="resident-view hidden" data-screen="payments">
+          <div class="subpage-heading"><span class="resident-kicker">FINANCIALS</span><h1>My payments</h1><p>Charges, rent and receipts for your property.</p></div>
+          <article class="balance-card"><span>OUTSTANDING BALANCE</span><strong>₦85,000</strong><small>1 invoice due soon</small><button data-action="pay-now">Pay outstanding <span>→</span></button></article>
+          <div class="section-title list-title"><div><h2>Invoices</h2><p>Oakwood · 01</p></div><button class="filter-pill" data-action="invoice-filter">All <svg viewBox="0 0 16 16"><path d="m4 6 4 4 4-4"/></svg></button></div>
+          <article class="mobile-list-card"><div class="invoice-mark"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z"/><path d="M9 8h6m-6 4h6"/></svg></div><div class="mobile-list-copy"><strong>Estate service charge</strong><small>OAK-2026-0312 · Due 7 Nov</small><b>₦85,000</b></div><span class="mini-status status-due">Due soon</span></article>
+          <article class="mobile-list-card"><div class="invoice-mark paid-mark"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z"/><path d="m9 12 2 2 4-4"/></svg></div><div class="mobile-list-copy"><strong>Security levy</strong><small>OAK-2026-0287 · Paid 5 Oct</small><b>₦45,000</b></div><span class="mini-status status-paid">Paid</span></article>
+          <article class="mobile-list-card"><div class="invoice-mark paid-mark"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z"/><path d="m9 12 2 2 4-4"/></svg></div><div class="mobile-list-copy"><strong>Waste collection</strong><small>OAK-2026-0271 · Paid 5 Sep</small><b>₦18,000</b></div><span class="mini-status status-paid">Paid</span></article>
+          <button class="wide-outline invoice-detail-link" data-action="invoice-details">View current invoice details</button>
+          <button class="wide-outline" data-action="view-payment-history"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 2.6-6.4L3 8m0-5v5h5M12 7v5l3 2"/></svg> View payment history &amp; receipts</button>
+          <section class="payment-history-panel hidden" id="residentPaymentHistory">
+            <div class="section-title list-title"><div><h2>Verified payment history</h2><p>Oakwood · 01</p></div><span class="verified-history-label">Settled transactions</span></div>
+            <article class="payment-history-card"><span class="payment-state-mark settled-mark">✓</span><div><strong>Security levy</strong><small>5 Oct 2026 · Paystack · Ref ZV-PAY-882104</small><b>₦45,000 · OAK-2026-0287</b></div><button class="payment-receipt-link" data-action="receipt-detail" data-receipt-id="RCT-2026-0287">View receipt</button></article>
+            <article class="payment-history-card"><span class="payment-state-mark settled-mark">✓</span><div><strong>Waste collection</strong><small>5 Sep 2026 · Zvend wallet · Ref ZV-PAY-876220</small><b>₦18,000 · OAK-2026-0271</b></div><button class="payment-receipt-link" data-action="receipt-detail" data-receipt-id="RCT-2026-0271">View receipt</button></article>
+            <article class="payment-history-card"><span class="payment-state-mark pending-mark">◷</span><div><strong>Estate service charge</strong><small>Attempt started 4 Nov 2026 · Ref attempt ZV-ATT-990311</small><b>₦85,000 · OAK-2026-0312</b></div><span class="mini-status status-review">Pending · no receipt</span></article>
+            <div class="payment-history-note">Pending attempts are not confirmed payments and do not produce receipts. This is illustrative preview data.</div>
+          </section>
+        </section>
+
+        <section class="resident-view hidden" data-screen="visitors">
+          <div class="subpage-heading"><span class="resident-kicker">GATE ACCESS</span><h1>Visitor passes</h1><p>Invite guests and manage access to your property.</p></div>
+          <button class="button-primary mobile-primary" data-action="create-pass"><span>＋</span> Create a visitor pass</button>
+          <div class="visitor-help"><span class="quick-icon quick-green"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="9"/></svg></span><div><strong>Share a pass with your guest</strong><p>Each pass is private and only works during the time you choose.</p></div></div>
+          <div class="section-title list-title"><div><h2>Upcoming</h2><p>Visitor invitations for your home</p></div></div>
+          <div id="residentVisitorList">
+          <article class="mobile-list-card visitor-record"><span class="visitor-record-avatar">KM</span><div class="mobile-list-copy"><strong>Kelechi Madu</strong><small>Today · 10:30 am–1:00 pm</small><b>Single entry · No vehicle</b></div><span class="mini-status status-checked">Checked in</span></article>
+          <article class="mobile-list-card visitor-record"><span class="visitor-record-avatar visitor-blue">SA</span><div class="mobile-list-copy"><strong>Sarah Adamu</strong><small>Tomorrow · 2:00–5:00 pm</small><b>Single entry · Vehicle included</b></div><button class="kebab" data-action="pass-options" aria-label="Pass options">···</button></article>
+          </div>
+          <div class="privacy-note"><svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 1 1 8 0v3m-4 5v2"/></svg><span>Visitors see only the details needed for entry. You can revoke an unused pass at any time.</span></div>
+        </section>
+
+        <section class="resident-view hidden" data-screen="requests">
+          <div class="subpage-heading"><span class="resident-kicker">HELP &amp; MAINTENANCE</span><h1>My requests</h1><p>Follow repairs and issues reported for your home.</p></div>
+          <button class="button-primary mobile-primary" data-action="new-request"><span>＋</span> New maintenance request</button>
+          <div class="section-title list-title"><div><h2>My maintenance requests</h2><p>Oakwood · 01</p></div><label class="request-filter-label"><span class="sr-only">Filter maintenance requests</span><select id="residentRequestFilter" aria-label="Filter maintenance requests"><option value="open">Open</option><option value="all">All requests</option><option value="resolved">Resolved</option></select></label></div>
+          <div id="residentMaintenanceList">
+            <article class="request-card resident-maintenance-card" data-request-status="progress" data-request-id="REQ-00318"><button class="request-card-button" data-action="request-detail" data-request-id="REQ-00318"><span class="request-card-top"><span class="request-kind plumbing-kind"><svg viewBox="0 0 24 24"><path d="M4 4v6a4 4 0 0 0 4 4h8a4 4 0 0 1 4 4v2M8 4v3m8-3v3m-4 7v3"/></svg></span><span class="mini-status status-progress">In progress</span></span><strong>Water pressure issue</strong><span class="request-card-description">Bathroom tap pressure has been low since yesterday.</span><span class="request-meta"><span>REQ-00318 · Oakwood · 01</span><span>Updated today, 9:20 am</span></span><span class="request-progress"><i></i><i></i><i></i><i></i></span><span class="request-steps"><span>Submitted</span><span>Assigned</span><span>In progress</span><span>Resolved</span></span><span class="request-view-link">View updates →</span></button></article>
+            <article class="request-card resident-maintenance-card" data-request-status="review" data-request-id="REQ-00304"><button class="request-card-button" data-action="request-detail" data-request-id="REQ-00304"><span class="request-card-top"><span class="request-kind electrical-kind"><svg viewBox="0 0 24 24"><path d="m13 2-3 9h7l-6 11 2-9H6l7-11Z"/></svg></span><span class="mini-status status-review">Under review</span></span><strong>Porch light replacement</strong><span class="request-card-description">The porch light needs a new bulb near the front entrance.</span><span class="request-meta"><span>REQ-00304 · Oakwood · 01</span><span>Submitted 1 Nov</span></span><span class="request-view-link">View updates →</span></button></article>
+            <article class="request-card resident-maintenance-card" data-request-status="resolved" data-request-id="REQ-00291"><button class="request-card-button" data-action="request-detail" data-request-id="REQ-00291"><span class="request-card-top"><span class="request-kind plumbing-kind">✓</span><span class="mini-status status-paid">Resolved</span></span><strong>Kitchen sink leak</strong><span class="request-card-description">The maintenance team replaced the worn tap connector.</span><span class="request-meta"><span>REQ-00291 · Oakwood · 01</span><span>Resolved 28 Oct</span></span><span class="request-view-link">View resolution →</span></button></article>
+          </div>
+          <div class="request-empty-state hidden" id="residentRequestEmpty">No requests match this filter.</div>
+          <div class="privacy-note"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg><span>Only your authorized property requests and resident-visible staff updates appear here. Staff-only notes are private.</span></div>
+        </section>
+
+        <section class="resident-view hidden" data-screen="incidents">
+          <div class="subpage-heading"><span class="resident-kicker">SAFETY &amp; SECURITY</span><h1>Report a concern</h1><p>Share a safety or security issue with your estate team.</p></div>
+          <div class="resident-safety-note"><strong>Immediate danger?</strong><span>Contact emergency services and your estate security desk directly. This form is not monitored for emergencies.</span></div>
+          <button class="button-primary mobile-primary" data-action="new-incident"><span>＋</span> Report an incident</button>
+          <div class="section-title list-title"><div><h2>Recent reports</h2><p>Oakwood · 01</p></div></div>
+          <div id="residentIncidentList">
+            <article class="request-card"><div class="request-card-top"><span class="request-kind electrical-kind">!</span><span class="mini-status status-review">Under review</span></div><strong>Unknown vehicle near west gate</strong><p>Reported today · visible to authorized estate staff</p><div class="request-meta"><span>INC-00142</span><span>Update 9:25 am</span></div></article>
+          </div>
+          <small class="resident-form-preview">Preview only · reports are not sent or stored.</small>
+        </section>
+
+        <section class="resident-view hidden" data-screen="amenities">
+          <div class="subpage-heading"><span class="resident-kicker">YOUR COMMUNITY</span><h1>Amenities</h1><p>Find an open time and request a facility booking.</p></div>
+          <div class="resident-facility-live-tools hidden" id="residentFacilityLiveTools">
+            <label for="residentFacilityDate">Choose a date</label><input id="residentFacilityDate" type="date" />
+            <p id="residentFacilityStatus" role="status" aria-live="polite"></p>
+          </div>
+          <div class="resident-booking-preview hidden" id="residentBookingPreview"></div>
+          <section class="resident-my-bookings hidden" id="residentMyBookings" aria-live="polite">
+            <div class="section-title"><div><h2>My bookings</h2><p>Your facility requests and confirmed reservations</p></div></div>
+            <p id="residentMyBookingsStatus" role="status"></p><div id="residentMyBookingsList"></div>
+          </section>
+          <div class="amenity-filter-row"><button class="amenity-filter active" data-amenity-filter="all">All spaces</button><button class="amenity-filter" data-amenity-filter="available">Available</button></div>
+          <article class="amenity-card"><div class="amenity-cover hall-cover"><span>COMMUNITY SPACE</span><div class="hall-illustration"><i></i><i></i><i></i></div></div><div class="amenity-card-body"><div class="amenity-card-heading"><div><h2>Community hall</h2><p>Up to 80 guests · Oakwood clubhouse</p></div><span class="amenity-available"><i></i>Available</span></div><div class="amenity-details"><span>From <strong>₦25,000</strong> / booking</span><span>Deposit may apply</span></div><div class="amenity-slots"><span>Suggested times</span><button data-slot="Saturday, 10:00 am">Sat · 10 am</button><button data-slot="Saturday, 3:00 pm">Sat · 3 pm</button><button data-slot="Sunday, 12:00 pm">Sun · 12 pm</button></div><button class="amenity-book" data-action="book-facility" data-facility="Community hall">Request a booking <span>→</span></button></div></article>
+          <article class="amenity-card"><div class="amenity-cover court-cover"><span>SPORTS &amp; RECREATION</span><div class="court-lines"><i></i><i></i><i></i></div></div><div class="amenity-card-body"><div class="amenity-card-heading"><div><h2>Tennis court</h2><p>Outdoor court · Oakwood central park</p></div><span class="amenity-available"><i></i>Available</span></div><div class="amenity-details"><span><strong>Free</strong> for residents</span><span>60 minute slots</span></div><div class="amenity-slots"><span>Next available</span><button data-slot="Today, 4:00 pm">Today · 4 pm</button><button data-slot="Today, 6:00 pm">Today · 6 pm</button></div><button class="amenity-book" data-action="book-facility" data-facility="Tennis court">Choose a time <span>→</span></button></div></article>
+          <div class="privacy-note"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg><span>Bookings are subject to estate rules and availability. Any fee will be shown before you confirm.</span></div>
+        </section>
+
+        <section class="resident-view hidden" data-screen="announcements">
+          <div class="subpage-heading"><span class="resident-kicker">OAKWOOD ESTATE</span><h1>Community updates</h1><p>Notices and important information from your estate team.</p></div>
+          <div class="resident-filter-row"><button class="resident-filter active" data-notice-filter="all">All updates</button><button class="resident-filter" data-notice-filter="important">Important</button></div>
+          <article class="resident-notice urgent-notice" data-notice-type="important"><div class="notice-topline"><span class="notice-label urgent-label"><i></i>IMPORTANT</span><span>Today · 8:15 am</span></div><h2>Gate access system update</h2><p>Our gate access system will receive a scheduled update tomorrow between 1 am and 2 am. Please use the visitor PIN option if a QR code takes longer to load.</p><div class="notice-footer"><span>From Estate Security</span><span class="read-mark">● Read</span></div></article>
+          <article class="resident-notice" data-notice-type="general"><div class="notice-topline"><span class="notice-label">SERVICE NOTICE</span><span>3 Nov 2026 · 4:30 pm</span></div><h2>Water maintenance this Friday</h2><p>Water supply will pause from 10 am to 1 pm while the facilities team completes scheduled maintenance on the main line.</p><div class="notice-footer"><span>From Estate Office</span><span class="read-mark">● Read</span></div></article>
+          <article class="resident-notice" data-notice-type="general"><div class="notice-topline"><span class="notice-label">COMMUNITY EVENT</span><span>28 Oct 2026 · 11:00 am</span></div><h2>October residents meeting</h2><p>Thank you to everyone who joined. View the meeting summary and follow-up actions from the estate office.</p><div class="notice-footer"><span>From Estate Office</span><span class="unread-mark">● New</span></div></article>
+        </section>
+
+        <section class="resident-view hidden" data-screen="profile">
+          <div class="subpage-heading"><span class="resident-kicker">YOUR ACCOUNT</span><h1>My home</h1><p>Your estate details and household access.</p></div>
+          <article class="profile-property"><div class="profile-home-icon"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg></div><div><strong>Oakwood Estate</strong><small>Oakwood · 01 · Lekki, Lagos</small><span class="mini-status status-checked">Owner occupied</span></div></article>
+          <div class="section-title list-title"><div><h2>Household members</h2><p>People linked to your property</p></div><button class="small-link" data-action="add-household">＋ Add</button></div>
+          <article class="household-row"><span class="visitor-record-avatar">AO</span><div class="mobile-list-copy"><strong>Amara Okafor</strong><small>You · Property owner</small></div><span class="you-badge">YOU</span></article>
+          <article class="household-row"><span class="visitor-record-avatar visitor-blue">TO</span><div class="mobile-list-copy"><strong>Tunde Okafor</strong><small>Household member</small></div><button class="kebab" aria-label="Member options">···</button></article>
+          <article class="household-row"><span class="visitor-record-avatar visitor-violet">MO</span><div class="mobile-list-copy"><strong>Mariam Okafor</strong><small>Household member</small></div><button class="kebab" aria-label="Member options">···</button></article>
+          <div class="account-links"><button data-action="documents"><span>Property documents</span><b>›</b></button><button data-action="notifications-settings"><span>Notification preferences</span><b>›</b></button><button data-action="support"><span>Help &amp; support</span><b>›</b></button></div>
+          <section class="join-estate-card"><div><span class="resident-kicker">ESTATE ACCESS</span><h2>Join another estate</h2><p>Request access to an estate where you own, rent or live in a property.</p></div><button class="resident-primary" type="button" data-action="open-join-request">Start request <span>→</span></button></section>
+          <section class="join-request-history"><div class="section-title list-title"><div><h2>My access requests</h2><p>Requests made from this account</p></div></div><div id="residentJoinRequests"><article class="join-request-empty"><strong>No open requests</strong><span>Requests you submit will appear here.</span></article></div></section>
+          <section class="resident-staff-invitations"><div class="section-title list-title"><div><h2>Team invitations</h2><p>Estate staff access sent to your Zvend account</p></div></div><article class="resident-staff-invitation" id="residentStaffInvitation" data-invitation-state="pending"><span class="staff-invitation-mark">HP</span><div class="staff-invitation-copy"><strong>Harbour Point Estate</strong><span>Maintenance officer · Assigned work requests</span><small>Invited by the estate administrator · Expires 12 Nov</small></div><div class="staff-invitation-actions"><button class="small-link" type="button" data-action="review-staff-invitation">Review</button><span class="mini-status status-review" data-invitation-status>Pending</span></div></article></section>
+          <button class="role-switch-card" data-screen-link="landlord"><span class="role-switch-icon"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6M8 9h.01M12 9h.01M16 9h.01"/></svg></span><span><strong>Landlord workspace</strong><small>Manage your properties and tenancies</small></span><b>›</b></button>
+        </section>
+
+        <section class="resident-view hidden" data-screen="landlord">
+          <div class="landlord-heading"><button class="landlord-back" data-screen-link="profile" aria-label="Back to My home">‹</button><div><span class="resident-kicker">PROPERTY OWNER</span><h1>Landlord overview</h1><p>Your portfolio · 2 properties</p></div><span class="preview-badge">PREVIEW</span></div>
+          <div class="landlord-metrics"><article><span>RENT RECEIVED</span><strong>₦175k</strong><small>October · Cedar Lane · 03</small></article><article><span>OUTSTANDING</span><strong>₦175k</strong><small>November · Cedar Lane · 03</small></article></div>
+          <div class="landlord-section-heading"><div><h2>My properties</h2><button class="small-link" data-action="landlord-property-list">View all</button></div></div>
+          <article class="landlord-property-card"><div class="landlord-property-art"><span>OAKWOOD ESTATE</span><div class="landlord-house-mark"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-6h-4v6H4a1 1 0 0 1-1-1V10Z"/></svg></div></div><div class="landlord-property-body"><div><strong>Oakwood · 01</strong><span class="mini-status status-checked">Owner occupied</span></div><p>Lekki, Lagos · 3 bedroom apartment</p><div class="landlord-property-links"><button data-action="landlord-documents">Documents</button><button data-action="landlord-charges">Property charges</button></div></div></article>
+          <article class="landlord-property-card landlord-property-compact"><div class="landlord-property-body"><div><strong>Cedar Lane · 03</strong><span class="mini-status status-progress">Rented</span></div><p>Lekki, Lagos · 2 bedroom duplex</p><div class="landlord-tenant-line"><span class="visitor-record-avatar visitor-blue">IK</span><span><strong>Ifeoma Kalu</strong><small>Tenancy ends 31 July 2027</small></span><button class="text-action" data-action="landlord-tenancy">Agreement</button></div></div></article>
+          <div class="landlord-section-heading"><div><h2>Rent status</h2><button class="small-link" data-action="landlord-rent-history">History</button></div></div>
+          <article class="landlord-rent-card"><div class="landlord-rent-icon">₦</div><div><strong>November rent</strong><small>Cedar Lane · 03 · Due 1 Nov</small></div><div class="landlord-rent-amount"><strong>₦175,000</strong><span class="mini-status status-due">Awaiting payment</span></div></article>
+          <article class="landlord-rent-card"><div class="landlord-rent-icon rent-paid-icon">✓</div><div><strong>October rent</strong><small>Cedar Lane · 03 · Received 2 Oct</small></div><div class="landlord-rent-amount"><strong>₦175,000</strong><span class="mini-status status-paid">Paid</span></div></article>
+          <div class="privacy-note"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg><span>Rent status is illustrative. Payment confirmation and tenant details must come from authorized estate records.</span></div>
+        </section>
+        <p class="preview-note">Illustrative sample records · actions are not connected to live services</p>
+      </main>
+
+      <nav class="bottom-nav" aria-label="Resident app navigation">
+        <button class="active" data-tab="home"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-6h-4v6H4a1 1 0 0 1-1-1V10Z"/></svg><span>Home</span></button>
+        <button data-tab="payments"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h3"/></svg><span>Payments</span></button>
+        <button data-tab="visitors"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg><span>Visitors</span></button>
+        <button data-tab="requests"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a5 5 0 0 0-6.4 6.4L3 18l3 3 5.3-5.3a5 5 0 0 0 6.4-6.4L14 13l-3-3 3.7-3.7Z"/></svg><span>Requests</span></button>
+        <button data-tab="profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg><span>My home</span></button>
+      </nav>
+      <div class="resident-toast" id="residentToast" role="status" aria-live="polite"></div>
+      <div class="resident-modal-backdrop hidden" id="joinRequestModal">
+        <section class="resident-form-modal join-request-modal" role="dialog" aria-modal="true" aria-labelledby="joinRequestTitle" aria-describedby="joinRequestDescription">
+          <button class="resident-modal-close" type="button" data-action="close-join-request" aria-label="Close join request">×</button>
+          <span class="resident-kicker">ESTATE ACCESS</span><h2 id="joinRequestTitle">Request to join an estate</h2><p id="joinRequestDescription">Choose the estate and property where you live or have a legal relationship.</p>
+          <label for="joinEstate">Estate</label><select id="joinEstate" required><option value="">Choose an estate</option><option value="greenfield">Greenfield Gardens · Lekki</option><option value="cedar">Cedar Ridge Estate · Ikeja</option></select>
+          <label for="joinProperty">Property <span>Optional</span></label><select id="joinProperty"><option value="">Select an estate first</option></select>
+          <label for="joinRelationship">Your relationship</label><select id="joinRelationship" required><option value="">Choose relationship</option><option value="owner">Owner</option><option value="tenant">Tenant</option><option value="household_member">Household member</option><option value="authorized_occupant">Authorized occupant</option></select>
+          <label for="joinRequestNote">Message to the estate team <span>Optional</span></label><textarea id="joinRequestNote" maxlength="1000" rows="3" placeholder="Add context to help the estate team review your request"></textarea>
+          <label for="joinProofReference">Supporting document <span>Optional</span></label><input id="joinProofReference" type="file" accept=".pdf,image/*" /><small class="join-private-note">This preview does not upload or open files. A connected service must store the document privately and authorize reviewer access.</small>
+          <p class="join-request-error" id="joinRequestError" role="alert"></p><div class="resident-form-actions"><button class="resident-secondary" type="button" data-action="close-join-request">Cancel</button><button class="resident-primary" type="button" data-action="submit-join-request">Send request</button></div>
+          <small class="resident-form-preview">Preview only · your request will not be sent or saved to Zvend.</small>
+        </section>
+      </div>
+      <div class="resident-modal-backdrop hidden" id="staffInvitationModal">
+        <section class="resident-form-modal staff-invitation-modal" role="dialog" aria-modal="true" aria-labelledby="staffInvitationTitle" aria-describedby="staffInvitationDescription">
+          <button class="resident-modal-close" type="button" data-action="close-staff-invitation" aria-label="Close staff invitation">×</button>
+          <span class="resident-kicker">ESTATE TEAM INVITATION</span><h2 id="staffInvitationTitle">Join Harbour Point Estate?</h2><p id="staffInvitationDescription">The estate team invited your Zvend account to help manage maintenance requests.</p>
+          <div class="staff-invitation-detail"><span>ESTATE</span><strong>Harbour Point Estate · Victoria Island, Lagos</strong><span>ROLE</span><strong>Maintenance officer</strong><span>ACCESS SCOPE</span><strong>Assigned work requests only</strong><span>EXPIRES</span><strong>12 November 2026</strong></div>
+          <p class="staff-invitation-privacy">Accepting creates an estate-scoped membership. The estate’s service verifies the invitation and role before access becomes active.</p>
+          <p class="staff-invitation-error" id="staffInvitationError" role="alert"></p><div class="resident-form-actions"><button class="resident-secondary" type="button" data-action="decline-staff-invitation">Decline</button><button class="resident-primary" type="button" data-action="accept-staff-invitation">Accept invitation</button></div>
+          <small class="resident-form-preview">Sample invitation · actions stay in this preview.</small>
+        </section>
+      </div>
+      <div class="invoice-modal-backdrop hidden" id="invoiceDetailModal">
+        <section class="invoice-detail-modal" role="dialog" aria-modal="true" aria-labelledby="invoiceDetailTitle">
+          <button class="invoice-modal-close" type="button" data-action="close-invoice" aria-label="Close invoice details">×</button>
+          <span class="resident-kicker">OAKWOOD ESTATE · INVOICE OAK-2026-0312</span>
+          <h2 id="invoiceDetailTitle">Estate service charge</h2>
+          <p class="invoice-detail-subtitle">Issued 1 November 2026 · Due 7 November 2026 · Oakwood · 01</p>
+          <div class="invoice-detail-lines"><div><span>Estate service charge</span><strong>₦85,000</strong></div><div><span>Amount paid</span><strong>₦0</strong></div><div class="invoice-detail-total"><span>Balance due</span><strong>₦85,000</strong></div></div>
+          <div class="invoice-payment-note"><strong>Secure payment through Zvend</strong><span>Payment status changes after the existing Zvend payment service confirms the transaction.</span></div>
+          <div class="invoice-modal-actions"><button class="invoice-secondary" type="button" data-action="close-invoice">Close</button><button class="invoice-primary" type="button" data-action="begin-payment">Continue to payment</button></div>
+          <p class="invoice-preview-disclaimer">Preview only · no payment will be initiated here.</p>
+        </section>
+      </div>
+      <div class="invoice-modal-backdrop hidden" id="receiptDetailModal">
+        <section class="receipt-detail-modal" role="dialog" aria-modal="true" aria-labelledby="receiptDetailTitle">
+          <button class="invoice-modal-close" type="button" data-action="close-receipt" aria-label="Close receipt details">×</button>
+          <span class="resident-kicker">ZVEND · PAYMENT RECEIPT</span>
+          <div class="receipt-success-mark">✓</div>
+          <h2 id="receiptDetailTitle">Payment receipt</h2>
+          <p class="receipt-verified-label"><span></span>Settled payment · illustrative preview</p>
+          <div class="receipt-detail-lines" id="receiptDetailLines"></div>
+          <div class="receipt-privacy-note">A real receipt is available only after verified settlement and permission checks. This preview does not generate or download a receipt file.</div>
+          <button class="invoice-primary receipt-close-button" type="button" data-action="close-receipt">Close</button>
+        </section>
+      </div>
+      <div class="resident-modal-backdrop hidden" id="maintenanceRequestModal">
+        <section class="resident-form-modal" role="dialog" aria-modal="true" aria-labelledby="requestModalTitle">
+          <button class="resident-modal-close" type="button" data-action="close-request" aria-label="Close request form">×</button>
+          <span class="resident-kicker">OAKWOOD ESTATE · MAINTENANCE</span>
+          <h2 id="requestModalTitle">New maintenance request</h2>
+          <p>Tell the estate team what needs attention.</p>
+          <label for="requestCategory">Category</label><select id="requestCategory"><option>Plumbing</option><option>Electrical</option><option>Security</option><option>Cleaning</option><option>Other</option></select>
+          <label for="requestPriority">Priority</label><select id="requestPriority"><option>Normal</option><option>High</option><option>Urgent</option></select>
+          <label for="requestDescription">What needs attention?</label><textarea id="requestDescription" maxlength="700" rows="4" placeholder="Describe the issue and where it is happening"></textarea>
+          <p class="resident-form-hint">Urgent requests are still not emergency dispatch. Contact estate security directly for immediate danger.</p>
+          <div class="resident-form-actions"><button class="resident-secondary" type="button" data-action="close-request">Cancel</button><button class="resident-primary" type="button" data-action="submit-request">Submit request</button></div>
+          <small class="resident-form-preview">Preview only · no request will be sent to the estate team.</small>
+        </section>
+      </div>
+      <div class="resident-modal-backdrop hidden" id="maintenanceDetailModal">
+        <section class="resident-form-modal request-detail-modal" role="dialog" aria-modal="true" aria-labelledby="requestDetailTitle">
+          <button class="resident-modal-close" type="button" data-action="close-request-detail" aria-label="Close request details">×</button>
+          <span class="resident-kicker">MAINTENANCE REQUEST · <span id="requestDetailReference">REQ-00318</span></span>
+          <h2 id="requestDetailTitle">Water pressure issue</h2>
+          <p id="requestDetailProperty" class="request-detail-property">Oakwood · 01 · Plumbing</p>
+          <div class="request-detail-current"><span class="mini-status status-progress" id="requestDetailStatus">In progress</span><span id="requestDetailUpdated">Updated today, 9:20 am</span></div>
+          <p id="requestDetailDescription" class="request-detail-description"></p>
+          <div class="request-history-heading"><strong>Updates from your estate team</strong><span>Resident-visible history</span></div>
+          <div id="requestDetailTimeline" class="request-detail-timeline"></div>
+          <div class="request-detail-actions"><button class="resident-secondary" type="button" data-action="close-request-detail">Close</button><button class="resident-primary hidden" type="button" id="confirmResolution" data-action="confirm-resolution">Confirm resolved</button><button class="resident-primary hidden" type="button" id="reopenRequest" data-action="reopen-request">Reopen request</button></div>
+          <small class="resident-form-preview">Illustrative history · private staff notes are not displayed.</small>
+        </section>
+      </div>
+      <div class="resident-modal-backdrop hidden" id="incidentReportModal">
+        <section class="resident-form-modal" role="dialog" aria-modal="true" aria-labelledby="incidentModalTitle">
+          <button class="resident-modal-close" type="button" data-action="close-incident" aria-label="Close incident form">×</button>
+          <span class="resident-kicker">OAKWOOD ESTATE · SAFETY</span>
+          <h2 id="incidentModalTitle">Report an incident</h2>
+          <p>Share enough detail for the estate team to review the concern.</p>
+          <label for="incidentCategory">Category</label><select id="incidentCategory"><option value="security_concern">Security concern</option><option value="suspicious_activity">Suspicious activity</option><option value="damage_hazard">Damage or hazard</option><option value="noise_disturbance">Noise or disturbance</option><option value="other">Other</option></select>
+          <label for="incidentPriority">Priority</label><select id="incidentPriority"><option value="normal">Normal</option><option value="high">High</option><option value="urgent">Urgent</option></select>
+          <label for="incidentLocation">Location</label><input id="incidentLocation" maxlength="120" placeholder="For example, Block B entrance" />
+          <label for="incidentObservedAt">When did this happen?</label><input id="incidentObservedAt" type="datetime-local" />
+          <label for="incidentDescription">What happened?</label><textarea id="incidentDescription" maxlength="1000" rows="4" placeholder="Include when it happened and any useful details"></textarea>
+          <p class="resident-form-hint">Do not include passwords, access codes or unnecessary personal information.</p>
+          <p class="visitor-pass-error" id="incidentReportError" role="alert"></p>
+          <div class="resident-form-actions"><button class="resident-secondary" type="button" data-action="close-incident">Cancel</button><button class="resident-primary" type="button" data-action="submit-incident">Submit report</button></div>
+          <small class="resident-form-preview">Preview only · the report will not be sent.</small>
+        </section>
+      </div>
+      <div class="resident-modal-backdrop hidden" id="visitorPassModal">
+        <section class="resident-form-modal visitor-pass-modal" role="dialog" aria-modal="true" aria-labelledby="visitorPassTitle">
+          <button class="resident-modal-close" type="button" data-action="close-pass" aria-label="Close visitor pass form">×</button>
+          <span class="resident-kicker">GUEST ACCESS · OAKWOOD · 01</span>
+          <h2 id="visitorPassTitle">Create a visitor pass</h2>
+          <p>Invite a guest to your linked property for a specific visit window.</p>
+          <div id="visitorPassFormPanel">
+            <label for="visitorPassName">Visitor name</label><input id="visitorPassName" maxlength="100" autocomplete="off" placeholder="Enter your guest's name" />
+            <label for="visitorPassFrom">Valid from</label><input id="visitorPassFrom" type="datetime-local" />
+            <label for="visitorPassUntil">Valid until</label><input id="visitorPassUntil" type="datetime-local" />
+            <label class="visitor-vehicle-toggle"><input id="visitorPassVehicleEnabled" type="checkbox" /><span>Include vehicle details</span></label>
+            <div id="visitorVehicleField" class="hidden"><label for="visitorPassVehicle">Vehicle description <span class="form-optional">Optional</span></label><input id="visitorPassVehicle" maxlength="80" placeholder="e.g. silver Toyota, ABC 123 XY" /></div>
+            <p class="resident-form-hint">This example uses a single-entry pass. A live service must check host permission, estate policy and availability.</p>
+            <p class="visitor-pass-error" id="visitorPassError" role="alert"></p>
+            <div class="resident-form-actions"><button class="resident-secondary" type="button" data-action="close-pass">Cancel</button><button class="resident-primary" type="button" data-action="issue-pass-preview">Create pass</button></div>
+          </div>
+          <div id="visitorPassResult" class="visitor-pass-result hidden" aria-live="polite">
+            <span class="visitor-pass-result-icon">✓</span><h3>Pass preview created</h3><p id="visitorPassResultSummary"></p>
+            <div class="visitor-demo-code"><span>DEMO ACCESS CODE</span><strong id="visitorPassCredential"></strong></div>
+            <p class="visitor-demo-warning">Preview only · this code is not connected to gate verification and will not grant entry.</p>
+            <div class="resident-form-actions"><button class="resident-secondary" type="button" data-action="close-pass">Done</button><button class="resident-primary" type="button" data-action="copy-pass-preview">Copy demo code</button></div>
+          </div>
+          <small class="resident-form-preview">No notification is sent. The code is shown once in this preview.</small>
+        </section>
+      </div>
+      <div class="resident-modal-backdrop hidden" id="visitorRevokeModal">
+        <section class="resident-form-modal" role="dialog" aria-modal="true" aria-labelledby="visitorRevokeTitle">
+          <button class="resident-modal-close" type="button" data-action="close-visitor-revoke" aria-label="Close revoke form">×</button>
+          <span class="resident-kicker">GUEST ACCESS</span>
+          <h2 id="visitorRevokeTitle">Revoke visitor pass</h2>
+          <p>This prevents future use. Past gate events remain in the estate access history.</p>
+          <input id="visitorRevokePassId" type="hidden" />
+          <label for="visitorRevokeReason">Reason</label>
+          <textarea id="visitorRevokeReason" maxlength="300" rows="3" placeholder="Tell us why this pass should be revoked"></textarea>
+          <p class="visitor-pass-error" id="visitorRevokeError" role="alert"></p>
+          <div class="resident-form-actions"><button class="resident-secondary" type="button" data-action="close-visitor-revoke">Cancel</button><button class="resident-primary" type="button" data-action="confirm-visitor-revoke">Revoke pass</button></div>
+        </section>
+      </div>
+      <div class="resident-modal-backdrop hidden" id="facilityBookingModal">
+        <section class="resident-form-modal" role="dialog" aria-modal="true" aria-labelledby="bookingModalTitle">
+          <button class="resident-modal-close" type="button" data-action="close-booking" aria-label="Close booking form">×</button>
+          <span class="resident-kicker">FACILITY BOOKING REQUEST</span>
+          <h2 id="bookingModalTitle">Request a booking</h2>
+          <p id="bookingSlotSummary">Choose a time</p>
+          <label for="bookingAttendees">Number of attendees</label><input id="bookingAttendees" type="number" min="1" max="80" value="1" />
+          <label for="bookingPurpose">Purpose <span class="form-optional">Optional</span></label><textarea id="bookingPurpose" maxlength="250" rows="3" placeholder="Add a note for the facility team"></textarea>
+          <label class="booking-policy-acceptance hidden" id="bookingPolicyAcceptanceRow"><input id="acceptBookingPolicy" type="checkbox" /><span id="bookingPolicyAcceptanceText">I accept this facility's current booking policy.</span></label>
+          <p id="bookingFeeTerms" class="booking-fee-terms hidden"></p><p id="bookingCreateError" class="booking-create-error" role="alert"></p>
+          <p class="resident-form-hint">Availability and any fee must be confirmed by the estate service before a booking is accepted.</p>
+          <div class="resident-form-actions"><button class="resident-secondary" type="button" data-action="close-booking">Cancel</button><button class="resident-primary" type="button" data-action="submit-booking">Send request</button></div>
+          <small class="resident-form-preview">Preview only · no slot will be reserved.</small>
+        </section>
+      </div>
+    </div>
+    <script src="./resident-billing.js"></script>
+    <script src="./resident-operations-live.js"></script>
+    <script src="./resident-visitors-live.js"></script>
+    <script src="./resident-incidents-live.js"></script>
+    <script src="./resident-facilities-live.js"></script>
+    <script src="./resident.js"></script>
+    <script src="./resident-join-live.js"></script>
+    <script src="./resident-landlord-live.js"></script>
+  </body>
+</html>

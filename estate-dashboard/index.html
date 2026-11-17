@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f7f8f5" />
+    <title>Estate operations | Zvend Estate</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./platform.css" />
+    <link rel="stylesheet" href="./operations.css" />
+    <link rel="stylesheet" href="./security.css" />
+    <link rel="stylesheet" href="./governance.css" />
+    <link rel="stylesheet" href="./property-map.css" />
+    <link rel="stylesheet" href="./platform-subscriptions.css" />
+    <link rel="stylesheet" href="./onboarding-approval.css" />
+    <link rel="stylesheet" href="./property-detail.css" />
+    <link rel="stylesheet" href="./property-archive.css" />
+    <link rel="stylesheet" href="./property-structure.css" />
+    <link rel="stylesheet" href="./property-create.css" />
+    <link rel="stylesheet" href="./tenancy-workflow.css" />
+    <link rel="stylesheet" href="./tenancies-live.css" />
+    <link rel="stylesheet" href="./residents-live.css" />
+    <link rel="stylesheet" href="./facilities-live.css" />
+    <link rel="stylesheet" href="./gate-visitors-live.css" />
+    <link rel="stylesheet" href="./property-occupancy.css" />
+    <link rel="stylesheet" href="./team-invite.css" />
+    <link rel="stylesheet" href="./team-membership.css" />
+    <link rel="stylesheet" href="./application-queue.css" />
+    <link rel="stylesheet" href="./estate-selector.css" />
+    <link rel="stylesheet" href="./dashboard-summary.css" />
+    <link rel="stylesheet" href="./billing-invoices.css" />
+    <link rel="stylesheet" href="./billing-preview.css" />
+    <link rel="stylesheet" href="./billing-detail.css" />
+    <link rel="stylesheet" href="./finance-live.css" />
+    <link rel="stylesheet" href="./properties-live.css" />
+    <link rel="stylesheet" href="./structure-live.css" />
+    <link rel="stylesheet" href="./brand.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+        <a class="brand" href="#overview" aria-label="Zvend Estate home">
+          <span class="brand-mark"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4 14.2 16 4l12 10.2v13.3a1.5 1.5 0 0 1-1.5 1.5h-8v-9h-5v9h-8A1.5 1.5 0 0 1 4 27.5V14.2Z"/><path d="M2.8 13.4 16 2.2l13.2 11.2"/></svg></span>
+          <span class="brand-copy"><strong>zvend</strong><small>ESTATE</small></span>
+        </a>
+
+        <button class="estate-switcher" type="button" aria-label="Select estate">
+          <span class="estate-avatar">O</span>
+          <span class="estate-meta"><strong>Oakwood Estate</strong><small>Lekki, Lagos</small></span>
+          <svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
+        </button>
+
+        <div class="nav-label">ESTATE MANAGEMENT</div>
+        <nav class="nav-list">
+          <button class="nav-item active" data-view="overview"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="5" rx="2"/><rect x="13" y="10" width="8" height="11" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/></svg><span>Overview</span></button>
+          <button class="nav-item" data-view="properties"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6M8 9h.01M12 9h.01M16 9h.01"/></svg><span>Properties</span><span class="nav-count">248</span></button>
+          <button class="nav-item" data-view="residents"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM20 8v6M23 11h-6"/></svg><span>Residents</span><span class="nav-dot"></span></button>
+          <button class="nav-item" data-view="tenancies"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h5m-5 3h8"/></svg><span>Tenancies</span><span class="nav-count count-warn">2</span></button>
+          <button class="nav-item" data-view="visitors"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 12h6M12 9v6"/></svg><span>Visitors</span></button>
+          <button class="nav-item" data-view="gate"><svg viewBox="0 0 24 24"><path d="M4 21V6l8-3 8 3v15M8 21V9h8v12M12 9v12M4 12h4m8 0h4"/></svg><span>Gate operations</span></button>
+          <button class="nav-item" data-view="billing"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h3"/></svg><span>Billing &amp; rent</span></button>
+          <button class="nav-item" data-view="finance"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V9l7-6 7 6v12M9 21v-5h6v5M9 11h.01M15 11h.01"/></svg><span>Finance &amp; expenses</span><span class="nav-count count-warn">3</span></button>
+          <button class="nav-item" data-view="maintenance"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a5 5 0 0 0-6.4 6.4L3 18l3 3 5.3-5.3a5 5 0 0 0 6.4-6.4L14 13l-3-3 3.7-3.7Z"/></svg><span>Maintenance</span><span class="nav-count count-warn">8</span></button>
+          <button class="nav-item" data-view="facilities"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6M9 10h.01M15 10h.01"/></svg><span>Facilities</span><span class="nav-count">3</span></button>
+          <button class="nav-item" data-view="announcements"><svg viewBox="0 0 24 24"><path d="M4 11v2a2 2 0 0 0 2 2h2l9 5V4l-9 5H6a2 2 0 0 0-2 2ZM8 15l1 6h4l-2-5"/></svg><span>Announcements</span></button>
+        </nav>
+
+        <div class="nav-label nav-label-lower">INSIGHTS &amp; SETTINGS</div>
+        <nav class="nav-list">
+          <button class="nav-item" data-view="reports"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h17M8 15l4-4 3 2 5-7"/></svg><span>Reports</span></button>
+          <button class="nav-item" data-view="team"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM17 11a4 4 0 0 0 0-8M20 21v-2a4 4 0 0 0-3-3.87"/></svg><span>Team &amp; access</span></button>
+          <button class="nav-item" data-view="settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.6a8 8 0 0 1-1.7 1l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.7-1l-1.7.6-1.4-2.4 1.4-1.1a8 8 0 0 1 0-2l-1.4-1.1 1.4-2.4 1.7.6a8 8 0 0 1 1.7-1l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.7 1l1.7-.6 1.4 2.4-1.4 1.1a8 8 0 0 1 0 2Z" transform="translate(-1 -1)"/></svg><span>Settings</span></button>
+        </nav>
+        <div class="nav-label nav-label-platform">PLATFORM ADMIN</div>
+        <nav class="nav-list">
+          <button class="nav-item" data-view="applications"><svg viewBox="0 0 24 24"><path d="M8 4h8l4 4v12H4V4h4ZM8 4v5h8V4M8 14h8M8 17h5"/></svg><span>Estate applications</span><span class="nav-count count-warn">6</span></button>
+          <button class="nav-item" data-view="subscriptions"><svg viewBox="0 0 24 24"><path d="M4 7h16M6 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2ZM8 12h3m-3 4h8"/></svg><span>Plans &amp; subscriptions</span></button>
+        </nav>
+        <div class="sidebar-bottom">
+          <div class="help-card"><span class="help-icon">?</span><div><strong>Need a hand?</strong><small>Visit our help centre</small></div><span class="help-arrow">↗</span></div>
+          <button class="profile-button" type="button"><span class="profile-avatar">AO</span><span class="profile-meta"><strong>Amara Okafor</strong><small>Estate administrator</small></span><span class="more">···</span></button>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <button class="icon-button menu-toggle" id="menuToggle" aria-label="Open navigation"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+          <div class="breadcrumb"><span>Oakwood Estate</span><span class="slash">/</span><strong id="crumbCurrent">Overview</strong></div>
+          <div class="topbar-actions">
+            <span class="today-label">Estate workspace</span>
+            <button class="icon-button notification-button" aria-label="Notifications"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><i></i></button>
+            <span class="topbar-divider"></span>
+            <button class="date-button" type="button"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg><span id="workspaceDate">Today</span><svg class="chevron" viewBox="0 0 16 16"><path d="m4 6 4 4 4-4"/></svg></button>
+          </div>
+        </header>
+
+        <div class="page-wrap">
+          <section class="page-heading">
+            <div><div class="eyebrow"><span id="workspaceDateLong"></span> <span class="eyebrow-line"></span> <span class="estate-live" id="estateWorkspaceStatus"><i></i> PREVIEW ESTATE</span></div><h1 id="pageTitle">Good morning, Amara</h1><p id="pageSubtitle">Here’s what’s happening at Oakwood Estate today.</p></div>
+            <div class="heading-actions"><button class="button button-secondary" data-action="report"><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 17v3h14v-3"/></svg>Export report</button><button class="button button-primary" data-action="invite"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Invite a resident</button></div>
+          </section>
+
+          <section id="liveDashboardView" class="live-dashboard-view hidden" aria-label="Live estate dashboard">
+            <div class="live-dashboard-status" id="liveDashboardStatus" role="status"></div>
+            <div class="live-dashboard-metrics" id="liveDashboardMetrics"></div>
+            <div class="live-dashboard-sources" id="liveDashboardSources"></div>
+          </section>
+
+          <section class="summary-grid" aria-label="Estate summary">
+            <article class="metric-card"><div class="metric-top"><span class="metric-label">TOTAL PROPERTIES</span><span class="metric-icon icon-green"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6M8 9h.01M12 9h.01M16 9h.01"/></svg></span></div><div class="metric-value">248 <span class="metric-context">units</span></div><div class="metric-foot"><span class="trend trend-up">↗ 4.2%</span><span>vs. last month</span><div class="mini-bars"><i style="height:10px"></i><i style="height:15px"></i><i style="height:12px"></i><i style="height:20px"></i><i style="height:17px"></i><i style="height:25px"></i><i style="height:29px"></i></div></div></article>
+            <article class="metric-card"><div class="metric-top"><span class="metric-label">OCCUPANCY RATE</span><span class="metric-icon icon-blue"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM20 8v6M23 11h-6"/></svg></span></div><div class="metric-value">94.3<span class="metric-unit">%</span></div><div class="metric-foot"><span class="trend trend-up">↗ 2.1%</span><span>vs. last month</span><div class="progress-track"><i style="width:94.3%"></i></div></div></article>
+            <article class="metric-card"><div class="metric-top"><span class="metric-label">RESIDENTS</span><span class="metric-icon icon-violet"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM17 11a4 4 0 0 0 0-8M20 21v-2a4 4 0 0 0-3-3.87"/></svg></span></div><div class="metric-value">1,284</div><div class="metric-foot"><span class="trend trend-up">↗ 18</span><span>new this month</span><div class="avatar-stack"><i>AK</i><i>TO</i><i>+16</i></div></div></article>
+            <article class="metric-card metric-finance"><div class="metric-top"><span class="metric-label">COLLECTED THIS MONTH</span><span class="metric-icon icon-gold"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span></div><div class="metric-value"><span class="naira">₦</span>18.42m</div><div class="metric-foot"><span class="trend trend-up">↗ 8.6%</span><span>of ₦22.5m billed</span><div class="collection-ring"><svg viewBox="0 0 36 36"><path d="M18 3a15 15 0 1 1 0 30 15 15 0 0 1 0-30"/><path class="ring-progress" d="M18 3a15 15 0 1 1 0 30 15 15 0 0 1 0-30"/></svg><b>82%</b></div></div></article>
+          </section>
+
+          <section class="content-grid">
+            <article class="panel activity-panel">
+              <div class="panel-header"><div><h2>Estate activity</h2><p>A snapshot of your community</p></div><button class="text-button" data-view="reports">View reports <span>↗</span></button></div>
+              <div class="chart-legend"><span><i class="legend-current"></i> This month</span><span><i class="legend-previous"></i> Last month</span><div class="chart-select">Last 6 months <svg class="chevron" viewBox="0 0 16 16"><path d="m4 6 4 4 4-4"/></svg></div></div>
+              <div class="chart-area" role="img" aria-label="Bar chart comparing collections this month and last month for June through November">
+                <div class="y-labels"><span>₦25m</span><span>₦20m</span><span>₦15m</span><span>₦10m</span><span>₦5m</span><span>₦0</span></div>
+                <div class="chart-plot"><div class="grid-lines"><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="bar-groups"><div class="bar-group"><div class="bar-pair"><i class="bar previous" style="height:47%"></i><i class="bar current" style="height:53%"></i></div><span>Jun</span></div><div class="bar-group"><div class="bar-pair"><i class="bar previous" style="height:58%"></i><i class="bar current" style="height:49%"></i></div><span>Jul</span></div><div class="bar-group"><div class="bar-pair"><i class="bar previous" style="height:49%"></i><i class="bar current" style="height:67%"></i></div><span>Aug</span></div><div class="bar-group"><div class="bar-pair"><i class="bar previous" style="height:62%"></i><i class="bar current" style="height:60%"></i></div><span>Sep</span></div><div class="bar-group"><div class="bar-pair"><i class="bar previous" style="height:66%"></i><i class="bar current" style="height:76%"></i></div><span>Oct</span></div><div class="bar-group"><div class="bar-pair"><i class="bar previous" style="height:72%"></i><i class="bar current latest" style="height:88%"></i></div><span>Nov</span></div></div></div>
+              </div>
+              <div class="chart-summary"><span>Collections are up <strong>8.6%</strong> compared with last month</span><span class="chart-note">Updated just now <i></i></span></div>
+            </article>
+
+            <article class="panel attention-panel">
+              <div class="panel-header"><div><h2>Needs your attention <span class="attention-count">4</span></h2><p>Items that may need a follow-up</p></div><button class="more-button" aria-label="More options">···</button></div>
+              <div class="attention-list">
+                <button class="attention-item" data-view="residents"><span class="attention-icon pending-icon"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM18 8v6M21 11h-6"/></svg></span><span class="attention-copy"><strong>Resident approvals</strong><small>3 applications waiting for review</small></span><span class="attention-arrow">›</span></button>
+                <button class="attention-item" data-view="billing"><span class="attention-icon due-icon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h3"/></svg></span><span class="attention-copy"><strong>Overdue invoices</strong><small>₦1,240,000 across 12 properties</small></span><span class="attention-arrow">›</span></button>
+                <button class="attention-item" data-view="maintenance"><span class="attention-icon repair-icon"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a5 5 0 0 0-6.4 6.4L3 18l3 3 5.3-5.3a5 5 0 0 0 6.4-6.4L14 13l-3-3 3.7-3.7Z"/></svg></span><span class="attention-copy"><strong>Open maintenance</strong><small>2 requests have been open 7+ days</small></span><span class="attention-arrow">›</span></button>
+                <button class="attention-item" data-view="visitors"><span class="attention-icon visitor-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2M19 8h3M20.5 6.5v3"/></svg></span><span class="attention-copy"><strong>Visitor passes expiring</strong><small>5 passes expire in the next 24 hours</small></span><span class="attention-arrow">›</span></button>
+              </div>
+              <button class="attention-footer" data-view="overview">View all activity <span>→</span></button>
+            </article>
+          </section>
+
+          <section class="bottom-grid">
+            <article class="panel property-panel">
+              <div class="panel-header"><div><h2>Property overview</h2><p>Occupancy across your estate</p></div><button class="text-button" data-view="properties">View properties <span>↗</span></button></div>
+              <div class="occupancy-body"><div class="donut-wrap"><svg class="donut" viewBox="0 0 120 120" role="img" aria-label="94.3 percent of properties are occupied"><circle class="donut-track" cx="60" cy="60" r="47"/><circle class="donut-value" cx="60" cy="60" r="47"/></svg><div class="donut-label"><strong>94.3%</strong><small>occupied</small></div></div><div class="occupancy-legend"><div><i class="legend-occupied"></i><span>Occupied</span><strong>234</strong><small>94.3%</small></div><div><i class="legend-vacant"></i><span>Vacant</span><strong>14</strong><small>5.7%</small></div></div><div class="property-types"><span class="types-title">OPERATIONAL STATUS</span><div class="type-row"><span>Under maintenance</span><div class="type-track"><i class="operational-maintenance-fill" style="width:2%"></i></div><strong>5</strong></div><div class="type-row"><span>Types · houses / apartments</span><div class="type-track"><i style="width:71%"></i></div><strong>176 / 72</strong></div></div></div>
+            </article>
+
+            <article class="panel maintenance-panel">
+              <div class="panel-header"><div><h2>Recent maintenance</h2><p>Latest requests from residents</p></div><button class="text-button" data-view="maintenance">See all <span>↗</span></button></div>
+              <div class="table-wrap"><table><thead><tr><th>REQUEST</th><th>PROPERTY</th><th>STATUS</th><th>PRIORITY</th></tr></thead><tbody>
+                <tr><td><span class="request-symbol plumbing">⌁</span><span class="request-name"><strong>Water pressure issue</strong><small>Reported 2 hours ago</small></span></td><td>Block C · 12</td><td><span class="status-pill status-progress"><i></i>In progress</span></td><td><span class="priority priority-high">High</span></td></tr>
+                <tr><td><span class="request-symbol electrical">ϟ</span><span class="request-name"><strong>Street light repair</strong><small>Reported yesterday</small></span></td><td>Maple Street</td><td><span class="status-pill status-review"><i></i>Under review</span></td><td><span class="priority priority-medium">Medium</span></td></tr>
+                <tr><td><span class="request-symbol general">⌂</span><span class="request-name"><strong>Gate access card</strong><small>Reported 2 days ago</small></span></td><td>Oakwood · 08</td><td><span class="status-pill status-assigned"><i></i>Assigned</span></td><td><span class="priority priority-low">Low</span></td></tr>
+              </tbody></table></div>
+            </article>
+          </section>
+
+          <section class="panel property-register hidden" id="propertyRegister">
+            <div class="panel-header"><div><h2>Property register</h2><p>Manage units, ownership and occupancy</p></div><button class="button button-primary" data-action="add-property"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add property</button></div>
+            <div class="property-register-tabs" role="tablist" aria-label="Property setup views"><button id="propertiesTab" class="selected" type="button" role="tab" aria-controls="propertyAssetsPanel" aria-selected="true" data-register-tab="properties">Properties <span>248</span></button><button id="structureTab" type="button" role="tab" aria-controls="estateStructurePanel" aria-selected="false" data-register-tab="structure">Estate structure <span>7 nodes</span></button></div>
+            <div id="propertyAssetsPanel" role="tabpanel" aria-labelledby="propertiesTab">
+            <div class="table-toolbar"><label class="search-field"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="propertySearch" type="search" placeholder="Search by unit, street or owner" /></label><button class="filter-button" id="propertyFilter"><svg viewBox="0 0 24 24"><path d="M4 7h16M7 12h10m-7 5h4"/></svg>Filters <span class="filter-number">2</span></button><span class="results-count" id="resultsCount">Showing 5 of 248 properties</span></div>
+            <div class="property-view-switch" role="group" aria-label="Property view"><button class="selected" type="button" data-property-view="list" aria-pressed="true">List</button><button type="button" data-property-view="map" aria-pressed="false">Map</button></div>
+            <section class="property-map-panel hidden" id="propertyMapPanel" aria-label="Illustrative estate asset map">
+              <div class="estate-map-layout"><div class="estate-map-canvas">
+                <svg class="estate-map-art" viewBox="0 0 720 430" role="img" aria-label="Schematic estate roads, zones, gates and facilities">
+                  <rect width="720" height="430" rx="12" fill="#edf2e8"/><path class="map-park" d="M25 30h145v86H25zM520 28h170v74H520zM45 333h166v72H45zM530 325h155v80H530z"/><path class="map-water" d="M0 242c93-31 130 21 221-9s131-27 211 0 157 25 288-13v74c-116 35-190 27-282 1s-143-9-230 13S86 282 0 313Z"/><path class="map-road map-road-main" d="M-20 165c144 9 180-28 313-17s180 44 446 13M-10 296c140-13 203 26 313 12s214-37 443-12M224-20c-8 93 13 147 2 243s-20 143-8 230M455-15c18 102 4 165 12 255s12 130 2 208"/><path class="map-road map-road-side" d="M43 74c57 54 74 92 79 129s-17 69-60 93m555-217c-64 54-81 92-87 129s18 68 62 93M323 5c-4 44-2 78 8 114m-9 200c8 39 12 73 4 111"/><path class="map-zone-line" d="M190 28v362M498 28v362M35 139h650M35 315h650"/><text x="43" y="55">NORTH GARDENS</text><text x="540" y="54">OAKWOOD COURT</text><text x="62" y="385">CEDAR LANE</text><text x="547" y="376">MAPLE PHASE</text><text x="339" y="211" class="map-central-label">OAKWOOD ESTATE</text>
+              </svg>
+                <span class="map-feature map-main-gate">Main gate</span><span class="map-feature map-clubhouse">Clubhouse</span><span class="map-feature map-parking">Parking</span>
+                <button class="map-property-marker marker-occupied marker-p1 selected" type="button" data-property-marker="p1" data-property-record="oakwood-01" data-map-search="oakwood 01 detached house emeka okafor" data-property-name="Oakwood · 01" data-property-meta="Detached house · North Gardens" data-property-status="Occupied" data-property-status-class="occupied" aria-label="Oakwood 01, occupied">01</button>
+                <button class="map-property-marker marker-occupied marker-p2" type="button" data-property-marker="p2" data-property-record="block-c-12" data-map-search="block c 12 apartment chioma adebayo" data-property-name="Block C · 12" data-property-meta="Apartment · Oakwood Court" data-property-status="Occupied" data-property-status-class="occupied" aria-label="Block C 12, occupied">C12</button>
+                <button class="map-property-marker marker-vacant marker-p3" type="button" data-property-marker="p3" data-property-record="maple-08" data-map-search="maple street 08 townhouse daniel adewale" data-property-name="Maple Street · 08" data-property-meta="Townhouse · Maple Phase" data-property-status="Vacant" data-property-status-class="vacant" aria-label="Maple Street 08, vacant">08</button>
+                <button class="map-property-marker marker-occupied marker-p4" type="button" data-property-marker="p4" data-property-record="block-a-06" data-map-search="block a 06 apartment fatima bello" data-property-name="Block A · 06" data-property-meta="Apartment · Oakwood Court" data-property-status="Occupied" data-property-status-class="occupied" aria-label="Block A 06, occupied">A06</button>
+                <button class="map-property-marker marker-maintenance marker-p5" type="button" data-property-marker="p5" data-property-record="cedar-03" data-map-search="cedar 03 duplex musa abdullahi" data-property-name="Cedar Lane · 03" data-property-meta="Duplex · Cedar Lane" data-property-status="Under maintenance" data-property-status-class="maintenance" aria-label="Cedar Lane 03, under maintenance">03</button>
+                <div class="map-scale"><i></i><span>Illustrative layout</span></div>
+              </div><aside class="map-property-detail"><span class="eyebrow">SELECTED PROPERTY</span><h3 id="mapPropertyTitle">Oakwood · 01</h3><p id="mapPropertyMeta">Detached house · North Gardens</p><span class="map-detail-status map-status-occupied" id="mapPropertyStatus">Occupied</span><button class="text-button map-property-open" id="mapPropertyOpen" type="button" data-action="property-detail" data-property-id="oakwood-01">Open property record →</button><div class="map-privacy-note">Map markers represent estate assets only. This schematic has no resident location data and is not a surveyed map.</div></aside></div>
+              <div class="map-legend"><span><i class="legend-occupied-marker"></i>Occupied</span><span><i class="legend-vacant-marker"></i>Vacant</span><span><i class="legend-maint-marker"></i>Maintenance status border</span><span><i class="legend-feature-marker"></i>Estate facility</span></div>
+            </section>
+            <div class="table-wrap full-table"><table><thead><tr><th>PROPERTY</th><th>TYPE</th><th>OWNER</th><th>OCCUPANCY</th><th>OPERATIONAL STATUS</th><th></th></tr></thead><tbody id="propertyRows">
+              <tr data-property-id="oakwood-01" data-search="oakwood 01 detached house emeka okafor"><td><span class="property-thumb thumb-one">01</span><span class="request-name"><strong>Oakwood · 01</strong><small>Oakwood Drive</small></span></td><td>Detached house</td><td>Emeka Okafor</td><td>Owner occupied</td><td><span class="status-pill status-active"><i></i>Operational</span></td><td><button class="table-action property-detail-action" data-action="property-detail" data-property-id="oakwood-01">Details</button></td></tr>
+              <tr data-property-id="block-c-12" data-search="block c 12 apartment chioma adebayo"><td><span class="property-thumb thumb-two">C12</span><span class="request-name"><strong>Block C · 12</strong><small>Oakwood Court</small></span></td><td>Apartment</td><td>Chioma Adebayo</td><td>Tenant occupied</td><td><span class="status-pill status-active"><i></i>Operational</span></td><td><button class="table-action property-detail-action" data-action="property-detail" data-property-id="block-c-12">Details</button></td></tr>
+              <tr data-property-id="maple-08" data-search="maple street 08 townhouse daniel adewale"><td><span class="property-thumb thumb-three">08</span><span class="request-name"><strong>Maple Street · 08</strong><small>Maple Street</small></span></td><td>Townhouse</td><td>Daniel Adewale</td><td>Vacant</td><td><span class="status-pill status-active"><i></i>Operational</span></td><td><button class="table-action property-detail-action" data-action="property-detail" data-property-id="maple-08">Details</button></td></tr>
+              <tr data-property-id="block-a-06" data-search="block a 06 apartment fatima bello"><td><span class="property-thumb thumb-four">A06</span><span class="request-name"><strong>Block A · 06</strong><small>Oakwood Court</small></span></td><td>Apartment</td><td>Fatima Bello</td><td>Tenant occupied</td><td><span class="status-pill status-active"><i></i>Operational</span></td><td><button class="table-action property-detail-action" data-action="property-detail" data-property-id="block-a-06">Details</button></td></tr>
+              <tr data-property-id="cedar-03" data-search="cedar 03 duplex musa abdullahi"><td><span class="property-thumb thumb-five">03</span><span class="request-name"><strong>Cedar Lane · 03</strong><small>Cedar Lane</small></span></td><td>Duplex</td><td>Musa Abdullahi</td><td>Tenant occupied</td><td><span class="status-pill status-maint"><i></i>Under maintenance</span></td><td><button class="table-action property-detail-action" data-action="property-detail" data-property-id="cedar-03">Details</button></td></tr>
+            </tbody></table></div><div class="pagination"><span>Page 1 of 50</span><div><button aria-label="Previous page" disabled>←</button><button class="page-current">1</button><button>2</button><button>3</button><span>…</span><button>50</button><button aria-label="Next page">→</button></div></div>
+            </div>
+            <section id="estateStructurePanel" class="estate-structure-panel hidden" role="tabpanel" aria-labelledby="structureTab">
+              <div class="structure-intro"><div><span class="eyebrow">PROPERTY SETUP</span><h3 id="estateStructureTitle">Estate structure</h3><p>Organize properties into the zones, streets, buildings and floors used across your estate.</p></div><button class="button button-primary" type="button" data-action="add-structure-node">Add structure</button></div>
+              <div class="structure-summary"><article><span>ACTIVE NODES</span><strong id="structureNodeCount">7</strong><small>Zones, streets, buildings and floors</small></article><article><span>PROPERTY RECORDS</span><strong id="structurePropertyCount">248</strong><small>Managed in the property register</small></article><article><span>ESTATE CONFIGURATION</span><strong>Flexible</strong><small>Hierarchy follows this estate's layout</small></article></div>
+              <div class="structure-list-wrap"><table class="structure-table"><thead><tr><th>NAME</th><th>TYPE</th><th>PARENT</th><th>LINKED ASSETS</th><th>STATUS</th><th></th></tr></thead><tbody id="structureRows"></tbody></table></div>
+              <p class="structure-preview-note">Illustrative structure only · changes here stay in this page preview. A connected estate service must enforce hierarchy policy, permissions and audit history.</p>
+            </section>
+          </section>
+
+          <section class="section-placeholder hidden" id="sectionPlaceholder"><div class="placeholder-icon"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg></div><span class="eyebrow">OAKWOOD ESTATE</span><h2 id="placeholderTitle">Section</h2><p id="placeholderText">This section is ready to connect to the estate services.</p><button class="button button-primary" data-view="overview">Return to overview</button></section>
+          <section class="module-content hidden" id="moduleContent" aria-live="polite"></section>
+
+          <div class="modal-backdrop hidden" id="residentDecisionModal">
+            <section class="resident-decision-modal" role="dialog" aria-modal="true" aria-labelledby="residentDecisionTitle" aria-describedby="residentDecisionDescription">
+              <button class="modal-close" type="button" data-action="close-resident-decision" aria-label="Close resident review">×</button>
+              <span class="eyebrow">RESIDENT MEMBERSHIP REVIEW</span>
+              <h2 id="residentDecisionTitle">Review join request</h2>
+              <p id="residentDecisionDescription">Review the requested relationship and property before deciding.</p>
+              <div class="resident-decision-facts"><div><span>APPLICANT</span><strong id="residentApplicantName"></strong><small id="residentApplicantEmail"></small></div><div><span>REQUESTED PROPERTY</span><strong id="residentRequestedProperty"></strong><small id="residentRequestedRelationship"></small></div><div><span>SUBMITTED</span><strong id="residentSubmittedAt"></strong><small>Request status · Pending review</small></div></div>
+              <article class="resident-request-summary"><strong>Applicant note</strong><p id="residentApplicantNote"></p></article>
+              <article class="resident-proof-summary"><strong>Supporting information</strong><p id="residentProofSummary"></p><small>Private files can only be opened through an authorized document service.</small></article>
+              <label class="resident-rejection-reason hidden" id="residentReasonField" for="residentDecisionReason">Reason for rejection <span>Required</span><textarea id="residentDecisionReason" rows="3" maxlength="500" placeholder="Explain what is missing or why this request cannot be approved"></textarea></label>
+              <p class="resident-decision-error" id="residentDecisionError" role="alert"></p>
+              <p class="resident-decision-preview-note">Approval creates membership and the requested occupancy only. It does not grant landlord, owner or billing permissions. Preview only · no Zvend records, notification or audit event is written.</p>
+              <div class="modal-actions"><button class="button button-secondary" type="button" data-action="close-resident-decision">Cancel</button><button class="button reject-action" type="button" data-action="reject-resident-decision">Reject request</button><button class="button button-primary" type="button" data-action="approve-resident-decision">Approve membership</button></div>
+            </section>
+          </div>
+          <div class="modal-backdrop hidden" id="staffInviteModal">
+            <section class="staff-invite-modal" role="dialog" aria-modal="true" aria-labelledby="staffInviteTitle" aria-describedby="staffInviteDescription">
+              <button class="modal-close" type="button" data-action="close-staff-invite" aria-label="Close staff invitation">×</button>
+              <span class="eyebrow">OAKWOOD ESTATE · STAFF ACCESS</span><h2 id="staffInviteTitle">Invite a team member</h2><p id="staffInviteDescription">Invite an existing Zvend account and choose an estate role. Access remains limited to this estate.</p>
+              <label for="staffInviteEmail">Zvend account email</label><input id="staffInviteEmail" type="email" autocomplete="email" required maxlength="254" placeholder="name@example.com" />
+              <label for="staffInviteRole">Estate role</label><select id="staffInviteRole" required><option value="">Choose a role</option><option value="general_manager">General manager</option><option value="estate_accountant">Estate accountant</option><option value="estate_secretary">Estate secretary</option><option value="security_supervisor">Security supervisor</option><option value="security_personnel">Security personnel</option><option value="facility_manager">Facility manager</option><option value="maintenance_officer">Maintenance officer</option></select>
+              <article class="staff-invite-scope"><span class="eyebrow">ESTATE ACCESS SCOPE</span><strong id="staffInviteScope">Choose a role to preview its scope</strong><small>Final permissions and any assigned gate or work scope are checked by the estate service.</small></article>
+              <p class="staff-invite-error" id="staffInviteError" role="alert"></p>
+              <p class="staff-invite-note">Preview only · no invitation is sent and no role is granted here.</p>
+              <div class="modal-actions"><button class="button button-secondary" type="button" data-action="close-staff-invite">Cancel</button><button class="button button-primary" type="button" data-action="submit-staff-invite">Add invitation preview</button></div>
+            </section>
+          </div>
+          <div class="modal-backdrop hidden" id="staffMembershipModal">
+            <section class="staff-membership-modal" role="dialog" aria-modal="true" aria-labelledby="staffMembershipTitle" aria-describedby="staffMembershipDescription">
+              <button class="modal-close" type="button" data-action="close-staff-membership" aria-label="Close member access">×</button>
+              <span class="eyebrow">OAKWOOD ESTATE · STAFF ACCESS</span><h2 id="staffMembershipTitle">Manage team access</h2><p id="staffMembershipDescription">Access changes are estate-scoped and recorded in the membership history.</p>
+              <div class="staff-membership-facts"><div><span>TEAM MEMBER</span><strong id="staffMembershipName"></strong><small id="staffMembershipEmail"></small></div><div><span>ROLE</span><strong id="staffMembershipRole"></strong></div><div><span>ACCESS SCOPE</span><strong id="staffMembershipScope"></strong></div><div><span>STATUS</span><strong id="staffMembershipStatus"></strong></div></div>
+              <button class="button button-secondary staff-role-change-open" type="button" data-action="open-staff-role-change">Change role</button>
+              <label for="staffMembershipReason">Reason for access change <span>Required</span><textarea id="staffMembershipReason" rows="3" maxlength="500" placeholder="Record why this access change is needed"></textarea></label>
+              <p class="staff-membership-warning" id="staffMembershipWarning" role="alert"></p>
+              <p class="staff-membership-note">Preview only · no membership, session or audit record is changed here.</p>
+              <div class="modal-actions"><button class="button button-secondary" type="button" data-action="close-staff-membership">Cancel</button><button class="button reject-action" type="button" data-action="suspend-staff-membership">Suspend access</button><button class="button button-danger" type="button" data-action="revoke-staff-membership">Revoke access</button></div>
+            </section>
+          </div>
+          <div class="modal-backdrop hidden" id="staffRoleChangeModal">
+            <section class="staff-membership-modal staff-role-change-modal" role="dialog" aria-modal="true" aria-labelledby="staffRoleChangeTitle" aria-describedby="staffRoleChangeDescription">
+              <button class="modal-close" type="button" data-action="close-staff-role-change" aria-label="Close role change">×</button>
+              <span class="eyebrow">OAKWOOD ESTATE · STAFF ROLE</span><h2 id="staffRoleChangeTitle">Change team member role</h2><p id="staffRoleChangeDescription">Select an estate role. Its final permissions are checked against your delegation rights and estate policy.</p>
+              <div class="staff-role-change-member"><span>TEAM MEMBER</span><strong id="staffRoleChangeMember"></strong></div>
+              <label for="staffRoleChangeSelect">New role<select id="staffRoleChangeSelect"><option value="">Choose a role</option><option value="general_manager">General manager</option><option value="estate_accountant">Estate accountant</option><option value="estate_secretary">Estate secretary</option><option value="security_supervisor">Security supervisor</option><option value="security_personnel">Security personnel</option><option value="facility_manager">Facility manager</option><option value="maintenance_officer">Maintenance officer</option></select></label>
+              <article class="staff-invite-scope"><span class="eyebrow">ROLE SCOPE PREVIEW</span><strong id="staffRoleChangeScope">Choose a role to preview its estate scope</strong><small>Assignment is subject to server-side delegated grants and separation-of-duties policy.</small></article>
+              <label for="staffRoleChangeReason">Reason for role change <span>Required</span><textarea id="staffRoleChangeReason" rows="3" maxlength="500" placeholder="Record why this role change is needed"></textarea></label>
+              <p class="staff-membership-warning" id="staffRoleChangeWarning" role="alert"></p>
+              <p class="staff-membership-note">Preview only · the role, access and audit history are not changed here.</p>
+              <div class="modal-actions"><button class="button button-secondary" type="button" data-action="close-staff-role-change">Cancel</button><button class="button button-primary" type="button" data-action="submit-staff-role-change">Preview role change</button></div>
+            </section>
+          </div>
+          <div class="modal-backdrop hidden" id="tenancyCreateModal">
+            <section class="tenancy-workflow-modal" role="dialog" aria-modal="true" aria-labelledby="tenancyCreateTitle">
+              <button class="modal-close" type="button" data-action="close-tenancy-workflow" aria-label="Close tenancy form">×</button>
+              <span class="eyebrow">PROPERTY &amp; PEOPLE</span>
+              <h2 id="tenancyCreateTitle">New tenancy</h2>
+              <p>Link an existing resident, property and authorized payee to the agreed rent terms.</p>
+              <form id="tenancyCreateForm">
+                <div class="tenancy-form-grid"><label>Property<select id="newTenancyProperty" required><option value="">Choose property</option><option value="oak-01">Oakwood · 01</option><option value="block-c-12">Block C · 12</option><option value="maple-11">Maple Street · 11</option><option value="cedar-03">Cedar Lane · 03</option></select></label><label>Existing resident / tenant<select id="newTenancyTenant" required><option value="">Choose tenant</option><option>Chioma Adebayo</option><option>Daniel Adewale</option><option>Mariam Yusuf</option><option>Tunde Okafor</option><option>Emeka Anozie</option></select></label><label>Landlord / authorized payee<select id="newTenancyPayee" required><option value="">Choose payee</option><option>Emeka Okafor</option><option>Fatima Bello</option><option>Ola Balogun</option><option>Ifeoma Kalu</option></select></label><label>Rent amount (₦)<input id="newTenancyRent" type="number" min="1" step="0.01" required placeholder="e.g. 2500000" /></label><label>Frequency<select id="newTenancyFrequency" required><option value="annual">Annual</option><option value="monthly">Monthly</option><option value="quarterly">Quarterly</option><option value="weekly">Weekly</option></select></label><label>Starts on<input id="newTenancyStart" type="date" required /></label><label>Ends on <span>Optional</span><input id="newTenancyEnd" type="date" /></label><label>Initial status<select id="newTenancyStatus" required><option value="pending">Pending approval</option><option value="draft">Draft</option></select></label></div>
+                <p class="tenancy-workflow-error" id="tenancyCreateError" role="alert"></p>
+                <p class="tenancy-workflow-note">Local preview only. A connected service must verify resident/payee links, estate permissions and rent policy before saving.</p>
+                <div class="modal-actions"><button class="button button-secondary" type="button" data-action="close-tenancy-workflow">Cancel</button><button class="button button-primary" type="submit">Save tenancy</button></div>
+              </form>
+            </section>
+          </div>
+          <div class="modal-backdrop hidden" id="tenancyReviewModal">
+            <section class="tenancy-workflow-modal" role="dialog" aria-modal="true" aria-labelledby="tenancyReviewTitle">
+              <button class="modal-close" type="button" data-action="close-tenancy-workflow" aria-label="Close tenancy review">×</button>
+              <span class="eyebrow">TENANCY APPROVAL</span>
+              <h2 id="tenancyReviewTitle">Review tenancy terms</h2>
+              <p>Check the parties, rent and term before activation.</p>
+              <div class="tenancy-review-facts"><div><span>PROPERTY</span><strong id="reviewTenancyProperty"></strong></div><div><span>TENANT</span><strong id="reviewTenancyTenant"></strong></div><div><span>LANDLORD / PAYEE</span><strong id="reviewTenancyLandlord"></strong></div><div><span>RENT</span><strong id="reviewTenancyRent"></strong></div><div><span>TERM</span><strong id="reviewTenancyTerm"></strong></div><div><span>CONFLICT CHECK</span><strong id="reviewTenancyConflict"></strong></div></div>
+              <p class="tenancy-change-summary" id="tenancyChangeSummary"></p>
+              <p class="tenancy-workflow-error" id="tenancyReviewError" role="alert"></p>
+              <p class="tenancy-workflow-note">Local preview only. The live approval service must recheck active conflicts under a property lock, validate permissions and record the effective occupancy and audit event.</p>
+              <div class="modal-actions"><button class="button button-secondary" type="button" data-action="close-tenancy-workflow">Close</button><button class="button reject-action hidden" type="button" data-action="open-tenancy-termination">Terminate tenancy</button><button class="button button-secondary hidden" type="button" data-action="open-tenancy-edit">Edit terms</button><button class="button button-primary" type="button" data-action="confirm-tenancy-approval">Approve tenancy</button></div>
+            </section>
+          </div>
+          <div class="modal-backdrop hidden" id="tenancyEditModal">
+            <section class="tenancy-workflow-modal" role="dialog" aria-modal="true" aria-labelledby="tenancyEditTitle">
+              <button class="modal-close" type="button" data-action="close-tenancy-edit" aria-label="Close term editor">×</button>
+              <span class="eyebrow">PRE-APPROVAL TERMS</span>
+              <h2 id="tenancyEditTitle">Edit tenancy terms</h2>
+              <p id="tenancyEditSummary"></p>
+              <form id="tenancyEditForm">
+                <div class="tenancy-form-grid"><label>Landlord / authorized payee<select id="editTenancyPayee" required><option>Emeka Okafor</option><option>Fatima Bello</option><option>Ola Balogun</option><option>Ifeoma Kalu</option></select></label><label>Rent amount (₦)<input id="editTenancyRent" type="number" min="1" step="0.01" required /></label><label>Frequency<select id="editTenancyFrequency"><option>Annual</option><option>Monthly</option><option>Quarterly</option><option>Weekly</option></select></label><label>Starts on<input id="editTenancyStart" type="date" required /></label><label>Ends on <span>Optional</span><input id="editTenancyEnd" type="date" /></label></div>
+                <p class="tenancy-workflow-error" id="tenancyEditError" role="alert"></p>
+                <p class="tenancy-workflow-note">Only draft and pending terms can be changed. This preview keeps a local before/after snapshot; the live service must validate and audit the version update.</p>
+                <div class="modal-actions"><button class="button button-secondary" type="button" data-action="close-tenancy-edit">Back</button><button class="button button-primary" type="submit">Save term changes</button></div>
+              </form>
+            </section>
+          </div>
+          <div class="modal-backdrop hidden" id="tenancyTerminationModal">
+            <section class="tenancy-workflow-modal" role="dialog" aria-modal="true" aria-labelledby="tenancyTerminationTitle">
+              <button class="modal-close" type="button" data-action="close-tenancy-termination" aria-label="Close termination form">×</button>
+              <span class="eyebrow">TENANCY LIFECYCLE</span>
+              <h2 id="tenancyTerminationTitle">Terminate tenancy</h2>
+              <p id="tenancyTerminationSummary"></p>
+              <form id="tenancyTerminationForm">
+                <label>Effective termination date<input id="tenancyTerminationDate" type="date" required /></label>
+                <label>Reason<textarea id="tenancyTerminationReason" rows="3" maxlength="500" required placeholder="Record the agreed or authorized reason"></textarea></label>
+                <p class="tenancy-workflow-error" id="tenancyTerminationError" role="alert"></p>
+                <p class="tenancy-workflow-note">Local preview only. The live service must validate date policy, end the linked occupancy, preserve both records and write the audit event atomically.</p>
+                <div class="modal-actions"><button class="button button-secondary" type="button" data-action="close-tenancy-termination">Back</button><button class="button reject-action" type="submit">Record termination</button></div>
+              </form>
+            </section>
+          </div>
+          <div class="modal-backdrop hidden" id="tenancyRenewalModal">
+            <section class="tenancy-workflow-modal" role="dialog" aria-modal="true" aria-labelledby="tenancyRenewalTitle">
+              <button class="modal-close" type="button" data-action="close-tenancy-workflow" aria-label="Close renewal form">×</button>
+              <span class="eyebrow">LINKED RENEWAL</span>
+              <h2 id="tenancyRenewalTitle">Draft renewal terms</h2>
+              <p id="renewalPriorSummary"></p>
+              <form id="tenancyRenewalForm">
+                <div class="tenancy-form-grid"><label>Rent amount<input id="renewalRent" type="number" min="0.01" step="0.01" required /></label><label>Frequency<select id="renewalFrequency"><option value="Annual">Annual</option><option value="Monthly">Monthly</option><option value="Quarterly">Quarterly</option><option value="Weekly">Weekly</option></select></label><label>New term starts<input id="renewalStart" type="date" required /></label><label>New term ends<input id="renewalEnd" type="date" required /></label></div>
+                <p class="tenancy-workflow-error" id="tenancyRenewalError" role="alert"></p>
+                <p class="tenancy-workflow-note">The previous agreement remains unchanged and linked. This local draft does not verify renewal eligibility, handoff dates, conflicts or audit history against estate policy.</p>
+                <div class="modal-actions"><button class="button button-secondary" type="button" data-action="close-tenancy-workflow">Cancel</button><button class="button button-primary" type="submit">Create pending renewal</button></div>
+              </form>
+            </section>
+          </div>
+          <div class="modal-backdrop hidden" id="decisionModal">
+            <section class="decision-modal" role="dialog" aria-modal="true" aria-labelledby="decisionTitle" aria-describedby="decisionDescription">
+              <button class="modal-close" type="button" data-action="close-modal" aria-label="Close dialog">×</button>
+              <span class="eyebrow">ESTATE APPLICATION REVIEW</span>
+              <h2 id="decisionTitle">Request more information</h2>
+              <p id="decisionDescription">Give the applicant a clear reason and the information needed to continue.</p>
+              <label class="reason-label" for="decisionReason">Reason <span>Required</span></label>
+              <textarea id="decisionReason" rows="4" placeholder="Describe what needs to be corrected or provided"></textarea>
+              <div class="modal-actions"><button class="button button-secondary" type="button" data-action="close-modal">Cancel</button><button class="button button-primary" type="button" id="submitDecision">Send request</button></div>
+            </section>
+          </div>
+
+          <div class="modal-backdrop hidden" id="estateApprovalModal">
+            <section class="decision-modal estate-approval-modal" role="dialog" aria-modal="true" aria-labelledby="estateApprovalTitle" aria-describedby="estateApprovalDescription">
+              <button class="modal-close" type="button" data-action="close-estate-approval" aria-label="Close approval dialog">×</button>
+              <span class="eyebrow">ESTATE ACTIVATION</span>
+              <h2 id="estateApprovalTitle">Approve estate application</h2>
+              <p id="estateApprovalDescription">Choose the first Estate Administrator. Approval and membership creation must be committed together by the platform service.</p>
+              <div class="approval-estate-summary"><span>ESTATE</span><strong id="approvalEstateName">Estate</strong></div>
+              <label class="reason-label" for="initialAdminUser">Initial Estate Administrator <span>Required</span></label>
+              <select class="approval-admin-select" id="initialAdminUser"><option value="">Choose an existing Zvend account</option></select>
+              <p class="approval-preview-note">Sample accounts only · a live screen must search existing Zvend identities and validate assignment permission.</p>
+              <div class="modal-actions"><button class="button button-secondary" type="button" data-action="close-estate-approval">Cancel</button><button class="button button-primary" type="button" data-action="confirm-estate-approval">Approve and assign</button></div>
+            </section>
+          </div>
+
+          <div class="modal-backdrop hidden" id="announcementModal">
+            <section class="announcement-modal" role="dialog" aria-modal="true" aria-labelledby="announcementModalTitle">
+              <button class="modal-close" type="button" data-action="close-announcement" aria-label="Close dialog">×</button>
+              <span class="eyebrow">COMMUNITY COMMUNICATION</span>
+              <h2 id="announcementModalTitle">New announcement</h2>
+              <p>Write a clear update and choose who should receive it.</p>
+              <label class="compose-label" for="announcementTitle">Announcement title</label>
+              <input class="compose-input" id="announcementTitle" maxlength="100" placeholder="e.g. Water maintenance this Friday" />
+              <label class="compose-label" for="announcementMessage">Message</label>
+              <textarea class="compose-textarea" id="announcementMessage" rows="4" maxlength="2000" placeholder="Share the information residents need to know"></textarea>
+              <div class="compose-fields">
+                <div><label class="compose-label" for="announcementAudience">Audience</label><select class="compose-input" id="announcementAudience"><option>All residents</option><option>Oakwood Zone</option><option>Apartment residents</option><option>Landlords</option><option>Security staff</option></select></div>
+                <div><label class="compose-label" for="announcementSchedule">Schedule (optional)</label><input class="compose-input" type="datetime-local" id="announcementSchedule" /></div>
+              </div>
+              <fieldset class="channel-fieldset"><legend>Delivery channels</legend><label><input type="checkbox" checked value="push" /> Push notification</label><label><input type="checkbox" value="email" /> Email</label><label><input type="checkbox" value="sms" /> SMS</label></fieldset>
+              <label class="emergency-toggle"><input type="checkbox" id="announcementEmergency" /><span><strong>Mark as emergency alert</strong><small>Use only for urgent community safety or service disruptions.</small></span></label>
+              <div class="modal-actions"><button class="button button-secondary" type="button" data-action="close-announcement">Cancel</button><button class="button button-secondary" type="button" data-action="save-announcement">Save draft</button><button class="button button-primary" type="button" data-action="schedule-announcement">Publish / schedule</button></div>
+            </section>
+          </div>
+
+          <div class="modal-backdrop hidden" id="expenseModal">
+            <section class="expense-modal" role="dialog" aria-modal="true" aria-labelledby="expenseModalTitle">
+              <button class="modal-close" type="button" data-action="close-expense" aria-label="Close dialog">×</button>
+              <span class="eyebrow">ESTATE FINANCE</span>
+              <h2 id="expenseModalTitle">Request an expense</h2>
+              <p>Provide the details and submit it for the configured approval flow.</p>
+              <label class="compose-label" for="expenseTitle">Expense description</label>
+              <input class="compose-input" id="expenseTitle" maxlength="100" placeholder="e.g. Generator service" />
+              <div class="compose-fields">
+                <div><label class="compose-label" for="expenseCategory">Category</label><select class="compose-input" id="expenseCategory"><option>Maintenance</option><option>Security</option><option>Utilities</option><option>Cleaning</option><option>Other</option></select></div>
+                <div><label class="compose-label" for="expenseAmount">Amount (NGN)</label><input class="compose-input" id="expenseAmount" type="number" min="1" step="0.01" placeholder="0.00" /></div>
+              </div>
+              <div class="compose-fields">
+                <div><label class="compose-label" for="expensePayee">Vendor / payee</label><input class="compose-input" id="expensePayee" maxlength="100" placeholder="Business or recipient name" /></div>
+                <div><label class="compose-label" for="expenseDate">Requested date</label><input class="compose-input" id="expenseDate" type="date" /></div>
+              </div>
+              <label class="compose-label" for="expenseNote">Notes</label>
+              <textarea class="compose-textarea" id="expenseNote" rows="3" maxlength="600" placeholder="Add context for the approver"></textarea>
+              <div class="expense-hint"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>Requests are reviewed against estate budget and approval rules. Submitting does not record a payment.</div>
+              <div class="modal-actions"><button class="button button-secondary" type="button" data-action="close-expense">Cancel</button><button class="button button-primary" type="button" data-action="submit-expense">Submit for approval</button></div>
+            </section>
+          </div>
+
+          <div class="modal-backdrop hidden" id="expenseApprovalModal">
+            <section class="expense-approval-modal" role="dialog" aria-modal="true" aria-labelledby="expenseApprovalTitle">
+              <button class="modal-close" type="button" data-action="close-expense-approval" aria-label="Close dialog">×</button>
+              <span class="eyebrow">EXPENSE APPROVAL</span>
+              <h2 id="expenseApprovalTitle">Review expense</h2>
+              <div class="approval-summary"><div><span>DESCRIPTION</span><strong id="approvalExpenseName">Expense</strong></div><div><span>PAYEE</span><strong id="approvalExpensePayee">Payee</strong></div><div><span>AMOUNT</span><strong id="approvalExpenseAmount">₦0</strong></div></div>
+              <label class="compose-label" for="expenseApprovalNote">Approval note <span class="optional-label">Optional</span></label>
+              <textarea class="compose-textarea" id="expenseApprovalNote" rows="3" maxlength="400" placeholder="Add a note for the finance record"></textarea>
+              <p class="approval-warning">Approving a request does not record payment. The backend must enforce your approval limit and write an audit event.</p>
+              <div class="modal-actions"><button class="button button-secondary" type="button" data-action="close-expense-approval">Cancel</button><button class="button button-primary" type="button" data-action="confirm-expense-approval">Confirm approval</button></div>
+            </section>
+          </div>
+
+          <footer class="page-footer"><span>© 2026 Zvend Estate</span><span><i></i> Illustrative preview data · not connected to live services</span><a href="#help">Help centre ↗</a></footer>
+        </div>
+      </main>
+      <div class="modal-backdrop hidden" id="maintenanceReviewModal">
+        <section class="maintenance-review-modal" role="dialog" aria-modal="true" aria-labelledby="maintenanceReviewTitle">
+          <button class="modal-close" type="button" data-action="close-maintenance-review" aria-label="Close request review">×</button>
+          <span class="eyebrow">ESTATE OPERATIONS · MAINTENANCE</span>
+          <div class="maintenance-review-heading"><div><h2 id="maintenanceReviewTitle">Request</h2><p id="maintenanceReviewSummary">Reference · Property · Requester</p></div><span id="maintenanceReviewStatus" class="status-pill status-review"><i></i>Under review</span></div>
+          <p id="maintenanceReviewDescription" class="maintenance-review-description"></p>
+          <div class="maintenance-review-meta"><span id="maintenanceReviewCategory">Category</span><span id="maintenanceReviewPriority">Priority</span><span id="maintenanceReviewCreated">Submitted</span></div>
+          <label class="maintenance-review-field"><span>Assigned staff</span><select id="maintenanceAssignee"><option value="">Unassigned</option><option value="Samuel Nwosu · Facilities">Samuel Nwosu · Facilities</option><option value="Joseph Osei · Maintenance">Joseph Osei · Maintenance</option><option value="Amaka Bello · Electrical">Amaka Bello · Electrical</option></select></label>
+          <div class="maintenance-transition-row"><label class="maintenance-review-field"><span>Update status</span><select id="maintenanceNextStatus"><option value="">No status change</option></select></label><label class="maintenance-review-field"><span>Resolution / transition reason</span><input id="maintenanceTransitionReason" maxlength="220" placeholder="Required for resolve, reject or close" /></label></div>
+          <label class="maintenance-review-field"><span>Update for resident</span><textarea id="maintenancePublicUpdate" rows="3" maxlength="700" placeholder="Visible to the resident who submitted this request"></textarea></label>
+          <label class="maintenance-review-field internal-note-field"><span>Staff-only note <b>Private · not shown to residents</b></span><textarea id="maintenanceInternalNote" rows="2" maxlength="700" placeholder="Internal coordination note"></textarea></label>
+          <div class="maintenance-review-history"><strong>Recent resident-visible updates</strong><div id="maintenanceReviewHistory"></div></div>
+          <p class="maintenance-preview-note">Local preview only · assignment, updates and status changes are not saved to Zvend. Keep private staff notes separate from resident communications.</p>
+          <div class="modal-actions"><button class="button button-secondary" type="button" data-action="close-maintenance-review">Cancel</button><button class="button button-primary" type="button" data-action="save-maintenance-review">Save preview update</button></div>
+        </section>
+      </div>
+      <div class="modal-backdrop hidden" id="securityIncidentModal">
+        <section class="maintenance-review-modal security-incident-modal" role="dialog" aria-modal="true" aria-labelledby="securityIncidentTitle">
+          <button class="modal-close" type="button" data-action="close-security-incident" aria-label="Close incident report">&times;</button>
+          <span class="eyebrow">SECURITY OPERATIONS</span>
+          <h2 id="securityIncidentTitle">Report an incident</h2>
+          <p class="security-incident-scope">Your assigned gate is resolved from your staff account. Describe the location for responders; it does not change your access scope.</p>
+          <form class="resident-form-modal" onsubmit="return false">
+            <label class="maintenance-review-field"><span>Incident type</span><select id="securityIncidentCategory"><option value="security_concern">Security concern</option><option value="suspicious_activity">Suspicious activity</option><option value="unauthorized_access">Unauthorized access</option><option value="property_damage">Property damage</option><option value="safety_hazard">Safety hazard</option><option value="other">Other</option></select></label>
+            <label class="maintenance-review-field"><span>Priority</span><select id="securityIncidentPriority"><option value="normal">Normal</option><option value="high">High</option><option value="urgent">Urgent</option></select></label>
+            <label class="maintenance-review-field"><span>Location</span><input id="securityIncidentLocation" maxlength="180" placeholder="e.g. West gate, outer lane" required /></label>
+            <label class="maintenance-review-field"><span>When did you observe it?</span><input id="securityIncidentObservedAt" type="datetime-local" required /></label>
+            <label class="maintenance-review-field"><span>What happened?</span><textarea id="securityIncidentDescription" rows="5" maxlength="3000" placeholder="Include relevant details for the estate response team" required></textarea></label>
+            <p class="security-incident-error" id="securityIncidentError" role="alert"></p>
+            <div class="modal-actions"><button class="button button-secondary" type="button" data-action="close-security-incident">Cancel</button><button class="button button-primary" type="button" data-action="submit-security-incident">Submit report</button></div>
+          </form>
+        </section>
+      </div>
+      <div class="modal-backdrop hidden" id="structureNodeModal">
+        <section class="structure-node-modal" role="dialog" aria-modal="true" aria-labelledby="structureNodeTitle">
+          <button class="modal-close" type="button" data-action="close-structure-node" aria-label="Close structure form">×</button>
+          <span class="eyebrow">ESTATE STRUCTURE</span><h2 id="structureNodeTitle">Add structure node</h2>
+          <p>Create a zone, street, building or floor. Estate hierarchy rules determine valid parent links.</p>
+          <form id="structureNodeForm">
+            <label>Structure type<select id="structureNodeType" required><option value="zone">Zone / phase</option><option value="street">Street</option><option value="building">Building</option><option value="floor">Floor</option></select></label>
+            <label>Name<input id="structureNodeName" required maxlength="120" placeholder="e.g. North Gardens" /></label>
+            <label>Code <span>Optional, based on estate policy</span><input id="structureNodeCode" maxlength="60" placeholder="e.g. NG" /></label>
+            <label>Parent structure <span>Optional, based on estate policy</span><select id="structureNodeParent"><option value="">No parent</option></select></label>
+            <p class="structure-form-error" id="structureNodeError" role="alert"></p>
+            <div class="modal-actions"><button class="button button-secondary" type="button" data-action="close-structure-node">Cancel</button><button class="button button-primary" type="submit">Add node</button></div>
+          </form>
+          <p class="structure-node-preview-note">Local preview only · no estate service, policy, permission or audit check is connected.</p>
+        </section>
+      </div>
+      <div class="modal-backdrop hidden" id="propertyCreateModal">
+        <section class="property-create-modal" role="dialog" aria-modal="true" aria-labelledby="propertyCreateTitle">
+          <button class="modal-close" type="button" data-action="close-property-create" aria-label="Close property form">×</button>
+          <span class="eyebrow">PROPERTY REGISTER</span><h2 id="propertyCreateTitle">Add property</h2>
+          <p class="property-create-intro">Create an estate asset and link it to an active hierarchy node. Ownership and occupancy are recorded separately.</p>
+          <form id="propertyCreateForm">
+            <div class="property-form-grid"><label>Property label<input id="propertyNameInput" required maxlength="100" placeholder="e.g. Oakwood 14" /></label><label>Property code<input id="propertyCodeInput" required maxlength="60" placeholder="e.g. OAK-NG-014" /></label></div>
+            <label>Unit / house number <span>Optional</span><input id="propertyUnitInput" maxlength="80" placeholder="e.g. 14 or Flat C12" /></label>
+            <div class="property-form-grid"><label>Property type<select id="propertyTypeInput" required><option value="Detached house">Detached house</option><option value="Apartment">Apartment</option><option value="Townhouse">Townhouse</option><option value="Duplex">Duplex</option><option value="Shop / retail">Shop / retail</option><option value="Office">Office</option><option value="Warehouse">Warehouse</option><option value="Parking space">Parking space</option></select></label><label>Operational status<select id="propertyStatusInput" required><option value="active">Operational</option><option value="under_development">Under development</option><option value="reserved">Reserved</option><option value="under_maintenance">Under maintenance</option><option value="inactive">Inactive</option></select></label></div>
+            <label>Zone, street or building <span>Active estate structure</span><select id="propertyParentInput"><option value="">No hierarchy link</option></select></label>
+            <label>Address<input id="propertyAddressInput" maxlength="240" placeholder="Street, area or unit address" /></label>
+            <label>Description <span>Optional</span><textarea id="propertyDescriptionInput" maxlength="700" rows="3" placeholder="Useful property details for estate staff"></textarea></label>
+            <div class="property-form-grid"><label>Latitude <span>Optional</span><input id="propertyLatitudeInput" inputmode="decimal" placeholder="6.5244" /></label><label>Longitude <span>Optional</span><input id="propertyLongitudeInput" inputmode="decimal" placeholder="3.3792" /></label></div>
+            <p class="property-create-error" id="propertyCreateError" role="alert"></p>
+            <div class="modal-actions"><button class="button button-secondary" type="button" data-action="close-property-create">Cancel</button><button class="button button-primary" type="submit">Add property</button></div>
+          </form>
+          <p class="property-create-preview-note">Local preview only · code uniqueness, estate permissions, hierarchy policy and audit checks require the connected service.</p>
+        </section>
+      </div>
+      <div class="modal-backdrop hidden" id="propertyDetailModal">
+        <section class="property-detail-modal" role="dialog" aria-modal="true" aria-labelledby="propertyDetailTitle">
+          <button class="modal-close" type="button" data-action="close-property-detail" aria-label="Close property details">×</button>
+          <span class="eyebrow">PROPERTY RECORD · ILLUSTRATIVE DATA</span>
+          <div class="property-detail-heading"><div><h2 id="propertyDetailTitle">Property</h2><p id="propertyDetailAddress"></p></div><span id="propertyDetailCode" class="property-code-badge"></span></div>
+          <div class="property-detail-facts" id="propertyDetailFacts"></div>
+          <div class="property-detail-columns"><section><div class="property-detail-section-heading"><h3>Ownership records</h3><button class="text-button" type="button" data-action="add-ownership">Add owner +</button></div><div id="propertyOwnershipRecords" class="property-record-list"></div></section><section><div class="property-detail-section-heading"><h3>Lifecycle history</h3><span>Occupancy and status remain separate</span></div><div id="propertyLifecycleHistory" class="property-history-list"></div></section></div>
+          <section class="property-occupancy-section"><div class="property-detail-section-heading"><div><h3>Occupancy records</h3><span>Membership, occupancy and ownership are separate relationships</span></div><button class="text-button" type="button" data-action="add-occupant">Add occupant +</button></div><div id="propertyOccupancyRecords" class="property-record-list"></div></section>
+          <div class="property-documents-note"><strong>Notes, documents and applicable charges</strong><span id="propertyDetailDocuments"></span></div>
+          <div class="property-detail-actions"><span>Archiving preserves this property's history.</span><button class="table-action reject-action" type="button" data-action="archive-property">Archive property</button></div>
+          <p class="property-detail-preview-note">Preview only · Ownership, occupancy, history and access must be loaded from the authorized estate service.</p>
+        </section>
+      </div>
+      <div class="modal-backdrop hidden" id="occupancyModal">
+        <section class="ownership-modal" role="dialog" aria-modal="true" aria-labelledby="occupancyModalTitle">
+          <button class="modal-close" type="button" data-action="close-occupancy" aria-label="Close occupant form">×</button>
+          <span class="eyebrow">PROPERTY OCCUPANCY</span>
+          <h2 id="occupancyModalTitle">Add occupant</h2>
+          <p class="ownership-modal-intro">Link an existing resident to this property. Occupancy does not grant ownership, landlord or billing privileges.</p>
+          <form id="occupancyForm">
+            <label>Existing Zvend resident<select id="occupancyResident" required><option value="">Choose resident</option><option>Chioma Adebayo</option><option>Daniel Adewale</option><option>Mariam Yusuf</option><option>Tunde Okafor</option><option>Emeka Anozie</option><option>Tomiwa Balogun</option></select></label>
+            <label>Relationship<select id="occupancyRelationship" required><option value="household_member">Household member</option><option value="authorized_occupant">Authorized occupant</option><option value="tenant">Tenant with approved tenancy</option></select></label>
+            <div class="ownership-date-grid"><label>Effective from<input id="occupancyFrom" type="date" required /></label><label>Effective to <span class="ownership-optional">Optional</span><input id="occupancyTo" type="date" /></label></div>
+            <p class="ownership-form-error" id="occupancyFormError" role="alert"></p>
+            <div class="modal-actions"><button class="button button-secondary" type="button" data-action="close-occupancy">Cancel</button><button class="button button-primary" type="submit">Add occupancy</button></div>
+          </form>
+          <p class="ownership-preview-note">Preview only · membership, active tenancy, estate policy and permissions must be confirmed by the connected service.</p>
+        </section>
+      </div>
+      <div class="modal-backdrop hidden" id="ownershipModal">
+        <section class="ownership-modal" role="dialog" aria-modal="true" aria-labelledby="ownershipModalTitle">
+          <button class="modal-close" type="button" data-action="close-ownership" aria-label="Close ownership form">×</button>
+          <span class="eyebrow">PROPERTY RELATIONSHIP</span>
+          <h2 id="ownershipModalTitle">Add ownership interest</h2>
+          <p class="ownership-modal-intro">Link an existing Zvend user or approved legal entity. Ownership does not grant estate, billing or landlord access by itself.</p>
+          <form id="ownershipForm">
+            <label>Owner type<select id="ownershipPartyType" name="partyType"><option value="user">Existing Zvend user</option><option value="entity">Approved legal entity</option></select></label>
+            <label id="ownershipNameLabel">Owner full name<input id="ownershipName" name="name" autocomplete="name" required placeholder="e.g. Emeka Okafor"></label>
+            <label id="ownershipEmailLabel">Zvend account email<input id="ownershipEmail" name="email" type="email" placeholder="owner@example.com"></label>
+            <label>Ownership share <span class="ownership-optional">Optional, if enabled by estate policy</span><input id="ownershipShare" name="share" inputmode="decimal" placeholder="e.g. 50"></label>
+            <div class="ownership-date-grid"><label>Effective from<input id="ownershipFrom" name="effectiveFrom" type="date" required></label><label>Effective to <span class="ownership-optional">Optional</span><input id="ownershipTo" name="effectiveTo" type="date"></label></div>
+            <label>Evidence reference <span class="ownership-optional">Optional preview field</span><input id="ownershipEvidence" name="evidence" placeholder="Document reference or description"></label>
+            <p class="ownership-form-error" id="ownershipFormError" role="alert"></p>
+            <div class="modal-actions"><button class="button button-secondary" type="button" data-action="close-ownership">Cancel</button><button class="button button-primary" type="submit">Add ownership record</button></div>
+          </form>
+          <p class="ownership-preview-note">Local preview only · no user lookup, document upload, verification or Zvend record write occurs here.</p>
+        </section>
+      </div>
+      <div class="modal-backdrop hidden" id="propertyArchiveModal">
+        <section class="property-archive-modal" role="dialog" aria-modal="true" aria-labelledby="propertyArchiveTitle">
+          <button class="modal-close" type="button" data-action="close-property-archive" aria-label="Close archive details">×</button>
+          <span class="eyebrow">PROPERTY LIFECYCLE</span>
+          <h2 id="propertyArchiveTitle">Archive property</h2>
+          <p>Before archiving, the estate service must check for active occupants, tenancies, unpaid charges and access links. Historical records stay attached to the property.</p>
+          <div class="property-archive-check-list"><span>Occupancy and tenancy</span><span>Billing and access</span></div>
+          <p class="property-archive-preview-note">This preview cannot check eligibility or change property records.</p>
+          <div class="modal-actions"><button class="button button-secondary" type="button" data-action="close-property-archive">Cancel</button><button class="button button-primary" type="button" data-action="check-property-archive">Check eligibility</button></div>
+        </section>
+      </div>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      <div class="modal-backdrop hidden" id="estateContextModal">
+        <section class="estate-context-dialog" role="dialog" aria-modal="true" aria-labelledby="estateContextTitle" aria-describedby="estateContextMessage">
+          <button class="modal-close" type="button" data-action="close-estate-context" aria-label="Close estate selector">&times;</button>
+          <span class="eyebrow">YOUR ESTATES</span>
+          <h2 id="estateContextTitle">Choose an estate</h2>
+          <p id="estateContextMessage" role="status" aria-live="polite">Loading estates available to your account...</p>
+          <div id="estateContextList" class="estate-context-list"></div>
+        </section>
+      </div>
+      <div class="sidebar-scrim" id="sidebarScrim"></div>
+    </div>
+    <script src="./application-queue.js"></script>
+    <script src="./estate-selector.js"></script>
+    <script src="./app.js"></script>
+    <script src="./properties-live.js"></script>
+    <script src="./tenancies-live.js"></script>
+    <script src="./residents-live.js"></script>
+    <script src="./facilities-live.js"></script>
+    <script src="./structure-live.js"></script>
+    <script src="./billing-invoices.js"></script>
+    <script src="./dashboard-summary.js"></script>
+    <script src="./maintenance-live.js"></script>
+    <script src="./security-incidents-live.js"></script>
+    <script src="./gate-visitors-live.js"></script>
+    <script src="./finance-live.js"></script>
+  </body>
+</html>

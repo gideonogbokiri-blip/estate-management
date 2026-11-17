@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f7f8f5" />
+    <title>Register an estate | Zvend</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./application-form.css" />
+  </head>
+  <body class="application-page">
+    <header class="application-topbar">
+      <a class="application-brand" href="./index.html"><span class="application-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-6h-4v6H4a1 1 0 0 1-1-1V10Z"/></svg></span><span><strong>zvend</strong><small>ESTATE</small></span></a>
+      <div class="application-account"><span class="account-avatar">AO</span><span><strong>Amara Okafor</strong><small>Existing Zvend account</small></span><span class="preview-tag">PREVIEW</span></div>
+    </header>
+    <main class="application-layout">
+      <aside class="application-intro">
+        <span class="intro-kicker">ESTATE REGISTRATION</span>
+        <h1>Bring your community onto Zvend.</h1>
+        <p>Share your estate and management details. Our team will review the information before activating estate services.</p>
+        <div class="intro-points"><div><span class="intro-point-icon">1</span><span><strong>Tell us about the estate</strong><small>Location, community type and size</small></span></div><div><span class="intro-point-icon">2</span><span><strong>Identify the operator</strong><small>Owner or management company</small></span></div><div><span class="intro-point-icon">3</span><span><strong>Submit for review</strong><small>We’ll follow up through your Zvend account</small></span></div></div>
+        <div class="intro-footnote"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="m9 12 2 2 4-4"/></svg><span>Your application is reviewed before any estate access is enabled.</span></div>
+      </aside>
+      <section class="application-card" aria-labelledby="formTitle">
+        <div id="applicationFormView">
+          <div class="form-heading"><span class="eyebrow">NEW ESTATE APPLICATION</span><h2 id="formTitle">Estate details</h2><p>Complete each step. You can review everything before submitting.</p></div>
+          <ol class="application-stepper" aria-label="Application steps">
+            <li class="current" data-step-indicator="0"><span>1</span><small>Estate</small></li><i></i><li data-step-indicator="1"><span>2</span><small>Operator</small></li><i></i><li data-step-indicator="2"><span>3</span><small>Structure</small></li><i></i><li data-step-indicator="3"><span>4</span><small>Review</small></li>
+          </ol>
+          <form id="estateApplicationForm" novalidate>
+            <section class="application-step" data-step="0">
+              <div class="form-section-title"><span>01</span><div><h3>About the estate</h3><p>Use the official or commonly recognized estate name.</p></div></div>
+              <label class="form-field"><span>Estate name <b>Required</b></span><input name="estateName" required maxlength="120" autocomplete="organization" placeholder="e.g. Greenfield Gardens" /></label>
+              <div class="form-two-col"><label class="form-field"><span>Estate type <b>Required</b></span><select name="estateType" required><option value="">Choose a type</option><option value="gated_community">Gated community</option><option value="residential">Residential estate</option><option value="apartment_community">Apartment community</option><option value="commercial">Commercial estate</option><option value="mixed_use">Mixed-use development</option></select></label><label class="form-field"><span>Street address <b>Required</b></span><input name="address" required maxlength="180" autocomplete="street-address" placeholder="Street, road or district" /></label></div>
+              <div class="form-three-col"><label class="form-field"><span>State <b>Required</b></span><select name="state" id="estateState" required><option value="">Select state</option><option>Abia</option><option>Adamawa</option><option>Akwa Ibom</option><option>Anambra</option><option>Bauchi</option><option>Bayelsa</option><option>Benue</option><option>Borno</option><option>Cross River</option><option>Delta</option><option>Ebonyi</option><option>Edo</option><option>Ekiti</option><option>Enugu</option><option>FCT</option><option>Gombe</option><option>Imo</option><option>Jigawa</option><option>Kaduna</option><option>Kano</option><option>Katsina</option><option>Kebbi</option><option>Kogi</option><option>Kwara</option><option>Lagos</option><option>Nasarawa</option><option>Niger</option><option>Ogun</option><option>Ondo</option><option>Osun</option><option>Oyo</option><option>Plateau</option><option>Rivers</option><option>Sokoto</option><option>Taraba</option><option>Yobe</option><option>Zamfara</option></select></label><label class="form-field"><span>City / LGA <b>Required</b></span><input name="lga" required maxlength="100" placeholder="Local government area" /></label><label class="form-field"><span>Estate contact phone <b>Required</b></span><input name="contactPhone" type="tel" required autocomplete="tel" placeholder="+234 800 000 0000" /></label></div>
+              <div class="map-location-box"><div class="map-pin-icon"><svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg></div><div><strong>Map location <span>Optional</span></strong><p>Add a map pin later during review if the address is difficult to locate.</p><div class="coordinate-row"><label><span>Latitude</span><input name="latitude" type="number" min="-90" max="90" step="any" placeholder="6.5244" /></label><label><span>Longitude</span><input name="longitude" type="number" min="-180" max="180" step="any" placeholder="3.3792" /></label></div></div></div>
+            </section>
+            <section class="application-step hidden" data-step="1">
+              <div class="form-section-title"><span>02</span><div><h3>Owner or management operator</h3><p>Tell us who is responsible for managing this community.</p></div></div>
+              <label class="form-field"><span>Applicant relationship <b>Required</b></span><select name="applicantRole" id="applicantRole" required><option value="">Choose your relationship</option><option value="estate_owner">Estate owner</option><option value="developer">Developer</option><option value="management_company">Management company</option><option value="residents_association_representative">Residents association representative</option></select></label>
+              <div class="form-two-col"><label class="form-field"><span>Contact person <b>Required</b></span><input name="contactPerson" required maxlength="120" autocomplete="name" value="Amara Okafor" /></label><label class="form-field"><span>Work email <b>Required</b></span><input name="contactEmail" type="email" required maxlength="180" autocomplete="email" value="amara.okafor@example.com" /></label></div>
+              <div class="form-two-col"><label class="form-field"><span>Organization name <b>Required</b></span><input name="organization" required maxlength="160" autocomplete="organization" placeholder="Company, association or owner name" /></label><label class="form-field"><span>Registration number <small>Optional</small></span><input name="registrationNumber" maxlength="80" placeholder="CAC or other registration number" /></label></div>
+              <div class="form-info-callout"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg><span>This application uses your existing Zvend account. A separate account is not created here.</span></div>
+            </section>
+            <section class="application-step hidden" data-step="2">
+              <div class="form-section-title"><span>03</span><div><h3>Community structure</h3><p>Approximate figures are fine. You can configure individual properties after approval.</p></div></div>
+              <div class="form-two-col"><label class="form-field"><span>Approximate number of homes <b>Required</b></span><input name="homeCount" type="number" min="1" max="100000" step="1" required placeholder="e.g. 240" /></label><label class="form-field"><span>Phases or zones <small>Optional</small></span><input name="phaseCount" type="number" min="0" max="1000" step="1" placeholder="e.g. 4" /></label></div>
+              <label class="form-field"><span>How is the estate arranged? <small>Optional</small></span><input name="structureSummary" maxlength="220" placeholder="e.g. 4 phases, 12 blocks and a clubhouse" /></label>
+              <div class="document-upload-block"><div><strong>Supporting documents</strong><span>Required · PDF, JPG or PNG · 10 MB per file</span></div><label class="file-drop" for="estateDocuments"><svg viewBox="0 0 24 24"><path d="M12 16V4m-4 4 4-4 4 4M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></svg><strong>Select documents</strong><small>Management authorization, company registration, estate records</small><input id="estateDocuments" name="documents" type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" multiple /></label><ul id="selectedDocuments" class="selected-documents" aria-live="polite"></ul><p class="upload-preview-note">Preview only · files stay on this device and are not uploaded.</p></div>
+              <div class="form-info-callout"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg><span>Never attach payment details, passwords or resident lists. Supporting documents will be requested securely during live onboarding.</span></div>
+            </section>
+            <section class="application-step hidden" data-step="3">
+              <div class="form-section-title"><span>04</span><div><h3>Review your application</h3><p>Check the details before sending them for platform review.</p></div></div>
+              <div class="review-summary" id="applicationReviewSummary"></div>
+              <div class="form-info-callout review-notice"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="M12 8v4m0 4h.01"/></svg><span>Submitting starts a review. Estate access, property setup and resident invitations remain unavailable until the platform approves the application and assigns an Estate Administrator.</span></div>
+            </section>
+            <div class="application-form-footer"><span id="stepMessage" role="status" aria-live="polite">Required fields are marked for each step.</span><div><button class="button button-secondary hidden" type="button" id="previousStep">Back</button><button class="button button-primary" type="button" id="nextStep">Continue <span>→</span></button><button class="button button-primary hidden" type="submit" id="submitApplication">Submit for review</button></div></div>
+          </form>
+          <p class="application-privacy-note"><svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 5v2"/></svg>Application details are only for onboarding review and will be handled through Zvend’s secure services.</p>
+        </div>
+        <section class="application-success hidden" id="applicationSuccess" aria-labelledby="successTitle" role="status">
+          <span class="success-icon"><svg viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></svg></span><span class="eyebrow">APPLICATION READY</span><h2 id="successTitle">Your details are ready for review.</h2><p>This local preview does not submit or save your application. In Zvend, you’ll receive an application reference and status update through your account.</p><div class="success-next"><strong>What happens next</strong><ol><li>The platform team reviews your estate details.</li><li>You may be asked to provide more information.</li><li>After approval, an Estate Administrator is assigned.</li></ol></div><a class="button button-primary" href="./index.html">Return to estate dashboard</a><span class="preview-tag">PREVIEW · NOT SUBMITTED</span>
+        </section>
+      </section>
+    </main>
+    <script src="./application-form.js"></script>
+  </body>
+</html>

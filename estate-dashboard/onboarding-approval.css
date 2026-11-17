@@ -1,0 +1,7 @@
+.approval-estate-summary{display:grid;gap:5px;margin:14px 0;padding:11px;border:1px solid #e7ece6;border-radius:7px;background:#f8faf7}
+.approval-estate-summary span{color:#929a92;font-size:7px;font-weight:700;letter-spacing:.7px}
+.approval-estate-summary strong{color:#485449;font-size:10px}
+.approval-admin-select{display:block;width:100%;height:38px;margin:0 0 10px;padding:0 10px;border:1px solid #e3e9e3;border-radius:7px;background:#fff;color:#465247;font:inherit;font-size:9px;outline-color:#7ba486}
+.approval-preview-note{margin:0!important;padding:9px;border-radius:6px;background:#f4f6f3;color:#818b81!important;font-size:8px!important;line-height:1.5!important}
+.estate-approval-modal .modal-actions{margin-top:14px}
+@media(max-width:480px){.estate-approval-modal{padding:20px 16px}.estate-approval-modal .modal-actions{flex-wrap:wrap}.estate-approval-modal .modal-actions .button{flex:1}}

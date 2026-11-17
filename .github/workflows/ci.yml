@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: cp .env.example .env
+      - run: npx prisma generate
+      - run: npm test
+      - run: npm run build
+
+  flutter:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: dart analyze --no-fatal-infos --no-fatal-warnings lib
+      - name: Build web targets
+        run: |
+          flutter build web --release --target lib/admin_main.dart --output build/admin --base-href /admin/
+          flutter build web --release --target lib/main.dart --output build/web --base-href /web/
+          flutter build web --release --target lib/onboarding_main.dart --output build/onboarding --base-href /onboarding/
+          flutter build web --release --target lib/platform_admin_main.dart --output build/platform --base-href /platform/
+          flutter build web --release --target lib/security_main.dart --output build/security --base-href /security/
+          flutter build web --release --target lib/property_register_main.dart --output build/properties --base-href /properties/
+          flutter build web --release --target lib/landlord_portal_main.dart --output build/landlord-live --base-href /landlord-live/

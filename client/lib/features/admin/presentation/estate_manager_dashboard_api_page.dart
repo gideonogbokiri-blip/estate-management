@@ -1,0 +1,2408 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+
+import '../../../core/theme/estate_theme.dart';
+import '../../onboarding/data/estate_application_repository.dart';
+import '../../resident_access/presentation/resident_access_review_page.dart';
+import 'ownership_review_api_page.dart';
+import 'tenancy_approval_api_page.dart';
+import 'estate_charges_page.dart';
+import 'estate_expenses_api_page.dart';
+import 'estate_facilities_admin_page.dart';
+import 'rent_schedule_preview_page.dart';
+import 'estate_announcements_api_page.dart';
+import 'estate_security_incidents_api_page.dart';
+import 'estate_tenancy_create_api_page.dart';
+import 'estate_staff_invitations_api_page.dart';
+import 'estate_settings_api_page.dart';
+import '../../notifications/presentation/estate_notifications_page.dart';
+
+class EstateManagerDashboardApiPage extends StatefulWidget {
+  const EstateManagerDashboardApiPage({super.key, required this.repository});
+  final EstateApplicationApiRepository repository;
+  @override
+  State<EstateManagerDashboardApiPage> createState() =>
+      _EstateManagerDashboardApiPageState();
+}
+
+class _EstateManagerDashboardApiPageState
+    extends State<EstateManagerDashboardApiPage> {
+  final _dashboardScrollController = ScrollController();
+  final _maintenanceSectionKey = GlobalKey();
+  final _formKey = GlobalKey<FormState>();
+  final _email = TextEditingController();
+  final _password = TextEditingController();
+  EstateAccount? _account;
+  List<ManagedEstateChoice> _estates = const [];
+  ManagedEstateChoice? _estate;
+  EstateManagerDashboardSummary? _summary;
+  EstateMaintenanceQueue _maintenanceQueue = const EstateMaintenanceQueue(
+    items: [],
+    assignableStaff: [],
+    total: 0,
+  );
+  List<EstateFacilityBookingRecord> _facilityBookings = const [];
+  List<EstateGateRecord> _estateGates = const [];
+  List<EstateStaffChoice> _securityOfficers = const [];
+  List<EstateStructureRecord> _estateStructure = const [];
+  final _gateCode = TextEditingController();
+  final _gateName = TextEditingController();
+  final _structureName = TextEditingController();
+  final _structureCode = TextEditingController();
+  final _maintenanceSearch = TextEditingController();
+  Timer? _maintenanceSearchTimer;
+  String _structureType = 'zone';
+  String _maintenanceStatusFilter = 'open';
+  int _maintenancePage = 1;
+  bool _maintenanceQueueLoading = false;
+  String? _structureParentId;
+  String? _selectedGateId;
+  String? _selectedOfficerId;
+  bool _restoring = true;
+  bool _busy = false;
+  String? _error;
+
+  bool get _canManageEstateOperations =>
+      _estate?.roles.any(
+        (role) => role == 'estate_administrator' || role == 'estate_manager',
+      ) ??
+      false;
+  bool get _canReviewIncidents =>
+      _estate?.roles.any(
+        (role) =>
+            role == 'estate_administrator' ||
+            role == 'estate_manager' ||
+            role == 'security_officer',
+      ) ??
+      false;
+  bool get _canAdministerEstate =>
+      _estate?.roles.contains('estate_administrator') ?? false;
+
+  @override
+  void initState() {
+    super.initState();
+    _restore();
+  }
+
+  @override
+  void dispose() {
+    _email.dispose();
+    _password.dispose();
+    _gateCode.dispose();
+    _gateName.dispose();
+    _structureName.dispose();
+    _structureCode.dispose();
+    _maintenanceSearch.dispose();
+    _maintenanceSearchTimer?.cancel();
+    _dashboardScrollController.dispose();
+    super.dispose();
+  }
+
+  void _jumpToMaintenance() {
+    final section = _maintenanceSectionKey.currentContext;
+    if (section != null) {
+      Scrollable.ensureVisible(
+        section,
+        duration: const Duration(milliseconds: 350),
+        alignment: 0.08,
+        curve: Curves.easeOutCubic,
+      );
+    }
+  }
+
+  int get _pendingFacilityBookings => _facilityBookings
+      .where((booking) => booking.status == 'pending_review')
+      .length;
+
+  int get _confirmedFacilityBookings => _facilityBookings
+      .where((booking) => booking.status == 'confirmed')
+      .length;
+
+  List<EstateMaintenanceQueueItem> get _filteredMaintenanceRequests {
+    final query = _maintenanceSearch.text.trim().toLowerCase();
+    return _maintenanceQueue.items
+        .where((request) {
+          final status = request.status.toLowerCase();
+          final matchesStatus = switch (_maintenanceStatusFilter) {
+            'open' => !{'resolved', 'closed', 'rejected'}.contains(status),
+            'all' => true,
+            _ => status == _maintenanceStatusFilter,
+          };
+          final searchable = [
+            request.reference,
+            request.propertyLabel,
+            request.category,
+            request.priority,
+            request.status,
+            request.requesterDisplayName,
+            request.assigneeDisplayName ?? '',
+            request.description,
+          ].join(' ').toLowerCase();
+          return matchesStatus && (query.isEmpty || searchable.contains(query));
+        })
+        .toList(growable: false);
+  }
+
+  bool get _canViewEstateFinance =>
+      _estate?.roles.any(
+        (role) =>
+            role == 'estate_administrator' ||
+            role == 'estate_manager' ||
+            role == 'finance_manager',
+      ) ??
+      false;
+
+  Future<void> _restore() async {
+    try {
+      _account = await widget.repository.restoreSession();
+      if (_account != null) await _loadEstates();
+    } catch (error) {
+      _error = _message(error);
+    } finally {
+      if (mounted) setState(() => _restoring = false);
+    }
+  }
+
+  Future<void> _signIn() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      _account = await widget.repository.signIn(
+        email: _email.text.trim(),
+        password: _password.text,
+      );
+      await _loadEstates();
+    } catch (error) {
+      _error = _message(error);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _loadEstates() async {
+    _estates = await widget.repository.loadManagedEstates();
+    _estate =
+        _estates.where((estate) => estate.id == _estate?.id).firstOrNull ??
+        (_estates.isEmpty ? null : _estates.first);
+    await _loadSummary();
+  }
+
+  Future<void> _loadSummary() async {
+    final estate = _estate;
+    if (estate == null) {
+      _summary = null;
+      _maintenanceQueue = const EstateMaintenanceQueue(
+        items: [],
+        assignableStaff: [],
+        total: 0,
+      );
+      _facilityBookings = const [];
+      return;
+    }
+    if (!_canManageEstateOperations) {
+      _summary = await widget.repository.loadManagerDashboard(estate.id);
+      _maintenanceQueue = const EstateMaintenanceQueue(
+        items: [],
+        assignableStaff: [],
+        total: 0,
+      );
+      _facilityBookings = const [];
+      _estateGates = const [];
+      _securityOfficers = const [];
+      _estateStructure = const [];
+      return;
+    }
+    final result = await Future.wait([
+      widget.repository.loadManagerDashboard(estate.id),
+      widget.repository.loadMaintenanceQueue(
+        estate.id,
+        page: _maintenancePage,
+        pageSize: 50,
+        status: _maintenanceStatusFilter == 'all'
+            ? null
+            : _maintenanceStatusFilter,
+        search: _maintenanceSearch.text,
+      ),
+      widget.repository.loadEstateGates(estate.id),
+      widget.repository.loadSecurityOfficers(estate.id),
+      widget.repository.loadEstateStructure(estate.id),
+      widget.repository.loadEstateFacilityBookings(estate.id),
+    ]);
+    _summary = result[0] as EstateManagerDashboardSummary;
+    _maintenanceQueue = result[1] as EstateMaintenanceQueue;
+    _estateGates = result[2] as List<EstateGateRecord>;
+    _securityOfficers = result[3] as List<EstateStaffChoice>;
+    _estateStructure = result[4] as List<EstateStructureRecord>;
+    _facilityBookings = result[5] as List<EstateFacilityBookingRecord>;
+    _selectedGateId = _estateGates.any((gate) => gate.id == _selectedGateId)
+        ? _selectedGateId
+        : (_estateGates.isEmpty ? null : _estateGates.first.id);
+    _selectedOfficerId =
+        _securityOfficers.any((staff) => staff.userId == _selectedOfficerId)
+        ? _selectedOfficerId
+        : (_securityOfficers.isEmpty ? null : _securityOfficers.first.userId);
+    final parentChoices = _structureParentChoices();
+    _structureParentId =
+        parentChoices.any((node) => node.id == _structureParentId)
+        ? _structureParentId
+        : (parentChoices.isEmpty ? null : parentChoices.first.id);
+  }
+
+  void _scheduleMaintenanceSearch(String _) {
+    _maintenanceSearchTimer?.cancel();
+    _maintenanceSearchTimer = Timer(const Duration(milliseconds: 350), () {
+      _reloadMaintenanceQueue(resetPage: true);
+    });
+  }
+
+  Future<void> _reloadMaintenanceQueue({bool resetPage = false}) async {
+    final estate = _estate;
+    if (estate == null) return;
+    if (resetPage) _maintenancePage = 1;
+    setState(() => _maintenanceQueueLoading = true);
+    try {
+      var queue = await widget.repository.loadMaintenanceQueue(
+        estate.id,
+        page: _maintenancePage,
+        pageSize: 50,
+        status: _maintenanceStatusFilter == 'all'
+            ? null
+            : _maintenanceStatusFilter,
+        search: _maintenanceSearch.text,
+      );
+      if (queue.totalPages > 0 && _maintenancePage > queue.totalPages) {
+        _maintenancePage = queue.totalPages;
+        queue = await widget.repository.loadMaintenanceQueue(
+          estate.id,
+          page: _maintenancePage,
+          pageSize: 50,
+          status: _maintenanceStatusFilter == 'all'
+              ? null
+              : _maintenanceStatusFilter,
+          search: _maintenanceSearch.text,
+        );
+      }
+      _maintenanceQueue = queue;
+    } catch (error) {
+      _error = _message(error);
+    } finally {
+      if (mounted) setState(() => _maintenanceQueueLoading = false);
+    }
+  }
+
+  Future<void> _selectMaintenancePage(int page) async {
+    if (page < 1 ||
+        (_maintenanceQueue.totalPages > 0 &&
+            page > _maintenanceQueue.totalPages)) {
+      return;
+    }
+    _maintenancePage = page;
+    await _reloadMaintenanceQueue();
+  }
+
+  List<EstateStructureRecord> _structureParentChoices() {
+    final types = switch (_structureType) {
+      'street' => ['zone'],
+      'building' => ['zone', 'street'],
+      'floor' => ['building'],
+      _ => <String>[],
+    };
+    return _estateStructure
+        .where((node) => node.status == 'active' && types.contains(node.type))
+        .toList(growable: false);
+  }
+
+  Future<void> _createStructureNode() async {
+    final estate = _estate;
+    if (estate == null ||
+        _structureName.text.trim().length < 2 ||
+        (_structureType == 'floor' && _structureParentId == null))
+      return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await widget.repository.createStructureNode(
+        estateId: estate.id,
+        type: _structureType,
+        name: _structureName.text.trim(),
+        code: _structureCode.text.trim(),
+        parentIds: _structureParentId == null
+            ? const []
+            : [_structureParentId!],
+      );
+      _structureName.clear();
+      _structureCode.clear();
+      await _loadSummary();
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Estate structure node created.')),
+        );
+    } catch (error) {
+      _error = _message(error);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _archiveStructureNode(EstateStructureRecord node) async {
+    final estate = _estate;
+    if (estate == null) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Archive ${node.name}?'),
+        content: const Text(
+          'The structure history is kept. Nodes with active child nodes or linked properties cannot be archived.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Archive'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await widget.repository.archiveStructureNode(
+        estateId: estate.id,
+        nodeId: node.id,
+      );
+      await _loadSummary();
+    } catch (error) {
+      _error = _message(error);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _createGate() async {
+    final estate = _estate;
+    if (estate == null ||
+        _gateCode.text.trim().length < 2 ||
+        _gateName.text.trim().length < 2)
+      return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await widget.repository.createEstateGate(
+        estateId: estate.id,
+        code: _gateCode.text.trim(),
+        name: _gateName.text.trim(),
+      );
+      _gateCode.clear();
+      _gateName.clear();
+      await _loadSummary();
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Gate created.')));
+    } catch (error) {
+      _error = _message(error);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _assignGateOfficer() async {
+    final estate = _estate;
+    final gateId = _selectedGateId;
+    final officerId = _selectedOfficerId;
+    if (estate == null || gateId == null || officerId == null) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await widget.repository.assignGateOfficer(
+        estateId: estate.id,
+        gateId: gateId,
+        userId: officerId,
+      );
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Security officer assigned to gate.')),
+        );
+    } catch (error) {
+      _error = _message(error);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _refresh() async {
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await _loadEstates();
+    } catch (error) {
+      _error = _message(error);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _selectEstate(ManagedEstateChoice? estate) async {
+    setState(() {
+      _estate = estate;
+      _maintenancePage = 1;
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await _loadSummary();
+    } catch (error) {
+      _error = _message(error);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _reviewMaintenanceRequest(
+    EstateMaintenanceQueueItem request,
+  ) async {
+    final result = await showDialog<_MaintenanceReviewResult>(
+      context: context,
+      builder: (context) => _MaintenanceReviewDialog(
+        request: request,
+        assignableStaff: _maintenanceQueue.assignableStaff,
+      ),
+    );
+    if (result == null || _estate == null) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await widget.repository.reviewMaintenanceRequest(
+        estateId: _estate!.id,
+        requestId: request.id,
+        command: result.command,
+        assigneeUserId: result.assigneeUserId,
+        reason: result.reason,
+        resolutionSummary: result.resolutionSummary,
+        residentUpdate: result.residentUpdate,
+        internalNote: result.internalNote,
+      );
+      await _reloadMaintenanceQueue();
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Maintenance request updated.')),
+        );
+    } catch (error) {
+      _error = _message(error);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _openResidentAccessReview() async {
+    final estate = _estate;
+    if (estate == null || _busy) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => ResidentAccessReviewPage(
+          repository: widget.repository,
+          initialEstateId: estate.id,
+          showSignOutAction: false,
+        ),
+      ),
+    );
+    if (!mounted) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await _loadSummary();
+    } catch (error) {
+      _error = _message(error);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _openOwnershipReview() async {
+    final estate = _estate;
+    if (estate == null || _busy) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => OwnershipReviewApiPage(
+          repository: widget.repository,
+          estateId: estate.id,
+          estateName: estate.name,
+        ),
+      ),
+    );
+    if (!mounted) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await _loadSummary();
+    } catch (error) {
+      _error = _message(error);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _openTenancyApprovals() async {
+    final estate = _estate;
+    if (estate == null || _busy) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => TenancyApprovalApiPage(
+          repository: widget.repository,
+          estateId: estate.id,
+          estateName: estate.name,
+        ),
+      ),
+    );
+    if (!mounted) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await _loadSummary();
+    } catch (error) {
+      _error = _message(error);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _createTenancy() async {
+    final estate = _estate;
+    if (estate == null || _busy) return;
+    final created = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => EstateTenancyCreateApiPage(
+          repository: widget.repository,
+          estateId: estate.id,
+          estateName: estate.name,
+        ),
+      ),
+    );
+    if (!mounted || created != true) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await _loadSummary();
+    } catch (error) {
+      _error = _message(error);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _openStaffInvitations() async {
+    final estate = _estate;
+    if (estate == null || _busy || !_canAdministerEstate) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => EstateStaffInvitationsApiPage(
+          repository: widget.repository,
+          estateId: estate.id,
+          estateName: estate.name,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openEstateSettings() async {
+    final estate = _estate;
+    if (estate == null || _busy || !_canAdministerEstate) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => EstateSettingsApiPage(
+          repository: widget.repository,
+          estateId: estate.id,
+        ),
+      ),
+    );
+    if (!mounted) return;
+    setState(() => _busy = true);
+    try {
+      await _loadEstates();
+    } catch (error) {
+      _error = _message(error);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _openEstateCharges() async {
+    final estate = _estate;
+    if (estate == null || _busy) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => EstateChargesPage(
+          repository: widget.repository,
+          estateId: estate.id,
+          estateName: estate.name,
+          canReconcileSettlements: estate.roles.any(
+            (role) =>
+                role == 'finance_manager' || role == 'estate_administrator',
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openEstateExpenses() async {
+    final estate = _estate;
+    if (estate == null || _busy) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => EstateExpensesApiPage(
+          repository: widget.repository,
+          estateId: estate.id,
+          estateName: estate.name,
+          roles: estate.roles,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openEstateFacilities() async {
+    final estate = _estate;
+    if (estate == null || _busy) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => EstateFacilitiesAdminPage(
+          repository: widget.repository,
+          estateId: estate.id,
+          estateName: estate.name,
+        ),
+      ),
+    );
+    if (!mounted) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await _loadSummary();
+    } catch (error) {
+      _error = _message(error);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _openRentSchedulePreview() async {
+    final estate = _estate;
+    if (estate == null || _busy) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => RentSchedulePreviewPage(
+          repository: widget.repository,
+          estateId: estate.id,
+          estateName: estate.name,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openEstateAnnouncements() async {
+    final estate = _estate;
+    if (estate == null || _busy) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => EstateAnnouncementsApiPage(
+          repository: widget.repository,
+          estateId: estate.id,
+          estateName: estate.name,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openSecurityIncidents() async {
+    final estate = _estate;
+    if (estate == null || _busy) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => EstateSecurityIncidentsApiPage(
+          repository: widget.repository,
+          estateId: estate.id,
+          estateName: estate.name,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _signOut() async {
+    await widget.repository.signOut();
+    if (!mounted) return;
+    setState(() {
+      _account = null;
+      _estates = const [];
+      _estate = null;
+      _summary = null;
+      _maintenanceQueue = const EstateMaintenanceQueue(
+        items: [],
+        assignableStaff: [],
+        total: 0,
+      );
+    });
+  }
+
+  String _message(Object error) => error is EstateApiException
+      ? error.message
+      : 'The estate dashboard could not be loaded.';
+
+  Widget _gateManagementCard() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Gate security',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: EstateColors.ink,
+              ),
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'Create estate gates and assign active security officers.',
+              style: TextStyle(color: EstateColors.muted),
+            ),
+            const SizedBox(height: 14),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                SizedBox(
+                  width: 150,
+                  child: TextField(
+                    controller: _gateCode,
+                    textCapitalization: TextCapitalization.characters,
+                    decoration: const InputDecoration(
+                      labelText: 'Gate code',
+                      hintText: 'NORTH',
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: 220,
+                  child: TextField(
+                    controller: _gateName,
+                    decoration: const InputDecoration(
+                      labelText: 'Gate name',
+                      hintText: 'North entrance',
+                    ),
+                  ),
+                ),
+                FilledButton.icon(
+                  onPressed: _busy ? null : _createGate,
+                  icon: const Icon(Icons.add_rounded),
+                  label: const Text('Create gate'),
+                ),
+              ],
+            ),
+            if (_estateGates.isNotEmpty) ...[
+              const SizedBox(height: 14),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 220,
+                    child: DropdownButtonFormField<String>(
+                      initialValue: _selectedGateId,
+                      decoration: const InputDecoration(labelText: 'Gate'),
+                      items: _estateGates
+                          .map(
+                            (gate) => DropdownMenuItem(
+                              value: gate.id,
+                              child: Text(
+                                '${gate.code} · ${gate.name}',
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: _busy
+                          ? null
+                          : (value) => setState(() => _selectedGateId = value),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 250,
+                    child: DropdownButtonFormField<String>(
+                      initialValue: _selectedOfficerId,
+                      decoration: const InputDecoration(
+                        labelText: 'Security officer',
+                      ),
+                      items: _securityOfficers
+                          .map(
+                            (staff) => DropdownMenuItem(
+                              value: staff.userId,
+                              child: Text(
+                                staff.displayName,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: _busy || _securityOfficers.isEmpty
+                          ? null
+                          : (value) =>
+                                setState(() => _selectedOfficerId = value),
+                    ),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: _busy || _securityOfficers.isEmpty
+                        ? null
+                        : _assignGateOfficer,
+                    icon: const Icon(Icons.assignment_ind_outlined),
+                    label: const Text('Assign officer'),
+                  ),
+                ],
+              ),
+              if (_securityOfficers.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.only(top: 8),
+                  child: Text(
+                    'Add an active security officer membership to this estate before assigning a gate.',
+                    style: TextStyle(color: EstateColors.muted, fontSize: 12),
+                  ),
+                ),
+            ],
+            const SizedBox(height: 12),
+            if (_estateGates.isEmpty)
+              const Text(
+                'No gates have been configured yet.',
+                style: TextStyle(color: EstateColors.muted, fontSize: 13),
+              )
+            else
+              ..._estateGates.map(
+                (gate) => ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(
+                    Icons.door_front_door_outlined,
+                    color: EstateColors.forest,
+                  ),
+                  title: Text(gate.name),
+                  subtitle: Text('Gate ${gate.code}'),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _structureManagementCard() {
+    final parents = _structureParentChoices();
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Estate structure',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: EstateColors.ink,
+              ),
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'Organize the estate into zones, streets, buildings and floors. Changes are saved to the estate.',
+              style: TextStyle(color: EstateColors.muted),
+            ),
+            const SizedBox(height: 14),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                SizedBox(
+                  width: 150,
+                  child: DropdownButtonFormField<String>(
+                    initialValue: _structureType,
+                    decoration: const InputDecoration(
+                      labelText: 'Structure type',
+                    ),
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'zone',
+                        child: Text('Zone / phase'),
+                      ),
+                      DropdownMenuItem(value: 'street', child: Text('Street')),
+                      DropdownMenuItem(
+                        value: 'building',
+                        child: Text('Building'),
+                      ),
+                      DropdownMenuItem(value: 'floor', child: Text('Floor')),
+                    ],
+                    onChanged: _busy
+                        ? null
+                        : (value) => setState(() {
+                            _structureType = value ?? 'zone';
+                            _structureParentId = null;
+                            final available = _structureParentChoices();
+                            _structureParentId = available.isEmpty
+                                ? null
+                                : available.first.id;
+                          }),
+                  ),
+                ),
+                SizedBox(
+                  width: 190,
+                  child: TextField(
+                    controller: _structureName,
+                    decoration: const InputDecoration(labelText: 'Name'),
+                  ),
+                ),
+                SizedBox(
+                  width: 130,
+                  child: TextField(
+                    controller: _structureCode,
+                    textCapitalization: TextCapitalization.characters,
+                    decoration: const InputDecoration(
+                      labelText: 'Code (optional)',
+                    ),
+                  ),
+                ),
+                if (parents.isNotEmpty)
+                  SizedBox(
+                    width: 200,
+                    child: DropdownButtonFormField<String>(
+                      initialValue: _structureParentId,
+                      decoration: const InputDecoration(
+                        labelText: 'Parent (optional)',
+                      ),
+                      items: parents
+                          .map(
+                            (node) => DropdownMenuItem(
+                              value: node.id,
+                              child: Text(
+                                '${node.type}: ${node.name}',
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: _busy
+                          ? null
+                          : (value) =>
+                                setState(() => _structureParentId = value),
+                    ),
+                  ),
+                FilledButton.icon(
+                  onPressed:
+                      _busy ||
+                          (_structureType == 'floor' &&
+                              _structureParentId == null)
+                      ? null
+                      : _createStructureNode,
+                  icon: const Icon(Icons.add_rounded),
+                  label: const Text('Add structure'),
+                ),
+              ],
+            ),
+            if (_structureType == 'floor' && parents.isEmpty)
+              const Padding(
+                padding: EdgeInsets.only(top: 8),
+                child: Text(
+                  'Create a building before adding floors.',
+                  style: TextStyle(color: EstateColors.muted, fontSize: 12),
+                ),
+              ),
+            const SizedBox(height: 12),
+            if (_estateStructure.isEmpty)
+              const Text(
+                'No zones, streets or buildings have been added yet.',
+                style: TextStyle(color: EstateColors.muted, fontSize: 13),
+              )
+            else
+              ..._estateStructure.map(
+                (node) => ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(switch (node.type) {
+                    'zone' => Icons.map_outlined,
+                    'street' => Icons.route_outlined,
+                    'building' => Icons.apartment_outlined,
+                    _ => Icons.stairs_outlined,
+                  }, color: EstateColors.forest),
+                  title: Text(node.name),
+                  subtitle: Text(
+                    '${node.type} · ${node.code ?? 'No code'} · ${node.linkedPropertyCount} properties${node.parentNames.isEmpty ? '' : ' · under ${node.parentNames.join(', ')}'}',
+                  ),
+                  trailing: IconButton(
+                    tooltip: 'Archive structure node',
+                    onPressed: _busy || node.linkedPropertyCount > 0
+                        ? null
+                        : () => _archiveStructureNode(node),
+                    icon: const Icon(Icons.archive_outlined),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_restoring)
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (_account == null) return _signInView();
+    final summary = _summary;
+    return Scaffold(
+      appBar: AppBar(
+        title: const Row(
+          children: [
+            Icon(Icons.domain_outlined, color: EstateColors.forest),
+            SizedBox(width: 10),
+            Text('Estate manager'),
+          ],
+        ),
+        actions: [
+          IconButton(
+            tooltip: 'Notifications',
+            onPressed: _busy
+                ? null
+                : () => Navigator.of(context).push<void>(
+                    MaterialPageRoute(
+                      builder: (_) => EstateNotificationsPage(
+                        repository: widget.repository,
+                      ),
+                    ),
+                  ),
+            icon: const Icon(Icons.notifications_outlined),
+          ),
+          if (MediaQuery.sizeOf(context).width > 600)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Center(
+                child: Text(
+                  _account!.displayName,
+                  style: const TextStyle(color: EstateColors.muted),
+                ),
+              ),
+            ),
+          IconButton(
+            tooltip: 'Refresh dashboard',
+            onPressed: _busy ? null : _refresh,
+            icon: const Icon(Icons.refresh_rounded),
+          ),
+          PopupMenuButton<String>(
+            onSelected: (_) => _signOut(),
+            itemBuilder: (_) => const [
+              PopupMenuItem(value: 'signout', child: Text('Sign out')),
+            ],
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1120),
+          child: ListView(
+            controller: _dashboardScrollController,
+            padding: const EdgeInsets.fromLTRB(22, 20, 22, 34),
+            children: [
+              const Text(
+                'Estate manager dashboard',
+                style: TextStyle(
+                  fontSize: 29,
+                  fontWeight: FontWeight.w700,
+                  color: EstateColors.ink,
+                  letterSpacing: -.4,
+                ),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                _estate == null
+                    ? 'Estate operations and resident activity.'
+                    : '${_estate!.name} • ${_estate!.location}',
+                style: TextStyle(color: EstateColors.muted),
+              ),
+              const SizedBox(height: 18),
+              if (_error != null) _Notice(message: _error!, error: true),
+              if (_estates.isEmpty)
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'This account is for an applicant or resident',
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Estate operations require a manager account. Sign out here, then use the estate manager demo login.',
+                          style: TextStyle(color: EstateColors.muted),
+                        ),
+                        const SizedBox(height: 14),
+                        FilledButton.icon(
+                          onPressed: _busy ? null : _signOut,
+                          icon: const Icon(Icons.switch_account_outlined),
+                          label: const Text('Switch to manager account'),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else ...[
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 17,
+                      vertical: 7,
+                    ),
+                    child: DropdownButtonFormField<ManagedEstateChoice>(
+                      initialValue: _estate,
+                      decoration: const InputDecoration(
+                        labelText: 'Estate',
+                        border: InputBorder.none,
+                        prefixIcon: Icon(Icons.apartment_outlined),
+                      ),
+                      items: _estates
+                          .map(
+                            (estate) => DropdownMenuItem(
+                              value: estate,
+                              child: Text(estate.name),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: _busy ? null : _selectEstate,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                if (_busy && summary == null)
+                  const LinearProgressIndicator(minHeight: 2),
+                if (summary != null) ...[
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.verified_outlined,
+                        size: 17,
+                        color: EstateColors.forest,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Live estate data • refreshed ${_formatDate(summary.asOf)}',
+                        style: const TextStyle(
+                          color: EstateColors.muted,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  _MetricsGrid(summary: summary),
+                  const SizedBox(height: 16),
+                  if (_canManageEstateOperations) ...[
+                    const Text(
+                      'Needs attention',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: EstateColors.ink,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  if (_canManageEstateOperations)
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final columns = constraints.maxWidth >= 760;
+                        final cards = [
+                          _ActivityCard(
+                            icon: Icons.person_add_alt_1_outlined,
+                            title: 'Resident access',
+                            count: summary.pendingAccessRequests,
+                            detail: summary.pendingAccessRequests == 0
+                                ? 'No requests are awaiting review.'
+                                : 'Review membership and property access requests.',
+                            color: const Color(0xFF9A7538),
+                            onTap: _busy ? null : _openResidentAccessReview,
+                          ),
+                          _ActivityCard(
+                            icon: Icons.verified_user_outlined,
+                            title: 'Ownership checks',
+                            count: summary.pendingOwnershipReviews,
+                            detail: summary.pendingOwnershipReviews == 0
+                                ? 'No ownership claims are awaiting review.'
+                                : 'Verify the evidence your estate team checked.',
+                            color: EstateColors.forest,
+                            onTap: _busy ? null : _openOwnershipReview,
+                          ),
+                          _ActivityCard(
+                            icon: Icons.key_outlined,
+                            title: 'Tenancy approvals',
+                            count: summary.pendingTenancies,
+                            detail: summary.pendingTenancies == 0
+                                ? 'No tenancy terms are awaiting approval.'
+                                : 'Review pending tenancy terms and activate occupancy.',
+                            color: const Color(0xFF486D91),
+                            onTap: _busy ? null : _openTenancyApprovals,
+                          ),
+                        ];
+                        return Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+                          children: cards
+                              .map(
+                                (card) => SizedBox(
+                                  width: columns
+                                      ? (constraints.maxWidth - 24) / 3
+                                      : constraints.maxWidth,
+                                  child: card,
+                                ),
+                              )
+                              .toList(),
+                        );
+                      },
+                    ),
+                  if (_canManageEstateOperations &&
+                      _maintenanceQueue.total > 0) ...[
+                    const SizedBox(height: 12),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: OutlinedButton.icon(
+                        onPressed: _jumpToMaintenance,
+                        icon: const Icon(Icons.handyman_outlined),
+                        label: Text(
+                          'Review maintenance (${_maintenanceQueue.total})',
+                        ),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 18),
+                  _IssuedInvoicesCard(summary: summary),
+                  const SizedBox(height: 18),
+                  if (_canReviewIncidents)
+                    _dashboardGroup(
+                      icon: Icons.campaign_outlined,
+                      title: 'Community operations',
+                      description:
+                          'Incidents, resident notices and shared facilities.',
+                      initiallyExpanded: true,
+                      children: [
+                        _dashboardActionTile(
+                          icon: Icons.health_and_safety_outlined,
+                          title: 'Security incidents',
+                          description: _canManageEstateOperations
+                              ? 'Record reports and review the estate incident queue.'
+                              : 'Review incident reports for your assigned estate.',
+                          onTap: _busy ? null : _openSecurityIncidents,
+                        ),
+                        if (_canManageEstateOperations) ...[
+                          const Divider(height: 1),
+                          _dashboardActionTile(
+                            icon: Icons.campaign_outlined,
+                            title: 'Estate announcements',
+                            description: 'Publish community notices to resident and landlord feeds.',
+                            onTap: _busy ? null : _openEstateAnnouncements,
+                          ),
+                          const Divider(height: 1),
+                          _dashboardActionTile(
+                            icon: Icons.pool_outlined,
+                            title: 'Facilities and bookings',
+                            description: _facilityBookings.isEmpty
+                                ? 'Configure shared spaces and review resident booking requests.'
+                                : '$_pendingFacilityBookings booking requests pending · $_confirmedFacilityBookings confirmed.',
+                            onTap: _busy ? null : _openEstateFacilities,
+                          ),
+                        ],
+                      ],
+                    ),
+                  if (_canManageEstateOperations)
+                    _dashboardGroup(
+                      icon: Icons.apartment_outlined,
+                      title: 'People and property',
+                      description:
+                          'Tenancies, estate structure and team access.',
+                      children: [
+                        _dashboardActionTile(
+                          icon: Icons.key_outlined,
+                          title: 'Add tenancy',
+                          description: 'Record a tenant, verified landlord and rent terms.',
+                          onTap: _busy ? null : _createTenancy,
+                        ),
+                        const SizedBox(height: 10),
+                        _gateManagementCard(),
+                        const SizedBox(height: 10),
+                        _structureManagementCard(),
+                        if (_canAdministerEstate) ...[
+                          const SizedBox(height: 10),
+                          _dashboardActionTile(
+                            icon: Icons.group_add_outlined,
+                            title: 'Staff access',
+                            description: 'Invite managers, finance managers and security officers.',
+                            onTap: _busy ? null : _openStaffInvitations,
+                          ),
+                          const Divider(height: 1),
+                          _dashboardActionTile(
+                            icon: Icons.tune_outlined,
+                            title: 'Estate profile',
+                            description: 'Update the estate name, type and location details.',
+                            onTap: _busy ? null : _openEstateSettings,
+                          ),
+                        ],
+                      ],
+                    ),
+                  if (_canViewEstateFinance)
+                    _dashboardGroup(
+                      icon: Icons.account_balance_wallet_outlined,
+                      title: 'Finance and billing',
+                      description:
+                          'Estate charges and upcoming tenancy rent dates.',
+                      children: [
+                        _dashboardActionTile(
+                          icon: Icons.receipt_long_outlined,
+                          title: 'Estate charges',
+                          description:
+                              'Configure versioned fees for future invoices.',
+                          onTap: _busy ? null : _openEstateCharges,
+                        ),
+                        const Divider(height: 1),
+                        _dashboardActionTile(
+                          icon: Icons.request_quote_outlined,
+                          title: 'Expense requests',
+                          description: 'Set approval rules, record payees and review spend requests.',
+                          onTap: _busy ? null : _openEstateExpenses,
+                        ),
+                        const Divider(height: 1),
+                        _dashboardActionTile(
+                          icon: Icons.event_outlined,
+                          title: 'Rent schedule preview',
+                          description: 'Review upcoming rent dates and named landlord payees.',
+                          onTap: _busy ? null : _openRentSchedulePreview,
+                        ),
+                      ],
+                    ),
+                  const SizedBox(height: 18),
+                  if (_canManageEstateOperations)
+                    Row(
+                      key: _maintenanceSectionKey,
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'Maintenance requests',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: EstateColors.ink,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          '${_maintenanceQueue.total} total',
+                          style: const TextStyle(
+                            color: EstateColors.muted,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  if (_canManageEstateOperations) const SizedBox(height: 8),
+                  if (_canManageEstateOperations &&
+                      _maintenanceQueue.items.isNotEmpty) ...[
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final searchWidth = constraints.maxWidth < 560
+                            ? constraints.maxWidth
+                            : constraints.maxWidth - 210;
+                        return Wrap(
+                          spacing: 12,
+                          runSpacing: 8,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: searchWidth,
+                              child: TextField(
+                                controller: _maintenanceSearch,
+                                onChanged: _scheduleMaintenanceSearch,
+                                decoration: InputDecoration(
+                                  labelText: 'Search requests',
+                                  prefixIcon: const Icon(Icons.search_rounded),
+                                  suffixIcon: _maintenanceSearch.text.isEmpty
+                                      ? null
+                                      : IconButton(
+                                          tooltip: 'Clear search',
+                                          onPressed: () {
+                                            _maintenanceSearch.clear();
+                                            _scheduleMaintenanceSearch('');
+                                            setState(() {});
+                                          },
+                                          icon: const Icon(Icons.close_rounded),
+                                        ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              width: 190,
+                              child: DropdownButtonFormField<String>(
+                                initialValue: _maintenanceStatusFilter,
+                                decoration: const InputDecoration(
+                                  labelText: 'Status',
+                                ),
+                                items: const [
+                                  DropdownMenuItem(
+                                    value: 'open',
+                                    child: Text('Open requests'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'all',
+                                    child: Text('All statuses'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'submitted',
+                                    child: Text('Submitted'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'under_review',
+                                    child: Text('Under review'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'assigned',
+                                    child: Text('Assigned'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'in_progress',
+                                    child: Text('In progress'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'awaiting_parts',
+                                    child: Text('Awaiting parts'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'reopened',
+                                    child: Text('Reopened'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'resolved',
+                                    child: Text('Resolved'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'closed',
+                                    child: Text('Closed'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'rejected',
+                                    child: Text('Rejected'),
+                                  ),
+                                ],
+                                onChanged: _busy || _maintenanceQueueLoading
+                                    ? null
+                                    : (value) {
+                                        setState(
+                                          () => _maintenanceStatusFilter =
+                                              value ?? 'open',
+                                        );
+                                        _reloadMaintenanceQueue(
+                                          resetPage: true,
+                                        );
+                                      },
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            _maintenanceQueue.total == 0
+                                ? 'No matching requests.'
+                                : 'Showing ${(_maintenanceQueue.page - 1) * _maintenanceQueue.pageSize + 1}–${(_maintenanceQueue.page - 1) * _maintenanceQueue.pageSize + _maintenanceQueue.items.length} of ${_maintenanceQueue.total} matching requests.',
+                            style: const TextStyle(
+                              color: EstateColors.muted,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                        if (_maintenanceQueueLoading)
+                          const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  if (_canManageEstateOperations &&
+                      _maintenanceQueue.items.isEmpty)
+                    const _Notice(
+                      message: 'No maintenance requests are recorded for this estate yet.',
+                    )
+                  else if (_canManageEstateOperations &&
+                      _filteredMaintenanceRequests.isEmpty)
+                    const _Notice(
+                      message: 'No maintenance requests match these filters.',
+                    )
+                  else if (_canManageEstateOperations)
+                    ..._filteredMaintenanceRequests.map(
+                      (request) => _MaintenanceRequestCard(
+                        request: request,
+                        onReview: _busy
+                            ? null
+                            : () => _reviewMaintenanceRequest(request),
+                      ),
+                    ),
+                  if (_canManageEstateOperations &&
+                      _maintenanceQueue.totalPages > 1)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        IconButton(
+                          tooltip: 'Previous page',
+                          onPressed:
+                              _maintenanceQueueLoading ||
+                                  _maintenanceQueue.page <= 1
+                              ? null
+                              : () => _selectMaintenancePage(
+                                  _maintenanceQueue.page - 1,
+                                ),
+                          icon: const Icon(Icons.chevron_left_rounded),
+                        ),
+                        Text(
+                          'Page ${_maintenanceQueue.page} of ${_maintenanceQueue.totalPages}',
+                          style: const TextStyle(
+                            color: EstateColors.muted,
+                            fontSize: 12,
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: 'Next page',
+                          onPressed:
+                              _maintenanceQueueLoading ||
+                                  _maintenanceQueue.page >=
+                                      _maintenanceQueue.totalPages
+                              ? null
+                              : () => _selectMaintenancePage(
+                                  _maintenanceQueue.page + 1,
+                                ),
+                          icon: const Icon(Icons.chevron_right_rounded),
+                        ),
+                      ],
+                    ),
+                  const SizedBox(height: 18),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(18),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(
+                            Icons.info_outline_rounded,
+                            color: EstateColors.forest,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Live data coverage',
+                                  style: TextStyle(fontWeight: FontWeight.w700),
+                                ),
+                                const SizedBox(height: 5),
+                                Text(
+                                  'Counts are scoped to ${_estate?.name ?? 'this estate'} and calculated as of ${_formatDate(summary.asOf)}. Invoice balances use verified settlement records; they are not a collections total. Gate staff can review visitor activity in Gate security. Maintenance history and review are live.',
+                                  style: const TextStyle(
+                                    color: EstateColors.muted,
+                                    height: 1.5,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _dashboardGroup({
+    required IconData icon,
+    required String title,
+    required String description,
+    required List<Widget> children,
+    bool initiallyExpanded = false,
+  }) => Card(
+    child: ExpansionTile(
+      initiallyExpanded: initiallyExpanded,
+      leading: Icon(icon, color: EstateColors.forest),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+      subtitle: Text(description),
+      childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      children: children,
+    ),
+  );
+
+  Widget _dashboardActionTile({
+    required IconData icon,
+    required String title,
+    required String description,
+    required VoidCallback? onTap,
+  }) => ListTile(
+    contentPadding: EdgeInsets.zero,
+    leading: Icon(icon, color: EstateColors.forest),
+    title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+    subtitle: Text(description),
+    trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 15),
+    onTap: onTap,
+  );
+
+  Widget _signInView() {
+    return Scaffold(
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.asset(
+            'assets/images/onboarding_background.jpg',
+            fit: BoxFit.cover,
+          ),
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0x85111F18), Color(0xD509140F)],
+              ),
+            ),
+          ),
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 440),
+                  child: Card(
+                    color: Colors.white.withValues(alpha: .97),
+                    child: Padding(
+                      padding: const EdgeInsets.all(27),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.domain_outlined,
+                              size: 36,
+                              color: EstateColors.forest,
+                            ),
+                            const SizedBox(height: 14),
+                            const Text(
+                              'Estate team sign in',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 22,
+                                color: EstateColors.ink,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'For authorized estate administrators and managers.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: EstateColors.muted),
+                            ),
+                            const SizedBox(height: 20),
+                            TextFormField(
+                              controller: _email,
+                              keyboardType: TextInputType.emailAddress,
+                              decoration: const InputDecoration(
+                                labelText: 'Email address',
+                                prefixIcon: Icon(Icons.mail_outline_rounded),
+                              ),
+                              validator: (value) =>
+                                  value == null || !value.contains('@')
+                                  ? 'Enter a valid email address.'
+                                  : null,
+                            ),
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              controller: _password,
+                              obscureText: true,
+                              decoration: const InputDecoration(
+                                labelText: 'Password',
+                                prefixIcon: Icon(Icons.lock_outline_rounded),
+                              ),
+                              validator: (value) =>
+                                  value == null || value.isEmpty
+                                  ? 'Enter your password.'
+                                  : null,
+                              onFieldSubmitted: (_) => _signIn(),
+                            ),
+                            if (_error != null) ...[
+                              const SizedBox(height: 12),
+                              Text(
+                                _error!,
+                                style: const TextStyle(color: EstateColors.red),
+                              ),
+                            ],
+                            const SizedBox(height: 18),
+                            FilledButton(
+                              onPressed: _busy ? null : _signIn,
+                              child: Text(_busy ? 'Signing in…' : 'Sign in'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDate(String value) {
+    final date = DateTime.tryParse(value)?.toLocal();
+    if (date == null) return 'today';
+    return '${date.day}/${date.month}/${date.year}';
+  }
+}
+
+class _MetricsGrid extends StatelessWidget {
+  const _MetricsGrid({required this.summary});
+  final EstateManagerDashboardSummary summary;
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final columns = constraints.maxWidth >= 760
+          ? 4
+          : constraints.maxWidth >= 500
+          ? 2
+          : 1;
+      const gap = 12.0;
+      final width = (constraints.maxWidth - gap * (columns - 1)) / columns;
+      final metrics = [
+        _MetricCard(
+          label: 'Properties',
+          value: summary.propertyTotal,
+          detail: '${summary.vacantProperties} unoccupied',
+          icon: Icons.home_work_outlined,
+          color: EstateColors.forest,
+        ),
+        _MetricCard(
+          label: 'Occupied homes',
+          value: summary.occupiedProperties,
+          detail: 'Current occupancy',
+          icon: Icons.people_alt_outlined,
+          color: const Color(0xFF486D91),
+        ),
+        _MetricCard(
+          label: 'Residents',
+          value: summary.residentMemberships,
+          detail: 'Active memberships',
+          icon: Icons.groups_outlined,
+          color: const Color(0xFF9A7538),
+        ),
+        _MetricCard(
+          label: 'Active tenancies',
+          value: summary.activeTenancies,
+          detail: '${summary.pendingTenancies} awaiting approval',
+          icon: Icons.key_outlined,
+          color: const Color(0xFF725793),
+        ),
+      ];
+      return Wrap(
+        spacing: gap,
+        runSpacing: gap,
+        children: metrics
+            .map((metric) => SizedBox(width: width, child: metric))
+            .toList(),
+      );
+    },
+  );
+}
+
+class _IssuedInvoicesCard extends StatelessWidget {
+  const _IssuedInvoicesCard({required this.summary});
+  final EstateManagerDashboardSummary summary;
+
+  @override
+  Widget build(BuildContext context) => Card(
+    child: Padding(
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Issued invoices awaiting payment',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Outstanding balances on issued invoices, including partial payments. This is not money collected.',
+            style: TextStyle(color: EstateColors.muted, fontSize: 12),
+          ),
+          const SizedBox(height: 8),
+          if (summary.outstandingIssuedInvoices.isEmpty)
+            const Text(
+              'No outstanding invoice balances.',
+              style: TextStyle(color: EstateColors.muted),
+            )
+          else
+            ...summary.outstandingIssuedInvoices.map(
+              (item) => ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(
+                  Icons.receipt_long_outlined,
+                  color: EstateColors.forest,
+                ),
+                title: Text(
+                  '${item.currency} ${_formatAmount(item.total)}',
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                subtitle: Text(
+                  '${item.count} ${item.count == 1 ? 'invoice' : 'invoices'} · issued, no verified payment recorded',
+                ),
+                dense: true,
+              ),
+            ),
+        ],
+      ),
+    ),
+  );
+
+  static String _formatAmount(String value) =>
+      value.replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (_) => ',');
+}
+
+class _MetricCard extends StatelessWidget {
+  const _MetricCard({
+    required this.label,
+    required this.value,
+    required this.detail,
+    required this.icon,
+    required this.color,
+  });
+  final String label;
+  final int value;
+  final String detail;
+  final IconData icon;
+  final Color color;
+  @override
+  Widget build(BuildContext context) => Card(
+    child: Padding(
+      padding: const EdgeInsets.all(17),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: color),
+              const Spacer(),
+              Text(
+                '$value',
+                style: TextStyle(
+                  fontSize: 27,
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Text(
+            label,
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              color: EstateColors.ink,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            detail,
+            style: const TextStyle(fontSize: 11, color: EstateColors.muted),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+class _ActivityCard extends StatelessWidget {
+  const _ActivityCard({
+    required this.icon,
+    required this.title,
+    required this.count,
+    required this.detail,
+    required this.color,
+    this.onTap,
+  });
+  final IconData icon;
+  final String title;
+  final int count;
+  final String detail;
+  final Color color;
+  final VoidCallback? onTap;
+  @override
+  Widget build(BuildContext context) => Card(
+    child: InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Padding(
+        padding: const EdgeInsets.all(17),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, color: color),
+                const SizedBox(width: 9),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: .1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    '$count',
+                    style: TextStyle(color: color, fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    detail,
+                    style: const TextStyle(
+                      color: EstateColors.muted,
+                      height: 1.4,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+                if (onTap != null)
+                  const Icon(
+                    Icons.arrow_forward_rounded,
+                    size: 17,
+                    color: EstateColors.muted,
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+class _Notice extends StatelessWidget {
+  const _Notice({required this.message, this.error = false});
+  final String message;
+  final bool error;
+  @override
+  Widget build(BuildContext context) => Card(
+    color: error ? const Color(0xFFFFF0EE) : null,
+    child: Padding(
+      padding: const EdgeInsets.all(15),
+      child: Text(
+        message,
+        style: TextStyle(color: error ? EstateColors.red : EstateColors.muted),
+      ),
+    ),
+  );
+}
+
+class _MaintenanceRequestCard extends StatelessWidget {
+  const _MaintenanceRequestCard({
+    required this.request,
+    required this.onReview,
+  });
+  final EstateMaintenanceQueueItem request;
+  final VoidCallback? onReview;
+
+  String _label(String value) => value
+      .split('_')
+      .map(
+        (word) => word.isEmpty
+            ? word
+            : '${word[0].toUpperCase()}${word.substring(1)}',
+      )
+      .join(' ');
+
+  @override
+  Widget build(BuildContext context) {
+    final submitted = DateTime.tryParse(request.submittedAt)?.toLocal();
+    final dateLabel = submitted == null
+        ? ''
+        : '${submitted.day}/${submitted.month}/${submitted.year}';
+    final update = request.residentVisibleUpdates.isEmpty
+        ? null
+        : request.residentVisibleUpdates.last.body;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  request.reference,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: EstateColors.ink,
+                  ),
+                ),
+                _StatusPill(label: _label(request.status)),
+                _StatusPill(label: _label(request.priority)),
+              ],
+            ),
+            const SizedBox(height: 7),
+            Text(
+              '${request.propertyLabel} · ${_label(request.category)} · $dateLabel',
+              style: const TextStyle(fontSize: 12, color: EstateColors.muted),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              'Reported by ${request.requesterDisplayName}${request.assigneeDisplayName == null ? '' : ' · Assigned to ${request.assigneeDisplayName}'}',
+              style: const TextStyle(fontSize: 12, color: EstateColors.muted),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              request.description,
+              style: const TextStyle(color: EstateColors.ink, height: 1.45),
+            ),
+            if (update != null) ...[
+              const SizedBox(height: 9),
+              Text(
+                'Resident update: $update',
+                style: const TextStyle(
+                  color: EstateColors.forest,
+                  fontSize: 12,
+                  height: 1.4,
+                ),
+              ),
+            ],
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerRight,
+              child: OutlinedButton.icon(
+                onPressed: onReview,
+                icon: const Icon(Icons.rate_review_outlined),
+                label: const Text('Review request'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StatusPill extends StatelessWidget {
+  const _StatusPill({required this.label});
+  final String label;
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+    decoration: BoxDecoration(
+      color: const Color(0xFFE9F2ED),
+      borderRadius: BorderRadius.circular(20),
+    ),
+    child: Text(
+      label,
+      style: const TextStyle(
+        color: EstateColors.forest,
+        fontSize: 11,
+        fontWeight: FontWeight.w600,
+      ),
+    ),
+  );
+}
+
+class _MaintenanceReviewResult {
+  const _MaintenanceReviewResult({
+    this.command,
+    this.assigneeUserId,
+    this.reason,
+    this.resolutionSummary,
+    this.residentUpdate,
+    this.internalNote,
+  });
+  final String? command;
+  final String? assigneeUserId;
+  final String? reason;
+  final String? resolutionSummary;
+  final String? residentUpdate;
+  final String? internalNote;
+}
+
+class _MaintenanceReviewDialog extends StatefulWidget {
+  const _MaintenanceReviewDialog({
+    required this.request,
+    required this.assignableStaff,
+  });
+  final EstateMaintenanceQueueItem request;
+  final List<EstateStaffChoice> assignableStaff;
+  @override
+  State<_MaintenanceReviewDialog> createState() =>
+      _MaintenanceReviewDialogState();
+}
+
+class _MaintenanceReviewDialogState extends State<_MaintenanceReviewDialog> {
+  final _reason = TextEditingController();
+  final _resolution = TextEditingController();
+  final _residentUpdate = TextEditingController();
+  final _internalNote = TextEditingController();
+  String? _command;
+  String? _assigneeUserId;
+  String? _validationMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _command = widget.request.allowedCommands.firstOrNull;
+    _assigneeUserId =
+        widget.assignableStaff.any(
+          (staff) => staff.userId == widget.request.assigneeUserId,
+        )
+        ? widget.request.assigneeUserId
+        : null;
+  }
+
+  @override
+  void dispose() {
+    _reason.dispose();
+    _resolution.dispose();
+    _residentUpdate.dispose();
+    _internalNote.dispose();
+    super.dispose();
+  }
+
+  String _label(String value) => value
+      .split('_')
+      .map(
+        (word) => word.isEmpty
+            ? word
+            : '${word[0].toUpperCase()}${word.substring(1)}',
+      )
+      .join(' ');
+
+  void _save() {
+    if (_command == 'assign' && _assigneeUserId == null) {
+      setState(
+        () => _validationMessage =
+            'Select an active estate manager to assign this request.',
+      );
+      return;
+    }
+    if (['reject', 'close', 'reopen'].contains(_command) &&
+        _reason.text.trim().isEmpty) {
+      setState(() => _validationMessage = 'Enter a reason for this decision.');
+      return;
+    }
+    if (_command == 'resolve' && _resolution.text.trim().isEmpty) {
+      setState(
+        () => _validationMessage = 'Add a resolution summary for the resident.',
+      );
+      return;
+    }
+    if (_command == null &&
+        _residentUpdate.text.trim().isEmpty &&
+        _internalNote.text.trim().isEmpty) {
+      setState(() => _validationMessage = 'Choose an action or add an update.');
+      return;
+    }
+    Navigator.of(context).pop(
+      _MaintenanceReviewResult(
+        command: _command,
+        assigneeUserId: _command == 'assign' ? _assigneeUserId : null,
+        reason: _reason.text.trim(),
+        resolutionSummary: _resolution.text.trim(),
+        residentUpdate: _residentUpdate.text.trim(),
+        internalNote: _internalNote.text.trim(),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: Text('Review ${widget.request.reference}'),
+    content: SizedBox(
+      width: 480,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              '${widget.request.propertyLabel} · ${widget.request.requesterDisplayName}',
+              style: const TextStyle(color: EstateColors.muted, fontSize: 12),
+            ),
+            const SizedBox(height: 14),
+            DropdownButtonFormField<String?>(
+              initialValue: _command,
+              decoration: const InputDecoration(labelText: 'Action'),
+              items: [
+                const DropdownMenuItem<String?>(
+                  value: null,
+                  child: Text('Add an update only'),
+                ),
+                ...widget.request.allowedCommands.map(
+                  (command) => DropdownMenuItem<String?>(
+                    value: command,
+                    child: Text(_label(command)),
+                  ),
+                ),
+              ],
+              onChanged: (value) => setState(() {
+                _command = value;
+                _validationMessage = null;
+              }),
+            ),
+            if (_command == 'assign') ...[
+              const SizedBox(height: 12),
+              if (widget.assignableStaff.isEmpty)
+                const _Notice(
+                  message:
+                      'No active estate managers are available for assignment.',
+                )
+              else
+                DropdownButtonFormField<String>(
+                  initialValue: _assigneeUserId,
+                  decoration: const InputDecoration(labelText: 'Assign to'),
+                  items: widget.assignableStaff
+                      .map(
+                        (staff) => DropdownMenuItem(
+                          value: staff.userId,
+                          child: Text(staff.displayName),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) => setState(() {
+                    _assigneeUserId = value;
+                    _validationMessage = null;
+                  }),
+                ),
+            ],
+            if (['reject', 'close', 'reopen'].contains(_command)) ...[
+              const SizedBox(height: 12),
+              TextField(
+                controller: _reason,
+                maxLength: 300,
+                decoration: const InputDecoration(labelText: 'Reason'),
+              ),
+            ],
+            if (_command == 'resolve') ...[
+              const SizedBox(height: 12),
+              TextField(
+                controller: _resolution,
+                maxLength: 700,
+                maxLines: 2,
+                decoration: const InputDecoration(
+                  labelText: 'Resolution summary for resident',
+                ),
+              ),
+            ],
+            const SizedBox(height: 12),
+            TextField(
+              controller: _residentUpdate,
+              maxLength: 700,
+              maxLines: 2,
+              decoration: const InputDecoration(
+                labelText: 'Resident-visible update (optional)',
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _internalNote,
+              maxLength: 700,
+              maxLines: 2,
+              decoration: const InputDecoration(
+                labelText: 'Internal team note (optional)',
+              ),
+            ),
+            if (_validationMessage != null) ...[
+              const SizedBox(height: 10),
+              Text(
+                _validationMessage!,
+                style: const TextStyle(color: EstateColors.red),
+              ),
+            ],
+          ],
+        ),
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.of(context).pop(),
+        child: const Text('Cancel'),
+      ),
+      FilledButton(onPressed: _save, child: const Text('Save review')),
+    ],
+  );
+}
