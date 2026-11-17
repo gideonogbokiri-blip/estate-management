@@ -19,8 +19,19 @@ client/.flutter-plugins-dependencies
 client/.pub-cache/
 client/.widget_preview/
 
+# Obsolete preview/debug bundles and build caches (unused by the hosted app)
+client/build/admin-debug/
+client/build/admin-demo/
+client/build/web-demo/
+client/build/flutter_assets/
+client/build/c6850d2da59b8981ff04de06e30b3835/
+client/build/*.dill
+
 # Editor / OS
 .idea/
 .vscode/
 .DS_Store
 Thumbs.db
+
+.vercel
+.env*
