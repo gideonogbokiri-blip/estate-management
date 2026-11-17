@@ -105,7 +105,7 @@
 
       <div class="tabs" role="tablist">
         <button class="tab" id="tab-signin" role="tab" aria-selected="true" type="button">Sign in</button>
-        <button class="tab" id="tab-create" role="tab" aria-selected="false" type="button">Create account</button>
+        <button class="tab" id="tab-create" role="tab" aria-selected="false" type="button">Create an estate</button>
       </div>
 
       <form id="signin-form" class="active">
@@ -126,8 +126,8 @@
         <input class="field" id="new-password" type="password" autocomplete="new-password" required minlength="12" maxlength="128" placeholder="At least 12 characters" />
         <label for="new-password-confirm">Confirm password</label>
         <input class="field" id="new-password-confirm" type="password" autocomplete="new-password" required minlength="12" maxlength="128" placeholder="Repeat your password" />
-        <button class="primary" id="create-button" type="submit">Create account</button>
-        <p class="hint">New accounts start with resident access. Estate membership, ownership or staff roles are granted by an authorized administrator.</p>
+        <button class="primary" id="create-button" type="submit">Create account &amp; start estate application</button>
+        <p class="hint">This creates your applicant account and opens the estate application. You will add your estate's name, address, homes and administrator there. To move into an existing estate instead, <a href="/join-estate/">join an estate</a>.</p>
       </form>
 
       <div class="error" id="error" role="alert"></div>
@@ -151,7 +151,7 @@
       createForm.classList.toggle('active', !isSignIn);
       document.getElementById('tab-signin').setAttribute('aria-selected', String(isSignIn));
       document.getElementById('tab-create').setAttribute('aria-selected', String(!isSignIn));
-      document.getElementById('heading').textContent = isSignIn ? 'Welcome back' : 'Create your account';
+      document.getElementById('heading').textContent = isSignIn ? 'Welcome back' : 'Create an estate';
       document.getElementById('subheading').textContent = isSignIn
         ? 'Sign in to open your estate workspace.'
         : 'One account for all estate services.';
@@ -176,7 +176,7 @@
       return '/web/';
     }
 
-    async function finishSignIn(email, password, button) {
+    async function finishSignIn(email, password, overridePath) {
       const response = await fetch(API + '/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
@@ -194,7 +194,7 @@
       const estateRoles = (estates.body.items || []).flatMap((item) => item.roles || []);
       const platform = await get('/platform/admin/estates?pageSize=1', token);
       const application = await get('/estate/applications/mine', token);
-      window.location.assign(destination(estateRoles, platform.ok, (application.body.items || []).length > 0));
+      window.location.assign(overridePath || destination(estateRoles, platform.ok, (application.body.items || []).length > 0));
     }
 
     function withBusy(button, task) {
@@ -235,7 +235,7 @@
         });
         const body = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(body.message || 'Could not create the account.');
-        await finishSignIn(email, password);
+        await finishSignIn(email, password, '/onboarding/');
       });
     });
   </script>

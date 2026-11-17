@@ -7,7 +7,7 @@
 
 ### One login, role-based dashboards
 
-The `/login/` page includes both **Sign in** and **Create account** tabs. Registration posts to `/auth/register`, then signs the new account in and routes it to the appropriate workspace. New accounts start with resident access; estate membership, ownership or staff roles are granted by an authorized administrator. The page uses the supplied family photograph with a dark-green overlay and a Venco-style card layout, matching the rest of the product theme.
+The `/login/` page includes both **Sign in** and **Create an estate** tabs. Creating an estate registers the applicant account, signs it in, and opens the estate application wizard at `/onboarding/`, where the estate name, address, homes and initial administrator are collected. People who want to move into an existing estate use the **join an estate** link instead. The page uses the supplied family photograph with a dark-green overlay and a Venco-style card layout, matching the rest of the product theme.
 
 | Role | Destination |
 |---|---|
