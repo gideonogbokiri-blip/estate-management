@@ -73,6 +73,8 @@
     .choice:hover { border-color: #a9c7b5; }
     .choice.selected { border-color: #258565; background: #edf6f0; box-shadow: 0 0 0 1px #258565 inset; }
     .choice-icon { display: grid; place-items: center; flex: 0 0 34px; height: 34px; border-radius: 10px; background: #e4efe8; color: var(--forest); font-size: 16px; }
+    .choice-icon svg { width: 18px; height: 18px; display: block; }
+    .brand-mark svg { width: 19px; height: 19px; display: block; }
     .choice strong { display: block; font-size: 13px; }
     .choice small { display: block; margin-top: 2px; color: var(--muted); font-size: 11px; line-height: 1.4; }
     form { display: none; }
@@ -99,7 +101,7 @@
 <body>
   <main class="shell">
     <section class="visual">
-      <div class="brand"><span class="brand-mark">&#8962;</span> Estate Management</div>
+      <div class="brand"><span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9.5 20v-6h5v6"/></svg></span> Estate Management</div>
       <h1>A better way to live in your estate.</h1>
       <p>Manage your home, services, visitors and community in one connected place — built for estates, residents, landlords and the teams who run them.</p>
     </section>
@@ -128,15 +130,15 @@
         <label id="intent-label">I want to…</label>
         <div class="choices" id="intent" role="radiogroup" aria-labelledby="intent-label">
           <button class="choice selected" type="button" role="radio" aria-checked="true" data-intent="estate">
-            <span class="choice-icon">&#8962;</span>
+            <span class="choice-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h2M14 7h2M8 11h2M14 11h2M8 15h2M14 15h2"/><path d="M10.5 21v-4h3v4"/></svg></span>
             <span><strong>Create an estate</strong><small>Register an estate and invite its first administrator.</small></span>
           </button>
           <button class="choice" type="button" role="radio" aria-checked="false" data-intent="tenant">
-            <span class="choice-icon">&#128101;</span>
+            <span class="choice-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><circle cx="17" cy="9" r="2.2"/><path d="M15.5 14.2c2.9-.3 5 1.7 5 4.3"/></svg></span>
             <span><strong>Create as tenant</strong><small>Find your estate, request access and manage your home.</small></span>
           </button>
           <button class="choice" type="button" role="radio" aria-checked="false" data-intent="landlord">
-            <span class="choice-icon">&#127968;</span>
+            <span class="choice-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9.5 20v-5.5h5V20"/></svg></span>
             <span><strong>Create as landlord</strong><small>Track property ownership, tenancy and rent.</small></span>
           </button>
         </div>
