@@ -1,5 +1,11 @@
 # Flutter preview status
 
+### Single sign-in and platform money controls (17 November 2026)
+
+- The hub now offers **Sign in once** at `/login/`. That page authenticates through the estate API, stores the session in shared browser storage, inspects platform grants and estate memberships, and opens the correct workspace: `/platform/`, `/admin/`, `/security/`, `/landlord-live/`, `/onboarding/` or `/web/`. Flutter web clients read the shared session, so apps no longer ask for a second sign-in. Routing and shared-session adoption were verified in the browser and analyzer.
+- Platform super administrators have a **Balances** tab in `/platform/`. It shows estate/user/application counts and totals, lists resident and landlord accounts in an estate with derived balances, and records credit or debit adjustments with amount, currency, direction, mandatory reason, idempotency key and an immutable audit event. Managers receive 403. Nine local API checks and an opt-in integration test cover the workflow. These adjustments are staff-entered ledger entries, not provider payments.
+- All 12 web bundles were rebuilt with the shared-session clients and the new Balances UI.
+
 ### Connected gate and security app (16 November 2026)
 
 - The `/security/` Flutter app is now API-backed: it loads the signed-in officer's active gate assignment, expected visitor passes, current checked-in visits and their own incident reports. Pass-code verification records check-in with idempotency, rate limiting, access events and audit events; check-out and incident submission also write through the estate API. Only the preview build keeps sample contacts and manual admissions; the live route never labels local UI actions as saved records.
