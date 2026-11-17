@@ -3,42 +3,136 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Estate Management | Sign in</title>
+  <meta name="theme-color" content="#0d3b30" />
+  <title>Estate Management | Welcome</title>
   <style>
-    :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; color: #17231e; background: #f5f7f5; }
+    :root {
+      color-scheme: light;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #17231e;
+      --forest: #0d3b30;
+      --forest-2: #115644;
+      --muted: #6d7b74;
+      --line: #e2eae5;
+    }
     * { box-sizing: border-box; }
-    body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; }
-    .card { width: min(420px, 100%); background: white; border: 1px solid #e4eae6; border-radius: 20px; padding: 30px; box-shadow: 0 20px 50px #0e503d12; }
-    .mark { display: grid; width: 44px; height: 44px; place-items: center; border-radius: 13px; background: #e9f2ed; color: #0e503d; font-size: 21px; }
-    h1 { margin: 20px 0 6px; font-size: 24px; letter-spacing: -0.6px; }
-    p { margin: 0 0 22px; color: #6d7b74; font-size: 13px; line-height: 1.6; }
+    html, body { min-height: 100%; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at 12% 12%, #155a47 0, transparent 38%),
+                  radial-gradient(circle at 92% 88%, #0a2f27 0, transparent 42%),
+                  var(--forest);
+      display: grid;
+      place-items: center;
+      padding: 32px 20px;
+    }
+    .shell {
+      width: min(980px, 100%);
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      border-radius: 24px;
+      overflow: hidden;
+      background: white;
+      box-shadow: 0 30px 80px #03130f66;
+    }
+    .visual {
+      position: relative;
+      min-height: 560px;
+      background-image: linear-gradient(180deg, #0d3b3099 0%, #0d3b3022 45%, #0d3b30dd 100%), url('family-background.jpg');
+      background-size: cover;
+      background-position: center 40%;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 34px;
+    }
+    .visual::after {
+      content: "";
+      position: absolute;
+      inset: auto -40% -45% auto;
+      width: 70%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: #17805b66;
+      pointer-events: none;
+    }
+    .brand { position: absolute; top: 28px; left: 30px; display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -0.2px; }
+    .brand-mark { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 11px; background: #ffffff26; border: 1px solid #ffffff40; font-size: 18px; }
+    .visual h1 { position: relative; z-index: 1; margin: 0 0 10px; max-width: 380px; font-size: clamp(26px, 4vw, 36px); line-height: 1.15; letter-spacing: -1px; }
+    .visual p { position: relative; z-index: 1; margin: 0; max-width: 360px; color: #e8f2ed; font-size: 13px; line-height: 1.65; }
+    .panel { padding: 38px 38px 30px; display: flex; flex-direction: column; }
+    .panel-head h2 { margin: 0 0 6px; font-size: 24px; letter-spacing: -0.6px; }
+    .panel-head p { margin: 0 0 22px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .tabs { display: flex; gap: 4px; padding: 4px; background: #f2f6f3; border-radius: 12px; margin-bottom: 22px; }
+    .tab { flex: 1; padding: 10px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+    .tab[aria-selected="true"] { background: white; color: var(--forest); box-shadow: 0 2px 8px #0e503d1a; }
+    form { display: none; }
+    form.active { display: block; }
     label { display: block; margin: 0 0 6px; font-size: 12px; font-weight: 700; }
-    input { width: 100%; padding: 12px 14px; margin-bottom: 16px; border: 1px solid #d9e2dc; border-radius: 11px; font: inherit; font-size: 14px; }
-    input:focus { outline: 2px solid #9ec9ae; border-color: #258565; }
-    button { width: 100%; padding: 13px; border: 0; border-radius: 11px; background: #0e503d; color: white; font: inherit; font-weight: 700; cursor: pointer; }
-    button:disabled { opacity: 0.6; cursor: wait; }
-    .error { margin-top: 14px; color: #a32c2c; font-size: 12px; min-height: 18px; }
-    .note { margin-top: 18px; padding-top: 16px; border-top: 1px solid #eef2ef; font-size: 11px; color: #6d7b74; line-height: 1.6; }
-    a { color: #0e503d; }
+    .field { width: 100%; padding: 12px 13px; margin-bottom: 14px; border: 1px solid var(--line); border-radius: 11px; font: inherit; font-size: 14px; background: #fbfdfb; }
+    .field:focus { outline: 2px solid #9ec9ae; border-color: #258565; background: white; }
+    .primary { width: 100%; padding: 13px; border: 0; border-radius: 11px; background: var(--forest); color: white; font: inherit; font-weight: 700; cursor: pointer; }
+    .primary:hover { background: var(--forest-2); }
+    .primary:disabled { opacity: 0.6; cursor: wait; }
+    .hint { margin: 10px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+    .error { margin-top: 12px; color: #a32c2c; font-size: 12px; min-height: 18px; }
+    .foot { margin-top: auto; padding-top: 22px; border-top: 1px solid #eef2ef; font-size: 11px; color: var(--muted); line-height: 1.6; }
+    a { color: var(--forest); font-weight: 600; }
+    @media (max-width: 760px) {
+      .shell { grid-template-columns: 1fr; }
+      .visual { min-height: 200px; padding: 22px; }
+      .visual h1 { font-size: 22px; }
+      .visual p { display: none; }
+      .panel { padding: 26px 22px; }
+    }
   </style>
 </head>
 <body>
-  <main class="card">
-    <div class="mark">&#8962;</div>
-    <h1>Sign in</h1>
-    <p>One login for the estate platform. You will be taken to the workspace for your role.</p>
-    <form id="login-form">
-      <label for="email">Email address</label>
-      <input id="email" name="email" type="email" autocomplete="username" required placeholder="you@example.test" />
-      <label for="password">Password</label>
-      <input id="password" name="password" type="password" autocomplete="current-password" required placeholder="Your password" />
-      <button id="submit" type="submit">Sign in</button>
-    </form>
-    <div class="error" id="error" role="alert"></div>
-    <div class="note">
-      Estate managers use this page too — sign in with your manager account and you will be sent to the estate dashboard.
-      <a href="/">Back to project hub</a>
-    </div>
+  <main class="shell">
+    <section class="visual">
+      <div class="brand"><span class="brand-mark">&#8962;</span> Estate Management</div>
+      <h1>A better way to live in your estate.</h1>
+      <p>Manage your home, services, visitors and community in one connected place — built for estates, residents, landlords and the teams who run them.</p>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2 id="heading">Welcome back</h2>
+        <p id="subheading">Sign in to open your estate workspace.</p>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <button class="tab" id="tab-signin" role="tab" aria-selected="true" type="button">Sign in</button>
+        <button class="tab" id="tab-create" role="tab" aria-selected="false" type="button">Create account</button>
+      </div>
+
+      <form id="signin-form" class="active">
+        <label for="email">Email address</label>
+        <input class="field" id="email" name="email" type="email" autocomplete="username" required placeholder="you@example.test" />
+        <label for="password">Password</label>
+        <input class="field" id="password" name="password" type="password" autocomplete="current-password" required placeholder="Your password" />
+        <button class="primary" id="signin-button" type="submit">Sign in</button>
+        <p class="hint">Managers, landlords, residents, security staff and platform admins all use this page.</p>
+      </form>
+
+      <form id="create-form">
+        <label for="new-name">Full name</label>
+        <input class="field" id="new-name" type="text" autocomplete="name" required minlength="2" maxlength="200" placeholder="Your name" />
+        <label for="new-email">Email address</label>
+        <input class="field" id="new-email" type="email" autocomplete="username" required placeholder="you@example.test" />
+        <label for="new-password">Password</label>
+        <input class="field" id="new-password" type="password" autocomplete="new-password" required minlength="12" maxlength="128" placeholder="At least 12 characters" />
+        <label for="new-password-confirm">Confirm password</label>
+        <input class="field" id="new-password-confirm" type="password" autocomplete="new-password" required minlength="12" maxlength="128" placeholder="Repeat your password" />
+        <button class="primary" id="create-button" type="submit">Create account</button>
+        <p class="hint">New accounts start with resident access. Estate membership, ownership or staff roles are granted by an authorized administrator.</p>
+      </form>
+
+      <div class="error" id="error" role="alert"></div>
+      <div class="foot"><a href="/">Back to project hub</a></div>
+    </section>
   </main>
 
   <script>
@@ -47,9 +141,30 @@
       ? `${window.location.protocol}//${window.location.hostname}:4100/api/v1`
       : `${window.location.origin}/api/v1`;
 
+    const signinForm = document.getElementById('signin-form');
+    const createForm = document.getElementById('create-form');
+    const errorBox = document.getElementById('error');
+
+    function showTab(which) {
+      const isSignIn = which === 'signin';
+      signinForm.classList.toggle('active', isSignIn);
+      createForm.classList.toggle('active', !isSignIn);
+      document.getElementById('tab-signin').setAttribute('aria-selected', String(isSignIn));
+      document.getElementById('tab-create').setAttribute('aria-selected', String(!isSignIn));
+      document.getElementById('heading').textContent = isSignIn ? 'Welcome back' : 'Create your account';
+      document.getElementById('subheading').textContent = isSignIn
+        ? 'Sign in to open your estate workspace.'
+        : 'One account for all estate services.';
+      errorBox.textContent = '';
+    }
+    document.getElementById('tab-signin').addEventListener('click', () => showTab('signin'));
+    document.getElementById('tab-create').addEventListener('click', () => showTab('create'));
+
     async function get(path, token) {
       const response = await fetch(API + path, { headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' } });
-      return { ok: response.ok, status: response.status, body: await response.json().catch(() => ({})) };
+      let body = {};
+      try { body = await response.json(); } catch (_) {}
+      return { ok: response.ok, status: response.status, body };
     }
 
     function destination(estateRoles, hasPlatform, hasApplication) {
@@ -61,39 +176,67 @@
       return '/web/';
     }
 
-    document.getElementById('login-form').addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const button = document.getElementById('submit');
-      const error = document.getElementById('error');
-      error.textContent = '';
+    async function finishSignIn(email, password, button) {
+      const response = await fetch(API + '/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const session = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(session.message || 'Sign in failed.');
+      const token = session.accessToken;
+      if (!token) throw new Error('The service did not return a session.');
+
+      localStorage.setItem('estate_shared_accessToken', token);
+      localStorage.setItem('estate_shared_refreshToken', session.refreshToken || '');
+
+      const estates = await get('/estate/estates/mine', token);
+      const estateRoles = (estates.body.items || []).flatMap((item) => item.roles || []);
+      const platform = await get('/platform/admin/estates?pageSize=1', token);
+      const application = await get('/estate/applications/mine', token);
+      window.location.assign(destination(estateRoles, platform.ok, (application.body.items || []).length > 0));
+    }
+
+    function withBusy(button, task) {
+      errorBox.textContent = '';
+      const original = button.textContent;
       button.disabled = true;
-      button.textContent = 'Signing in…';
-      try {
-        const email = document.getElementById('email').value.trim();
-        const password = document.getElementById('password').value;
-        const response = await fetch(API + '/auth/login', {
+      button.textContent = 'Please wait…';
+      task(button)
+        .catch((error) => {
+          errorBox.textContent = error instanceof Error ? error.message : 'Something went wrong.';
+          button.disabled = false;
+          button.textContent = original;
+        });
+    }
+
+    signinForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      withBusy(document.getElementById('signin-button'), async () => {
+        await finishSignIn(document.getElementById('email').value.trim(), document.getElementById('password').value);
+      });
+    });
+
+    createForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      withBusy(document.getElementById('create-button'), async () => {
+        const email = document.getElementById('new-email').value.trim().toLowerCase();
+        const password = document.getElementById('new-password').value;
+        const confirm = document.getElementById('new-password-confirm').value;
+        if (password !== confirm) throw new Error('Passwords do not match.');
+        const response = await fetch(API + '/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-          body: JSON.stringify({ email, password }),
+          body: JSON.stringify({
+            email,
+            displayName: document.getElementById('new-name').value.trim(),
+            password,
+          }),
         });
-        const session = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(session.message || 'Sign in failed.');
-        const token = session.accessToken;
-        if (!token) throw new Error('The service did not return a session.');
-
-        localStorage.setItem('estate_shared_accessToken', token);
-        localStorage.setItem('estate_shared_refreshToken', session.refreshToken || '');
-
-        const estates = await get('/estate/estates/mine', token);
-        const estateRoles = (estates.body.items || []).flatMap((item) => item.roles || []);
-        const platform = await get('/platform/admin/estates?pageSize=1', token);
-        const application = await get('/estate/applications/mine', token);
-        window.location.assign(destination(estateRoles, platform.ok, (application.body.items || []).length > 0));
-      } catch (err) {
-        error.textContent = err instanceof Error ? err.message : 'Sign in failed.';
-        button.disabled = false;
-        button.textContent = 'Sign in';
-      }
+        const body = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(body.message || 'Could not create the account.');
+        await finishSignIn(email, password);
+      });
     });
   </script>
 </body>

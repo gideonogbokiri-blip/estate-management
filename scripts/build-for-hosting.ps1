@@ -39,6 +39,13 @@ try {
     }
   }
   Write-Host 'All web bundles built and configured for runtime API resolution.'
+
+  # Single sign-in page and its background image are static, not Flutter bundles.
+  $loginDir = Join-Path $client 'build/login'
+  New-Item -ItemType Directory -Force -Path $loginDir | Out-Null
+  Copy-Item (Join-Path $client 'login.html') (Join-Path $loginDir 'index.html') -Force
+  Copy-Item (Join-Path $client 'assets/images/onboarding_background.jpg') (Join-Path $loginDir 'family-background.jpg') -Force
+  Write-Host 'Single sign-in page copied with family background.'
 }
 finally {
   Pop-Location
