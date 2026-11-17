@@ -20,7 +20,8 @@
     "bootstrap:platform-super-admin": "node dist/src/cli/bootstrap-platform-super-admin.js",
     "seed:demo": "node dist/src/cli/seed-local-demo.js",
     "seed:gate-demo": "node dist/src/cli/seed-gate-demo.js",
-    "seed:walkthrough-accounts": "node dist/src/cli/seed-walkthrough-accounts.js"
+    "seed:walkthrough-accounts": "node dist/src/cli/seed-walkthrough-accounts.js",
+    "seed:landlord-demo": "node dist/src/cli/seed-landlord-demo.js"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.0",
