@@ -7,7 +7,7 @@
 
 ### One login, role-based dashboards
 
-The `/login/` page signs you in once, checks your platform role and estate memberships, then opens the right workspace:
+The `/login/` page includes both **Sign in** and **Create account** tabs. Registration posts to `/auth/register`, then signs the new account in and routes it to the appropriate workspace. New accounts start with resident access; estate membership, ownership or staff roles are granted by an authorized administrator. The page uses the supplied family photograph with a dark-green overlay and a Venco-style card layout, matching the rest of the product theme.
 
 | Role | Destination |
 |---|---|
