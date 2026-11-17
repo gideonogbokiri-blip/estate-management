@@ -1,5 +1,22 @@
 # Hosting guide (GitHub + Vercel)
 
+## Current deployment status (17 November 2026)
+
+Already done for you:
+
+- GitHub repository: https://github.com/gideonogbokiri-blip/estate-management
+- Vercel project: `zarox-energy/estate-management`, connected to the GitHub repo
+- Environment variables `ACCESS_TOKEN_SECRET` and a placeholder `DATABASE_URL` (needed only so Prisma can generate its client during build)
+- A Git-triggered production deployment is running (check with `vercel ls`)
+
+**Two steps still need your browser login/approval:**
+
+1. Accept the Neon marketplace terms, then I can create the hosted database:
+   https://vercel.com/zarox-energy/~/integrations/accept-terms/neon?source=cli
+2. Create a Vercel Blob store for private documents in the Vercel dashboard (Storage → Blob → Create Store). It automatically adds `BLOB_READ_WRITE_TOKEN`.
+
+After you do those, tell me and I will finish the database setup, migrations, demo seeding, environment variables and a final deployment.
+
 This project has three moving parts. That is why it feels "separated":
 
 | Part | What it is | Where it goes |
