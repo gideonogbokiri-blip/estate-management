@@ -7,7 +7,13 @@
 
 ### One login, role-based dashboards
 
-The `/login/` page includes both **Sign in** and **Create an estate** tabs. Creating an estate registers the applicant account, signs it in, and opens the estate application wizard at `/onboarding/`, where the estate name, address, homes and initial administrator are collected. People who want to move into an existing estate use the **join an estate** link instead. The page uses the supplied family photograph with a dark-green overlay and a Venco-style card layout, matching the rest of the product theme.
+The `/login/` page includes **Sign in** and **Create account**. The create section asks what you want to do first, with three clear choices:
+
+- **Create an estate** → registers the applicant account and opens the estate application wizard at `/onboarding/`.
+- **Create as tenant** → opens `/join-estate/` so the resident can find their estate and request access.
+- **Create as landlord** → opens `/landlord-live/`; ownership must still be verified by an estate administrator before properties appear.
+
+Roles themselves come from estate memberships and verified ownership, so the choice sets the starting workspace and is stored as the account's signup intent. The page uses the supplied family photograph with a dark-green overlay and a Venco-style card layout, matching the rest of the product theme.
 
 | Role | Destination |
 |---|---|

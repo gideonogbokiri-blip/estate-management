@@ -68,6 +68,13 @@
     .tabs { display: flex; gap: 4px; padding: 4px; background: #f2f6f3; border-radius: 12px; margin-bottom: 22px; }
     .tab { flex: 1; padding: 10px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
     .tab[aria-selected="true"] { background: white; color: var(--forest); box-shadow: 0 2px 8px #0e503d1a; }
+    .choices { display: grid; gap: 8px; margin-bottom: 18px; }
+    .choice { display: flex; align-items: center; gap: 11px; width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 12px; background: #fbfdfb; text-align: left; font: inherit; color: inherit; cursor: pointer; }
+    .choice:hover { border-color: #a9c7b5; }
+    .choice.selected { border-color: #258565; background: #edf6f0; box-shadow: 0 0 0 1px #258565 inset; }
+    .choice-icon { display: grid; place-items: center; flex: 0 0 34px; height: 34px; border-radius: 10px; background: #e4efe8; color: var(--forest); font-size: 16px; }
+    .choice strong { display: block; font-size: 13px; }
+    .choice small { display: block; margin-top: 2px; color: var(--muted); font-size: 11px; line-height: 1.4; }
     form { display: none; }
     form.active { display: block; }
     label { display: block; margin: 0 0 6px; font-size: 12px; font-weight: 700; }
@@ -105,7 +112,7 @@
 
       <div class="tabs" role="tablist">
         <button class="tab" id="tab-signin" role="tab" aria-selected="true" type="button">Sign in</button>
-        <button class="tab" id="tab-create" role="tab" aria-selected="false" type="button">Create an estate</button>
+        <button class="tab" id="tab-create" role="tab" aria-selected="false" type="button">Create account</button>
       </div>
 
       <form id="signin-form" class="active">
@@ -118,6 +125,21 @@
       </form>
 
       <form id="create-form">
+        <label id="intent-label">I want to…</label>
+        <div class="choices" id="intent" role="radiogroup" aria-labelledby="intent-label">
+          <button class="choice selected" type="button" role="radio" aria-checked="true" data-intent="estate">
+            <span class="choice-icon">&#8962;</span>
+            <span><strong>Create an estate</strong><small>Register an estate and invite its first administrator.</small></span>
+          </button>
+          <button class="choice" type="button" role="radio" aria-checked="false" data-intent="tenant">
+            <span class="choice-icon">&#128101;</span>
+            <span><strong>Create as tenant</strong><small>Find your estate, request access and manage your home.</small></span>
+          </button>
+          <button class="choice" type="button" role="radio" aria-checked="false" data-intent="landlord">
+            <span class="choice-icon">&#127968;</span>
+            <span><strong>Create as landlord</strong><small>Track property ownership, tenancy and rent.</small></span>
+          </button>
+        </div>
         <label for="new-name">Full name</label>
         <input class="field" id="new-name" type="text" autocomplete="name" required minlength="2" maxlength="200" placeholder="Your name" />
         <label for="new-email">Email address</label>
@@ -126,8 +148,8 @@
         <input class="field" id="new-password" type="password" autocomplete="new-password" required minlength="12" maxlength="128" placeholder="At least 12 characters" />
         <label for="new-password-confirm">Confirm password</label>
         <input class="field" id="new-password-confirm" type="password" autocomplete="new-password" required minlength="12" maxlength="128" placeholder="Repeat your password" />
-        <button class="primary" id="create-button" type="submit">Create account &amp; start estate application</button>
-        <p class="hint">This creates your applicant account and opens the estate application. You will add your estate's name, address, homes and administrator there. To move into an existing estate instead, <a href="/join-estate/">join an estate</a>.</p>
+        <button class="primary" id="create-button" type="submit">Create account</button>
+        <p class="hint" id="create-hint">You will complete the estate application next.</p>
       </form>
 
       <div class="error" id="error" role="alert"></div>
@@ -145,17 +167,62 @@
     const createForm = document.getElementById('create-form');
     const errorBox = document.getElementById('error');
 
+    const intents = {
+      estate: {
+        heading: 'Create an estate',
+        subheading: 'Register your estate and become its first administrator.',
+        hint: 'You will complete the estate application next: name, address, homes and initial administrator.',
+        path: '/onboarding/',
+      },
+      tenant: {
+        heading: 'Create as tenant',
+        subheading: 'Find your estate and manage your home and services.',
+        hint: 'After creating your account you will find your estate and request access. An estate administrator approves the request.',
+        path: '/join-estate/',
+      },
+      landlord: {
+        heading: 'Create as landlord',
+        subheading: 'Track your properties, tenancies and rent.',
+        hint: 'An estate administrator must verify your ownership before your properties appear in the landlord portfolio.',
+        path: '/landlord-live/',
+      },
+    };
+    let selectedIntent = 'estate';
+
     function showTab(which) {
       const isSignIn = which === 'signin';
       signinForm.classList.toggle('active', isSignIn);
       createForm.classList.toggle('active', !isSignIn);
       document.getElementById('tab-signin').setAttribute('aria-selected', String(isSignIn));
       document.getElementById('tab-create').setAttribute('aria-selected', String(!isSignIn));
-      document.getElementById('heading').textContent = isSignIn ? 'Welcome back' : 'Create an estate';
-      document.getElementById('subheading').textContent = isSignIn
-        ? 'Sign in to open your estate workspace.'
-        : 'One account for all estate services.';
+      if (isSignIn) {
+        document.getElementById('heading').textContent = 'Welcome back';
+        document.getElementById('subheading').textContent = 'Sign in to open your estate workspace.';
+      } else {
+        applyIntent();
+      }
       errorBox.textContent = '';
+    }
+
+    function applyIntent() {
+      const plan = intents[selectedIntent];
+      document.getElementById('heading').textContent = plan.heading;
+      document.getElementById('subheading').textContent = plan.subheading;
+      document.getElementById('create-hint').textContent = plan.hint;
+      document.getElementById('create-button').textContent =
+        selectedIntent === 'estate' ? 'Create account & start estate application' : 'Create account';
+      for (const button of document.querySelectorAll('.choice')) {
+        const active = button.dataset.intent === selectedIntent;
+        button.classList.toggle('selected', active);
+        button.setAttribute('aria-checked', String(active));
+      }
+    }
+
+    for (const button of document.querySelectorAll('.choice')) {
+      button.addEventListener('click', () => {
+        selectedIntent = button.dataset.intent;
+        applyIntent();
+      });
     }
     document.getElementById('tab-signin').addEventListener('click', () => showTab('signin'));
     document.getElementById('tab-create').addEventListener('click', () => showTab('create'));
@@ -235,7 +302,8 @@
         });
         const body = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(body.message || 'Could not create the account.');
-        await finishSignIn(email, password, '/onboarding/');
+        localStorage.setItem('estate_account_intent', selectedIntent);
+        await finishSignIn(email, password, intents[selectedIntent].path);
       });
     });
   </script>
