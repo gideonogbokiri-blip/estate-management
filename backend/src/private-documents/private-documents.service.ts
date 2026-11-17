@@ -7,6 +7,16 @@ import { dirname, resolve, sep } from 'node:path';
 export class PrivateDocumentsService {
   private readonly root = resolve(process.env.DOCUMENT_STORAGE_PATH ?? resolve(process.cwd(), '.private-documents'));
   private readonly blobToken = process.env.BLOB_READ_WRITE_TOKEN;
+  private readonly blobOidc = process.env.BLOB_STORE_ID && process.env.VERCEL_OIDC_TOKEN
+    ? { storeId: process.env.BLOB_STORE_ID, oidcToken: process.env.VERCEL_OIDC_TOKEN }
+    : null;
+  private readonly useBlob = Boolean(this.blobToken || this.blobOidc);
+
+  private get blobAuth(): Record<string, string> {
+    if (this.blobToken) return { token: this.blobToken };
+    if (this.blobOidc) return this.blobOidc;
+    return {};
+  }
 
   async storeApplicationDocument(applicationId: string, documentId: string, extension: 'pdf' | 'jpg' | 'png', bytes: Buffer) {
     const objectKey = `applications/${applicationId}/${documentId}.${extension}`;
@@ -20,10 +30,10 @@ export class PrivateDocumentsService {
 
   async read(objectKey: string) {
     this.assertObjectKey(objectKey);
-    if (this.blobToken) {
+    if (this.useBlob) {
       const { get } = await import('@vercel/blob');
       try {
-        const file = await get(objectKey, { token: this.blobToken, access: 'private' });
+        const file = await get(objectKey, { access: 'private', ...this.blobAuth } as never);
         if (!file || file.statusCode !== 200) throw new NotFoundException('Document content is unavailable.');
         return Buffer.from(await new Response(file.stream).arrayBuffer());
       } catch (error) {
@@ -41,9 +51,9 @@ export class PrivateDocumentsService {
 
   async remove(objectKey: string) {
     this.assertObjectKey(objectKey);
-    if (this.blobToken) {
+    if (this.useBlob) {
       const { del } = await import('@vercel/blob');
-      await del(objectKey, { token: this.blobToken }).catch(() => undefined);
+      await del(objectKey, { ...this.blobAuth } as never).catch(() => undefined);
       return;
     }
     await rm(this.pathFor(objectKey), { force: true }).catch(() => undefined);
@@ -51,15 +61,15 @@ export class PrivateDocumentsService {
 
   private async store(objectKey: string, bytes: Buffer) {
     this.assertObjectKey(objectKey);
-    if (this.blobToken) {
+    if (this.useBlob) {
       const { put } = await import('@vercel/blob');
       try {
         await put(objectKey, bytes, {
           access: 'private',
           addRandomSuffix: false,
           contentType: objectKey.endsWith('.pdf') ? 'application/pdf' : objectKey.endsWith('.png') ? 'image/png' : 'image/jpeg',
-          token: this.blobToken,
-        });
+          ...this.blobAuth,
+        } as never);
         return objectKey;
       } catch {
         throw new InternalServerErrorException('The private document could not be stored.');
