@@ -3,9 +3,12 @@
   "version": "1.0.0",
   "private": true,
   "description": "Static Flutter bundles plus a serverless Nest API for Vercel hosting.",
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "postinstall": "npm --prefix backend ci --include=dev",
-    "vercel-build": "npm --prefix backend run build",
+    "vercel-build": "npm --prefix backend run prisma:generate && npm --prefix backend run build",
     "start": "node api/index.js"
   },
   "dependencies": {
