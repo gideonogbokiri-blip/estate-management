@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/estate_theme.dart';
 import '../data/platform_application_repository.dart';
 import 'platform_admin_pages.dart';
+import 'platform_money_page.dart';
 import 'platform_plans_page.dart';
 
 class PlatformAdminShell extends StatefulWidget {
@@ -139,6 +140,11 @@ class _PlatformAdminShellState extends State<PlatformAdminShell> {
               icon: Icon(Icons.manage_accounts_outlined),
               label: Text('Platform team'),
             ),
+            NavigationRailDestination(
+              icon: Icon(Icons.account_balance_wallet_outlined),
+              selectedIcon: Icon(Icons.account_balance_wallet),
+              label: Text('Balances'),
+            ),
           ],
         ),
         const VerticalDivider(width: 1, thickness: 1),
@@ -156,6 +162,8 @@ class _PlatformAdminShellState extends State<PlatformAdminShell> {
                   team: _team,
                   onChanged: _reload,
                 )
+              : _selectedNav == 4
+              ? PlatformMoneyPage(repository: widget.repository)
               : FutureBuilder<List<PlatformApplication>>(
                   future: _applications,
                   builder: (context, snapshot) {

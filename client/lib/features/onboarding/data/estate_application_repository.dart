@@ -6,6 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 import '../../../core/config/api_base_url.dart';
+import '../../../core/config/shared_session.dart';
 
 class EstateApplicationDraft {
   const EstateApplicationDraft({
@@ -1939,11 +1940,17 @@ class EstateApplicationApiClient implements EstateApplicationApiRepository {
     return <String, dynamic>{};
   }
 
-  Future<String?> _readAccessToken() async =>
-      kIsWeb ? _webAccessToken : _storage.read(key: _accessKey);
+  Future<String?> _readAccessToken() async {
+    if (!kIsWeb) return _storage.read(key: _accessKey);
+    _webAccessToken ??= sharedAccessToken();
+    return _webAccessToken;
+  }
 
-  Future<String?> _readRefreshToken() async =>
-      kIsWeb ? _webRefreshToken : _storage.read(key: _refreshKey);
+  Future<String?> _readRefreshToken() async {
+    if (!kIsWeb) return _storage.read(key: _refreshKey);
+    _webRefreshToken ??= sharedRefreshToken();
+    return _webRefreshToken;
+  }
 
   Future<void> _saveTokens(Map<String, dynamic> response) async {
     final access = response['accessToken'] as String?;
@@ -1966,6 +1973,7 @@ class EstateApplicationApiClient implements EstateApplicationApiRepository {
     if (kIsWeb) {
       _webAccessToken = null;
       _webRefreshToken = null;
+      clearSharedSession();
     } else {
       await _storage.delete(key: _accessKey);
       await _storage.delete(key: _refreshKey);

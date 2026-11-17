@@ -1524,6 +1524,25 @@ model EstateSecurityContact {
   @@map("estate_security_contacts")
 }
 
+model EstateAccountAdjustment {
+  id                  String   @id @default(uuid()) @db.Uuid
+  estateId            String   @map("estate_id") @db.Uuid
+  accountUserId       String   @map("account_user_id") @db.Uuid
+  amount              Decimal  @db.Decimal(14, 2)
+  currency            String   @db.VarChar(8)
+  direction           String   @db.VarChar(6)
+  reason              String   @db.VarChar(500)
+  createdByUserId     String   @map("created_by_user_id") @db.Uuid
+  idempotencyKeyHash  String   @map("idempotency_key_hash") @db.VarChar(64)
+  payloadHash         String   @map("payload_hash") @db.VarChar(64)
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@unique([createdByUserId, estateId, accountUserId, idempotencyKeyHash])
+  @@index([estateId, accountUserId, createdAt])
+  @@index([estateId, createdAt])
+  @@map("estate_account_adjustments")
+}
+
 model AuditEvent {
   id          String   @id @default(uuid()) @db.Uuid
   actorUserId String?  @map("actor_user_id") @db.Uuid

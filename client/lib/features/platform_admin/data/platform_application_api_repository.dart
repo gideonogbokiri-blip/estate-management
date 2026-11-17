@@ -5,6 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 import '../../../core/config/api_base_url.dart';
+import '../../../core/config/shared_session.dart';
 import 'platform_application_repository.dart';
 
 class PlatformApiException implements Exception {
@@ -40,8 +41,9 @@ class PlatformApplicationApiClient implements PlatformApplicationApiRepository {
     String path, {
     Object? body,
     String? token,
+    Map<String, String>? additionalHeaders,
   }) async {
-    final headers = <String, String>{'Accept': 'application/json'};
+    final headers = <String, String>{'Accept': 'application/json', ...?additionalHeaders};
     if (body != null) headers['Content-Type'] = 'application/json';
     final activeToken = token ?? await _accessToken();
     if (activeToken != null) headers['Authorization'] = 'Bearer $activeToken';
@@ -70,11 +72,17 @@ class PlatformApplicationApiClient implements PlatformApplicationApiRepository {
     return <String, dynamic>{};
   }
 
-  Future<String?> _accessToken() async =>
-      kIsWeb ? _webAccessToken : _storage.read(key: _accessKey);
+  Future<String?> _accessToken() async {
+    if (!kIsWeb) return _storage.read(key: _accessKey);
+    _webAccessToken ??= sharedAccessToken();
+    return _webAccessToken;
+  }
 
-  Future<String?> _refreshToken() async =>
-      kIsWeb ? _webRefreshToken : _storage.read(key: _refreshKey);
+  Future<String?> _refreshToken() async {
+    if (!kIsWeb) return _storage.read(key: _refreshKey);
+    _webRefreshToken ??= sharedRefreshToken();
+    return _webRefreshToken;
+  }
 
   Future<void> _storeTokens(Map<String, dynamic> json) async {
     final access = json['accessToken'] as String?;
@@ -97,6 +105,7 @@ class PlatformApplicationApiClient implements PlatformApplicationApiRepository {
     if (kIsWeb) {
       _webAccessToken = null;
       _webRefreshToken = null;
+      clearSharedSession();
     } else {
       await _storage.delete(key: _accessKey);
       await _storage.delete(key: _refreshKey);
@@ -310,6 +319,72 @@ class PlatformApplicationApiClient implements PlatformApplicationApiRepository {
     return (response['items'] as List? ?? const [])
         .whereType<Map<String, dynamic>>()
         .map(PlatformEstateRecord.fromJson)
+        .toList(growable: false);
+  }
+
+  @override
+  Future<PlatformMoneyOverview> loadPlatformMoneyOverview() async {
+    final response = await _json(
+      _send('GET', '/platform/admin/money/overview'),
+    );
+    return PlatformMoneyOverview.fromJson(response);
+  }
+
+  @override
+  Future<List<PlatformMoneyAccount>> loadPlatformMoneyAccounts(
+    String estateId,
+  ) async {
+    final response = await _json(
+      _send(
+        'GET',
+        '/platform/admin/money/estates/$estateId/accounts?pageSize=100',
+      ),
+    );
+    return (response['items'] as List? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .map(PlatformMoneyAccount.fromJson)
+        .toList(growable: false);
+  }
+
+  @override
+  Future<void> adjustPlatformBalance({
+    required String estateId,
+    required String userId,
+    required String amount,
+    required String currency,
+    required String direction,
+    required String reason,
+    required String idempotencyKey,
+  }) async {
+    await _json(
+      _send(
+        'POST',
+        '/platform/admin/money/estates/$estateId/accounts/$userId/adjustments',
+        additionalHeaders: {'Idempotency-Key': idempotencyKey},
+        body: {
+          'amount': amount,
+          'currency': currency,
+          'direction': direction,
+          'reason': reason,
+        },
+      ),
+    );
+  }
+
+  @override
+  Future<List<PlatformBalanceAdjustment>> loadPlatformBalanceAdjustments(
+    String estateId,
+    String userId,
+  ) async {
+    final response = await _json(
+      _send(
+        'GET',
+        '/platform/admin/money/estates/$estateId/accounts/$userId/adjustments?pageSize=50',
+      ),
+    );
+    return (response['items'] as List? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .map(PlatformBalanceAdjustment.fromJson)
         .toList(growable: false);
   }
 }

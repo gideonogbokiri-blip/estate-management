@@ -102,6 +102,93 @@ class PlatformTeamMember {
       );
 }
 
+class PlatformMoneyOverview {
+  const PlatformMoneyOverview({
+    required this.estatesTotal,
+    required this.estatesActive,
+    required this.users,
+    required this.applications,
+    required this.membershipsByRole,
+    required this.adjustmentsTotal,
+    required this.credited,
+    required this.debited,
+  });
+  final int estatesTotal;
+  final int estatesActive;
+  final int users;
+  final Map<String, dynamic> applications;
+  final Map<String, dynamic> membershipsByRole;
+  final int adjustmentsTotal;
+  final String credited;
+  final String debited;
+
+  factory PlatformMoneyOverview.fromJson(Map<String, dynamic> json) {
+    final estates = json['estates'] as Map<String, dynamic>? ?? const {};
+    final adjustments = json['adjustments'] as Map<String, dynamic>? ?? const {};
+    return PlatformMoneyOverview(
+      estatesTotal: (estates['total'] as num?)?.toInt() ?? 0,
+      estatesActive: (estates['active'] as num?)?.toInt() ?? 0,
+      users: (json['users'] as num?)?.toInt() ?? 0,
+      applications: json['applications'] as Map<String, dynamic>? ?? const {},
+      membershipsByRole: json['membershipsByRole'] as Map<String, dynamic>? ?? const {},
+      adjustmentsTotal: (adjustments['total'] as num?)?.toInt() ?? 0,
+      credited: adjustments['credited']?.toString() ?? '0',
+      debited: adjustments['debited']?.toString() ?? '0',
+    );
+  }
+}
+
+class PlatformMoneyAccount {
+  const PlatformMoneyAccount({
+    required this.userId,
+    required this.email,
+    required this.displayName,
+    required this.accountRole,
+    required this.balances,
+  });
+  final String userId;
+  final String email;
+  final String displayName;
+  final String accountRole;
+  final Map<String, dynamic> balances;
+
+  factory PlatformMoneyAccount.fromJson(Map<String, dynamic> json) =>
+      PlatformMoneyAccount(
+        userId: json['userId'] as String? ?? '',
+        email: json['email'] as String? ?? '',
+        displayName: json['displayName'] as String? ?? '',
+        accountRole: json['accountRole'] as String? ?? '',
+        balances: json['balances'] as Map<String, dynamic>? ?? const {},
+      );
+}
+
+class PlatformBalanceAdjustment {
+  const PlatformBalanceAdjustment({
+    required this.id,
+    required this.amount,
+    required this.currency,
+    required this.direction,
+    required this.reason,
+    required this.createdAt,
+  });
+  final String id;
+  final String amount;
+  final String currency;
+  final String direction;
+  final String reason;
+  final String createdAt;
+
+  factory PlatformBalanceAdjustment.fromJson(Map<String, dynamic> json) =>
+      PlatformBalanceAdjustment(
+        id: json['id'] as String? ?? '',
+        amount: json['amount']?.toString() ?? '0',
+        currency: json['currency'] as String? ?? '',
+        direction: json['direction'] as String? ?? '',
+        reason: json['reason'] as String? ?? '',
+        createdAt: json['createdAt'] as String? ?? '',
+      );
+}
+
 class PlatformUserChoice {
   const PlatformUserChoice({
     required this.userId,
@@ -192,6 +279,21 @@ abstract interface class PlatformApplicationApiRepository
     String? search,
     String? status,
   });
+  Future<PlatformMoneyOverview> loadPlatformMoneyOverview();
+  Future<List<PlatformMoneyAccount>> loadPlatformMoneyAccounts(String estateId);
+  Future<void> adjustPlatformBalance({
+    required String estateId,
+    required String userId,
+    required String amount,
+    required String currency,
+    required String direction,
+    required String reason,
+    required String idempotencyKey,
+  });
+  Future<List<PlatformBalanceAdjustment>> loadPlatformBalanceAdjustments(
+    String estateId,
+    String userId,
+  );
 }
 
 /// Illustrative data only; the production repository must use the host

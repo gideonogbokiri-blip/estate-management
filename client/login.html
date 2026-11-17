@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Estate Management | Sign in</title>
+  <style>
+    :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; color: #17231e; background: #f5f7f5; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+    .card { width: min(420px, 100%); background: white; border: 1px solid #e4eae6; border-radius: 20px; padding: 30px; box-shadow: 0 20px 50px #0e503d12; }
+    .mark { display: grid; width: 44px; height: 44px; place-items: center; border-radius: 13px; background: #e9f2ed; color: #0e503d; font-size: 21px; }
+    h1 { margin: 20px 0 6px; font-size: 24px; letter-spacing: -0.6px; }
+    p { margin: 0 0 22px; color: #6d7b74; font-size: 13px; line-height: 1.6; }
+    label { display: block; margin: 0 0 6px; font-size: 12px; font-weight: 700; }
+    input { width: 100%; padding: 12px 14px; margin-bottom: 16px; border: 1px solid #d9e2dc; border-radius: 11px; font: inherit; font-size: 14px; }
+    input:focus { outline: 2px solid #9ec9ae; border-color: #258565; }
+    button { width: 100%; padding: 13px; border: 0; border-radius: 11px; background: #0e503d; color: white; font: inherit; font-weight: 700; cursor: pointer; }
+    button:disabled { opacity: 0.6; cursor: wait; }
+    .error { margin-top: 14px; color: #a32c2c; font-size: 12px; min-height: 18px; }
+    .note { margin-top: 18px; padding-top: 16px; border-top: 1px solid #eef2ef; font-size: 11px; color: #6d7b74; line-height: 1.6; }
+    a { color: #0e503d; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="mark">&#8962;</div>
+    <h1>Sign in</h1>
+    <p>One login for the estate platform. You will be taken to the workspace for your role.</p>
+    <form id="login-form">
+      <label for="email">Email address</label>
+      <input id="email" name="email" type="email" autocomplete="username" required placeholder="you@example.test" />
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required placeholder="Your password" />
+      <button id="submit" type="submit">Sign in</button>
+    </form>
+    <div class="error" id="error" role="alert"></div>
+    <div class="note">
+      Estate managers use this page too — sign in with your manager account and you will be sent to the estate dashboard.
+      <a href="/">Back to project hub</a>
+    </div>
+  </main>
+
+  <script>
+    const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+    const API = isLocal
+      ? `${window.location.protocol}//${window.location.hostname}:4100/api/v1`
+      : `${window.location.origin}/api/v1`;
+
+    async function get(path, token) {
+      const response = await fetch(API + path, { headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' } });
+      return { ok: response.ok, status: response.status, body: await response.json().catch(() => ({})) };
+    }
+
+    function destination(estateRoles, hasPlatform, hasApplication) {
+      if (hasPlatform) return '/platform/';
+      if (estateRoles.some((role) => ['ESTATE_ADMINISTRATOR', 'ESTATE_MANAGER', 'FINANCE_MANAGER'].includes(role))) return '/admin/';
+      if (estateRoles.includes('SECURITY_OFFICER')) return '/security/';
+      if (estateRoles.includes('LANDLORD')) return '/landlord-live/';
+      if (hasApplication) return '/onboarding/';
+      return '/web/';
+    }
+
+    document.getElementById('login-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const button = document.getElementById('submit');
+      const error = document.getElementById('error');
+      error.textContent = '';
+      button.disabled = true;
+      button.textContent = 'Signing in…';
+      try {
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const response = await fetch(API + '/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+        const session = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(session.message || 'Sign in failed.');
+        const token = session.accessToken;
+        if (!token) throw new Error('The service did not return a session.');
+
+        localStorage.setItem('estate_shared_accessToken', token);
+        localStorage.setItem('estate_shared_refreshToken', session.refreshToken || '');
+
+        const estates = await get('/estate/estates/mine', token);
+        const estateRoles = (estates.body.items || []).flatMap((item) => item.roles || []);
+        const platform = await get('/platform/admin/estates?pageSize=1', token);
+        const application = await get('/estate/applications/mine', token);
+        window.location.assign(destination(estateRoles, platform.ok, (application.body.items || []).length > 0));
+      } catch (err) {
+        error.textContent = err instanceof Error ? err.message : 'Sign in failed.';
+        button.disabled = false;
+        button.textContent = 'Sign in';
+      }
+    });
+  </script>
+</body>
+</html>
