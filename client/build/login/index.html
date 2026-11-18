@@ -243,7 +243,7 @@
       if (estateRoles.includes('SECURITY_OFFICER')) return '/security/';
       if (estateRoles.includes('LANDLORD')) return '/landlord-live/';
       if (hasApplication) return '/onboarding/';
-      return '/web/';
+      return '/onboarding/';
     }
 
     async function finishSignIn(email, password, overridePath) {
