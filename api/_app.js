@@ -1,7 +1,7 @@
-require('reflect-metadata');
-const { NestFactory } = require('@nestjs/core');
-const { ValidationPipe } = require('@nestjs/common');
-const helmetModule = require('helmet');
+require('../backend/node_modules/reflect-metadata');
+const { NestFactory } = require('../backend/node_modules/@nestjs/core');
+const { ValidationPipe } = require('../backend/node_modules/@nestjs/common');
+const helmetModule = require('../backend/node_modules/helmet');
 const { AppModule } = require('../backend/dist/src/app.module.js');
 
 let appPromise;

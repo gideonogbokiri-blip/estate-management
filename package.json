@@ -2,29 +2,12 @@
   "name": "estate-management-hosted",
   "version": "1.0.0",
   "private": true,
-  "description": "Static Flutter bundles plus a serverless Nest API for Vercel hosting.",
+  "description": "Static Flutter bundles plus a serverless Nest API for Vercel hosting. Backend dependencies are installed by the postinstall script so the API uses a single package tree.",
   "engines": {
     "node": "24.x"
   },
   "scripts": {
     "postinstall": "npm --prefix backend ci --include=dev",
-    "vercel-build": "npm --prefix backend run prisma:generate && npm --prefix backend run build",
-    "start": "node api/index.js"
-  },
-  "dependencies": {
-    "@nestjs/common": "^11.0.0",
-    "@nestjs/config": "^4.0.0",
-    "@nestjs/core": "^11.0.0",
-    "@nestjs/platform-express": "^11.0.0",
-    "@prisma/adapter-pg": "^7.0.0",
-    "@prisma/client": "^7.0.0",
-    "@vercel/blob": "^2.9.0",
-    "class-transformer": "^0.5.1",
-    "class-validator": "^0.14.2",
-    "dotenv": "^16.4.7",
-    "helmet": "^8.1.0",
-    "pg": "^8.16.3",
-    "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.2"
+    "vercel-build": "npm --prefix backend run prisma:generate && npm --prefix backend run build"
   }
 }
