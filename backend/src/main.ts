@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import * as express from 'express';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
@@ -7,6 +8,10 @@ import { AppModule } from './app.module.js';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
+
+  // Paystack signs the raw request body; keep it unparsed for the webhook route.
+  app.use('/api/v1/payments/paystack/webhook', express.raw({ type: '*/*' }));
+
   const config = app.get(ConfigService);
   const configuredOrigins = config
     .getOrThrow<string>('APP_ORIGINS')

@@ -35,6 +35,7 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
   List<ResidentAnnouncementRecord> _announcements = const [];
   bool _announcementLoadFailed = false;
   List<Map<String, dynamic>> _invoiceRecords = const [];
+  List<EstateWalletRecord> _wallets = const [];
   List<ResidentMaintenanceRecord> _maintenanceRequests = const [];
   String? _selectedMaintenancePropertyId;
   String? _maintenanceEstateId;
@@ -174,6 +175,11 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
       _invoiceRecords = await widget.repository.loadMyInvoiceRecords();
     } catch (_) {
       _invoiceRecords = const [];
+    }
+    try {
+      _wallets = await widget.repository.loadMyWallets();
+    } catch (_) {
+      _wallets = const [];
     }
     final securityMembership = _memberships
         .where((estate) => estate.roles.contains('security_officer'))
@@ -561,6 +567,269 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
       ? error.message
       : 'The estate service could not load your account.';
 
+  String _formatDate(String value) {
+    final date = DateTime.tryParse(value)?.toLocal();
+    if (date == null) return '';
+    return '${date.day}/${date.month}/${date.year}';
+  }
+
+  String? get _walletEstateId =>
+      _maintenanceEstateId ??
+      _memberships.firstOrNull?.id;
+
+  Future<void> _provisionWallet() async {
+    final estateId = _walletEstateId;
+    if (estateId == null) return;
+    try {
+      final wallet = await widget.repository.provisionEstateWallet(estateId);
+      await _loadWorkspace();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            wallet.accountNumber != null
+                ? 'Fund account ready: ${wallet.accountNumber}'
+                : 'Fund account is being prepared.',
+          ),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_message(error))),
+      );
+    }
+  }
+
+  Future<void> _payRentFromWallet(EstateWalletRecord wallet) async {
+    final payable = _invoiceRecords
+        .where((invoice) => invoice['status'] != 'paid')
+        .toList();
+    if (payable.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No outstanding invoice to pay.')),
+      );
+      return;
+    }
+    final selected = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Pay from fund account'),
+        content: SizedBox(
+          width: 420,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: payable
+                .map(
+                  (invoice) => ListTile(
+                    title: Text(
+                      invoice['invoiceNumber']?.toString() ?? 'Estate charge',
+                    ),
+                    subtitle: Text(
+                      'Balance ${invoice['currency'] ?? wallet.currency} ${invoice['balance'] ?? invoice['total'] ?? '0.00'}',
+                    ),
+                    onTap: () => Navigator.pop(context, invoice),
+                  ),
+                )
+                .toList(),
+          ),
+        ),
+      ),
+    );
+    if (selected == null) return;
+    final amount = selected['balance']?.toString() ?? selected['total']?.toString() ?? '0.00';
+    try {
+      await widget.repository.payRentFromWallet(
+        estateId: wallet.estateId,
+        invoiceId: selected['id'] as String,
+        amount: amount,
+      );
+      await _loadWorkspace();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Rent paid from your fund account.')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_message(error))),
+      );
+    }
+  }
+
+  Widget _moneyCard() {
+    final wallet = _wallets.firstOrNull;
+    var outstanding = 0.0;
+    var verified = 0.0;
+    for (final invoice in _invoiceRecords) {
+      outstanding += double.tryParse(invoice['balance']?.toString() ?? '0') ?? 0;
+      for (final payment in invoice['verifiedPayments'] as List? ?? const []) {
+        if (payment is Map && payment['status'] == 'verified') {
+          verified += double.tryParse(payment['amount']?.toString() ?? '0') ?? 0;
+        }
+      }
+    }
+    String ngn(dynamic value) {
+      final amount = double.tryParse(value.toString()) ?? 0;
+      return 'NGN ${amount.toStringAsFixed(2).replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (_) => ',')}';
+    }
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: const [
+                Icon(Icons.account_balance_wallet_outlined, color: EstateColors.forest),
+                SizedBox(width: 9),
+                Text('My fund account',
+                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+              ],
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'Account numbers are issued by Paystack. Transfers are credited only after provider verification.',
+              style: TextStyle(color: EstateColors.muted, fontSize: 11),
+            ),
+            const SizedBox(height: 14),
+            if (wallet == null)
+              OutlinedButton.icon(
+                onPressed: _provisionWallet,
+                icon: const Icon(Icons.add_card_outlined),
+                label: const Text('Activate fund account'),
+              )
+            else ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF0D3B30), Color(0xFF176B4B)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Available balance',
+                        style: TextStyle(color: Color(0xFFCFE3D7), fontSize: 11)),
+                    const SizedBox(height: 4),
+                    Text(ngn(wallet.balance),
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 26,
+                            fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 14),
+                    Text(
+                      wallet.accountNumber ?? 'Account pending',
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1.4),
+                    ),
+                    Text(
+                      '${wallet.bankName ?? 'Bank'} · ${wallet.accountName ?? ''}',
+                      style: const TextStyle(color: Color(0xFFCFE3D7), fontSize: 11),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 10,
+                runSpacing: 8,
+                children: [
+                  FilledButton.icon(
+                    onPressed: () => showDialog<void>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Fund your account'),
+                        content: Text(
+                          'Transfer only to your account:\n\n'
+                          '${wallet.accountName ?? ''}\n'
+                          '${wallet.bankName ?? ''}\n'
+                          '${wallet.accountNumber ?? ''}\n\n'
+                          'Deposits appear after Paystack verifies the transfer.',
+                        ),
+                      ),
+                    ),
+                    icon: const Icon(Icons.qr_code_2_outlined),
+                    label: const Text('Fund account'),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () => _payRentFromWallet(wallet),
+                    icon: const Icon(Icons.payments_outlined),
+                    label: const Text('Pay rent'),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: _openResidentBilling,
+                    icon: const Icon(Icons.receipt_long_outlined),
+                    label: const Text('Invoices'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              const Text('Recent activity',
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+              if (wallet.transactions.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.only(top: 6),
+                  child: Text('No wallet transactions yet.',
+                      style: TextStyle(color: EstateColors.muted, fontSize: 12)),
+                )
+              else
+                ...wallet.transactions.take(4).map(
+                      (tx) => ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: Icon(
+                          tx.type == 'credit'
+                              ? Icons.arrow_downward_rounded
+                              : Icons.arrow_upward_rounded,
+                          color: tx.type == 'credit'
+                              ? EstateColors.forest
+                              : const Color(0xFF8A5B13),
+                        ),
+                        title: Text(tx.description),
+                        subtitle: Text(
+                          '${tx.reference} · ${_formatDate(tx.createdAt)}',
+                          style: const TextStyle(fontSize: 10),
+                        ),
+                        trailing: Text(ngn(tx.amount),
+                            style: const TextStyle(fontWeight: FontWeight.w700)),
+                      ),
+                    ),
+            ],
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: _MoneyFigure(
+                    label: 'Outstanding',
+                    value: ngn(outstanding),
+                    color: const Color(0xFF8A5B13),
+                  ),
+                ),
+                Expanded(
+                  child: _MoneyFigure(
+                    label: 'Verified receipts',
+                    value: ngn(verified),
+                    color: EstateColors.forest,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_restoring)
@@ -709,6 +978,10 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                   child: LinearProgressIndicator(),
                 ),
               const SizedBox(height: 18),
+              if (_selectedTab == 0 || _selectedTab == 3) ...[
+                _moneyCard(),
+                const SizedBox(height: 18),
+              ],
               if (_selectedTab == 3) ...[
                 _sectionTitle('Your estate services'),
                 Card(
@@ -1771,6 +2044,25 @@ class _ResidentHomeHero extends StatelessWidget {
       ),
     );
   }
+}
+
+class _MoneyFigure extends StatelessWidget {
+  const _MoneyFigure({required this.label, required this.value, required this.color});
+  final String label;
+  final String value;
+  final Color color;
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(right: 10),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: color)),
+        const SizedBox(height: 2),
+        Text(label, style: const TextStyle(color: EstateColors.muted, fontSize: 11)),
+      ],
+    ),
+  );
 }
 
 class _MessageCard extends StatelessWidget {

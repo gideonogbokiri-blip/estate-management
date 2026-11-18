@@ -3,6 +3,8 @@
 ## Live deployment
 
 The public homepage at `/` is a product landing page with the family-photo hero and clear **Sign in / Create account** actions. Detailed developer walkthrough text and demo credentials live at `/demo/` so the homepage stays clean.
+**Still required for live fund accounts:** add `PAYSTACK_SECRET_KEY` (TEST) to the Vercel project, register the webhook URL `https://estate-management-zarox-energy.vercel.app/api/v1/payments/paystack/webhook`, then open the resident app and choose **Activate fund account**.
+
 - **Account recovery:** `/recover/` (or the "Forgot your password?" link on the sign-in page) accepts a single-use code issued by an administrator.
 - **API health:** https://estate-management-zarox-energy.vercel.app/api/v1/health/ready
 

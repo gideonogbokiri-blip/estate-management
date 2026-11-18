@@ -23,6 +23,8 @@ async function getApp() {
         logger: ['error', 'warn'],
         bodyParser: true,
       });
+      const express = require('../backend/node_modules/express');
+      app.use('/api/v1/payments/paystack/webhook', express.raw({ type: '*/*' }));
       const helmet = helmetModule.default ?? helmetModule;
       app.use(helmet());
       app.use((request, response, next) => {

@@ -31,6 +31,14 @@ docker compose --env-file backend/.env up -d --build
 
 Required environment values: `POSTGRES_PASSWORD`, `ACCESS_TOKEN_SECRET` (at least 32 random bytes), and `APP_ORIGINS` (exact public origins only). Generate a secret with a password manager or `openssl rand -base64 48`; never reuse the local demo secret.
 
+## Estate fund accounts (Paystack)
+
+- Each resident/landlord gets one fund account per estate and currency. `POST /api/v1/estate/wallets/provision` creates a real Paystack dedicated virtual account and stores only the returned account details — the app never generates bank numbers locally.
+- `GET /api/v1/estate/wallets/mine` returns the account, derived balance and transaction history.
+- Paystack webhook: `POST /api/v1/payments/paystack/webhook`. The raw body is verified with HMAC-SHA512 against `PAYSTACK_SECRET_KEY`; duplicates are ignored by unique transaction reference. Supported events: `dedicatedvirtualaccount.success`, `transfer.success`.
+- `POST /api/v1/estate/wallets/pay-rent` debits the wallet and records an invoice settlement with a receipt atomically.
+- Required environment: `PAYSTACK_SECRET_KEY` (TEST key to start), optional `PAYSTACK_DVA_BANK` and `PAYSTACK_BASE_URL`. Until the key is set, provisioning returns HTTP 503 with a clear message instead of inventing account numbers.
+
 ## Notifications and account lifecycle
 
 - In-app notices are written transactionally with their source events. Each notice also creates an outbound delivery record.

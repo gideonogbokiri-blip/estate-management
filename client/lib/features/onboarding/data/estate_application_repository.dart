@@ -8,6 +8,81 @@ import 'package:http/http.dart' as http;
 import '../../../core/config/api_base_url.dart';
 import '../../../core/config/shared_session.dart';
 
+class EstateWalletTransactionRecord {
+  const EstateWalletTransactionRecord({
+    required this.id,
+    required this.type,
+    required this.amount,
+    required this.currency,
+    required this.reference,
+    required this.description,
+    required this.sourceType,
+    required this.createdAt,
+  });
+  final String id;
+  final String type;
+  final String amount;
+  final String currency;
+  final String reference;
+  final String description;
+  final String sourceType;
+  final String createdAt;
+
+  factory EstateWalletTransactionRecord.fromJson(Map<String, dynamic> json) =>
+      EstateWalletTransactionRecord(
+        id: json['id'] as String? ?? '',
+        type: json['type'] as String? ?? '',
+        amount: json['amount']?.toString() ?? '0',
+        currency: json['currency'] as String? ?? '',
+        reference: json['reference'] as String? ?? '',
+        description: json['description'] as String? ?? '',
+        sourceType: json['sourceType'] as String? ?? '',
+        createdAt: json['createdAt'] as String? ?? '',
+      );
+}
+
+class EstateWalletRecord {
+  const EstateWalletRecord({
+    required this.id,
+    required this.estateId,
+    required this.estateName,
+    required this.currency,
+    required this.status,
+    required this.balance,
+    required this.transactions,
+    this.accountNumber,
+    this.bankName,
+    this.accountName,
+  });
+  final String id;
+  final String estateId;
+  final String estateName;
+  final String currency;
+  final String status;
+  final String balance;
+  final List<EstateWalletTransactionRecord> transactions;
+  final String? accountNumber;
+  final String? bankName;
+  final String? accountName;
+
+  factory EstateWalletRecord.fromJson(Map<String, dynamic> json) =>
+      EstateWalletRecord(
+        id: json['id'] as String? ?? '',
+        estateId: json['estateId'] as String? ?? '',
+        estateName: json['estateName'] as String? ?? '',
+        currency: json['currency'] as String? ?? '',
+        status: json['status'] as String? ?? '',
+        balance: json['balance']?.toString() ?? '0',
+        accountNumber: json['accountNumber'] as String?,
+        bankName: json['bankName'] as String?,
+        accountName: json['accountName'] as String?,
+        transactions: (json['transactions'] as List? ?? const [])
+            .whereType<Map<String, dynamic>>()
+            .map(EstateWalletTransactionRecord.fromJson)
+            .toList(growable: false),
+      );
+}
+
 class EstateApplicationDraft {
   const EstateApplicationDraft({
     required this.reference,
@@ -1655,6 +1730,13 @@ abstract interface class EstateApplicationApiRepository
   Future<List<EstateSecurityIncidentRecord>> loadMySecurityIncidents(
     String estateId,
   );
+  Future<List<EstateWalletRecord>> loadMyWallets();
+  Future<EstateWalletRecord> provisionEstateWallet(String estateId);
+  Future<Map<String, dynamic>> payRentFromWallet({
+    required String estateId,
+    required String invoiceId,
+    required String amount,
+  });
   Future<EstateSecurityIncidentEvidenceRecord> uploadSecurityIncidentEvidence({
     required String estateId,
     required String incidentId,
@@ -3663,6 +3745,53 @@ class EstateApplicationApiClient implements EstateApplicationApiRepository {
         '/estate/security/gates/$gateId/visits/$visitId/check-out?estateId=${Uri.encodeQueryComponent(estateId)}',
         accessToken: access,
         body: const {},
+      ),
+    );
+  }
+
+  @override
+  Future<List<EstateWalletRecord>> loadMyWallets() async {
+    final access = await _requireAccessToken();
+    final response = await _json(
+      _send('GET', '/estate/wallets/mine', accessToken: access),
+    );
+    return (response['items'] as List? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .map(EstateWalletRecord.fromJson)
+        .toList(growable: false);
+  }
+
+  @override
+  Future<EstateWalletRecord> provisionEstateWallet(String estateId) async {
+    final access = await _requireAccessToken();
+    final response = await _json(
+      _send(
+        'POST',
+        '/estate/wallets/provision',
+        accessToken: access,
+        body: {'estateId': estateId},
+      ),
+    );
+    return EstateWalletRecord.fromJson(response);
+  }
+
+  @override
+  Future<Map<String, dynamic>> payRentFromWallet({
+    required String estateId,
+    required String invoiceId,
+    required String amount,
+  }) async {
+    final access = await _requireAccessToken();
+    return _json(
+      _send(
+        'POST',
+        '/estate/wallets/pay-rent',
+        accessToken: access,
+        body: {
+          'estateId': estateId,
+          'invoiceId': invoiceId,
+          'amount': amount,
+        },
       ),
     );
   }

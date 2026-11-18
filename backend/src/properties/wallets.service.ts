@@ -1,0 +1,242 @@
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
+import { createHash, createHmac, randomUUID, timingSafeEqual } from 'node:crypto';
+import { Prisma } from '../generated/prisma/client.js';
+import { PrismaService } from '../prisma/prisma.service.js';
+
+const PAYSTACK_BASE = process.env.PAYSTACK_BASE_URL ?? 'https://api.paystack.co';
+const CURRENCY = 'NGN';
+
+@Injectable()
+export class EstateWalletService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  private key() {
+    const secret = process.env.PAYSTACK_SECRET_KEY;
+    if (!secret) {
+      throw new ServiceUnavailableException(
+        'Paystack is not configured. Add PAYSTACK_SECRET_KEY to enable account numbers and funding.',
+      );
+    }
+    return secret;
+  }
+
+  async mine(userId: string) {
+    const wallets = await this.prisma.estateWallet.findMany({
+      where: { userId, estate: { status: 'ACTIVE', memberships: { some: { userId, status: 'ACTIVE' } } } },
+      include: { estate: { select: { name: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
+    const items = [];
+    for (const wallet of wallets) {
+      const sums = await this.prisma.estateWalletTransaction.groupBy({
+        by: ['type'],
+        where: { walletId: wallet.id, status: 'posted' },
+        _sum: { amount: true },
+        orderBy: { type: 'asc' },
+      });
+      const credits = sums.find((row) => row.type === 'credit')?._sum.amount ?? new Prisma.Decimal(0);
+      const debits = sums.find((row) => row.type === 'debit')?._sum.amount ?? new Prisma.Decimal(0);
+      const transactions = await this.prisma.estateWalletTransaction.findMany({
+        where: { walletId: wallet.id },
+        orderBy: { createdAt: 'desc' },
+        take: 30,
+      });
+      items.push({
+        id: wallet.id,
+        estateId: wallet.estateId,
+        estateName: wallet.estate.name,
+        currency: wallet.currency,
+        accountNumber: wallet.accountNumber,
+        bankName: wallet.bankName,
+        accountName: wallet.accountName,
+        status: wallet.status,
+        balance: credits.sub(debits).toString(),
+        transactions: transactions.map((tx) => ({
+          id: tx.id, type: tx.type, amount: tx.amount.toString(), currency: tx.currency,
+          reference: tx.reference, description: tx.description, sourceType: tx.sourceType,
+          createdAt: tx.createdAt.toISOString(),
+        })),
+      });
+    }
+    return { items };
+  }
+
+  async provision(userId: string, estateId: string) {
+    const membership = await this.prisma.estateMembership.findFirst({
+      where: { userId, estateId, status: 'ACTIVE', estate: { status: 'ACTIVE' } },
+      select: { id: true },
+    });
+    if (!membership) throw new ForbiddenException('Active estate membership is required.');
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId }, select: { emailNormalized: true, displayName: true },
+    });
+    if (!user) throw new NotFoundException('Account not found.');
+
+    let wallet = await this.prisma.estateWallet.findUnique({
+      where: { estateId_userId_currency: { estateId, userId, currency: CURRENCY } },
+    });
+    if (wallet?.accountNumber) return this.walletView(wallet.id);
+
+    const secret = this.key();
+    const parts = user.displayName.trim().split(/\s+/);
+    const firstName = parts[0] || 'Estate';
+    const lastName = parts.slice(1).join(' ') || 'Resident';
+    const response = await fetch(`${PAYSTACK_BASE}/dedicated_virtual_accounts`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${secret}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: user.emailNormalized,
+        first_name: firstName,
+        last_name: lastName,
+        preferred_bank: process.env.PAYSTACK_DVA_BANK ?? 'wema-bank',
+      }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new ServiceUnavailableException(
+        `Paystack could not provision an account: ${payload.message ?? response.status}`,
+      );
+    }
+    const data = payload.data?.dedicated_account ?? payload.data ?? {};
+    const accountNumber = String(data.account_number ?? data.accountNumber ?? '').trim();
+    if (!accountNumber) {
+      throw new ServiceUnavailableException('Paystack did not return an account number.');
+    }
+    wallet = await this.prisma.estateWallet.upsert({
+      where: { estateId_userId_currency: { estateId, userId, currency: CURRENCY } },
+      update: {
+        accountNumber,
+        bankName: String(data.bank_name ?? data.bankName ?? 'Paystack partner bank'),
+        accountName: String(data.account_name ?? data.accountName ?? user.displayName),
+        providerReference: String(data.id ?? data.reference ?? ''),
+        status: 'active',
+      },
+      create: {
+        estateId, userId, currency: CURRENCY, accountNumber,
+        bankName: String(data.bank_name ?? data.bankName ?? 'Paystack partner bank'),
+        accountName: String(data.account_name ?? data.accountName ?? user.displayName),
+        providerReference: String(data.id ?? data.reference ?? ''),
+        status: 'active',
+      },
+    });
+    await this.prisma.auditEvent.create({ data: {
+      actorUserId: userId, scope: 'estate', estateId, action: 'wallet.account_provisioned',
+      targetType: 'estate_wallet', targetId: wallet.id, outcome: 'success', occurredAt: new Date(),
+    } });
+    return this.walletView(wallet.id);
+  }
+
+  async payRent(userId: string, estateId: string, invoiceId: string, amountText: string) {
+    const amount = new Prisma.Decimal(amountText);
+    if (amount.lte(0)) throw new BadRequestException('Amount must be positive.');
+    const wallet = await this.prisma.estateWallet.findUnique({
+      where: { estateId_userId_currency: { estateId, userId, currency: CURRENCY } },
+      select: { id: true, status: true },
+    });
+    if (!wallet || wallet.status !== 'active') {
+      throw new BadRequestException('An active fund account is required.');
+    }
+    const invoice = await this.prisma.estateInvoiceDraft.findFirst({
+      where: { id: invoiceId, estateId, payerUserId: userId, status: 'ISSUED' },
+      select: { id: true, currency: true, total: true, invoiceNumber: true },
+    });
+    if (!invoice) throw new NotFoundException('Issued invoice not found for this account.');
+    if (invoice.currency !== CURRENCY) throw new BadRequestException('Currency mismatch.');
+    const paid = await this.prisma.estateInvoiceSettlement.aggregate({
+      where: { invoiceId }, _sum: { amount: true },
+    });
+    const balance = invoice.total.sub(paid._sum.amount ?? new Prisma.Decimal(0));
+    if (amount.gt(balance)) throw new BadRequestException('Amount exceeds the invoice balance.');
+
+    const sums = await this.prisma.estateWalletTransaction.groupBy({
+      by: ['type'], where: { walletId: wallet.id, status: 'posted' }, _sum: { amount: true },
+    });
+    const credits = sums.find((row) => row.type === 'credit')?._sum.amount ?? new Prisma.Decimal(0);
+    const debits = sums.find((row) => row.type === 'debit')?._sum.amount ?? new Prisma.Decimal(0);
+    if (credits.sub(debits).lt(amount)) throw new BadRequestException('Insufficient fund account balance.');
+
+    const now = new Date();
+    const reference = `WALLET-RENT-${invoiceId}-${now.getTime()}`;
+    await this.prisma.$transaction([
+      this.prisma.estateWalletTransaction.create({ data: {
+        walletId: wallet.id, estateId, type: 'debit', amount, currency: CURRENCY,
+        reference, description: `Rent payment for ${invoice.invoiceNumber}`,
+        sourceType: 'rent_payment', sourceId: invoiceId, status: 'posted',
+      } }),
+      this.prisma.estateInvoiceSettlement.create({ data: {
+        estateId, invoiceId, verifiedById: userId, amount, currency: CURRENCY,
+        bankReference: reference, normalizedBankReference: reference.toLowerCase(),
+        receiptNumber: `RCP-${randomUUID().replace(/-/g, '').slice(0, 16).toUpperCase()}`,
+        receivedAt: now,
+        verificationNote: 'Paid from the resident estate fund account.',
+      } }),
+      this.prisma.auditEvent.create({ data: {
+        actorUserId: userId, scope: 'estate', estateId, action: 'wallet.rent_paid',
+        targetType: 'estate_invoice', targetId: invoiceId, outcome: 'success', occurredAt: now,
+      } }),
+    ]);
+    return { paid: true, reference, amount: amount.toString() };
+  }
+
+  async handleWebhook(rawBody: Buffer, signature: string | undefined) {
+    const secret = this.key();
+    if (!signature) throw new BadRequestException('Missing webhook signature.');
+    const expected = createHmac('sha512', secret).update(rawBody).digest('hex');
+    const provided = Buffer.from(signature);
+    const expectedBuffer = Buffer.from(expected);
+    if (provided.length !== expectedBuffer.length || !timingSafeEqual(provided, expectedBuffer)) {
+      throw new BadRequestException('Invalid webhook signature.');
+    }
+    const event = JSON.parse(rawBody.toString('utf8'));
+    const supported = ['dedicatedvirtualaccount.success', 'transfer.success'];
+    if (!supported.includes(event.event)) return { ignored: event.event };
+    const data = event.data ?? {};
+    const accountNumber = String(data.account_number ?? data.accountNumber ?? '').trim();
+    const reference = String(data.reference ?? data.id ?? '').trim();
+    if (!accountNumber || !reference) return { ignored: 'missing_account_or_reference' };
+    const kobo = Number(data.amount ?? 0);
+    if (!Number.isFinite(kobo) || kobo <= 0) return { ignored: 'invalid_amount' };
+    const amount = new Prisma.Decimal((kobo / 100).toFixed(2));
+    const wallet = await this.prisma.estateWallet.findUnique({ where: { accountNumber } });
+    if (!wallet) return { ignored: 'unknown_account' };
+    const existing = await this.prisma.estateWalletTransaction.findUnique({ where: { reference } });
+    if (existing) return { credited: false, replayed: true };
+    await this.prisma.$transaction([
+      this.prisma.estateWalletTransaction.create({ data: {
+        walletId: wallet.id, estateId: wallet.estateId, type: 'credit', amount,
+        currency: wallet.currency, reference,
+        description: 'Funding received to estate fund account',
+        sourceType: 'paystack_webhook', sourceId: reference, status: 'posted',
+      } }),
+      this.prisma.auditEvent.create({ data: {
+        actorUserId: null, scope: 'estate', estateId: wallet.estateId,
+        action: 'wallet.funding_received', targetType: 'estate_wallet', targetId: wallet.id,
+        outcome: 'success', occurredAt: new Date(), metadata: { reference, amount: amount.toString() },
+      } }),
+    ]);
+    return { credited: true, reference, amount: amount.toString() };
+  }
+
+  private async walletView(walletId: string) {
+    const wallet = await this.prisma.estateWallet.findUniqueOrThrow({
+      where: { id: walletId }, include: { estate: { select: { name: true } } },
+    });
+    const sums = await this.prisma.estateWalletTransaction.groupBy({
+      by: ['type'], where: { walletId }, _sum: { amount: true },
+    });
+    const credits = sums.find((row) => row.type === 'credit')?._sum.amount ?? new Prisma.Decimal(0);
+    const debits = sums.find((row) => row.type === 'debit')?._sum.amount ?? new Prisma.Decimal(0);
+    return {
+      id: wallet.id, estateId: wallet.estateId, estateName: wallet.estate.name,
+      currency: wallet.currency, accountNumber: wallet.accountNumber, bankName: wallet.bankName,
+      accountName: wallet.accountName, status: wallet.status,
+      balance: credits.sub(debits).toString(),
+    };
+  }
+}

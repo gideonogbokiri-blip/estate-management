@@ -298,6 +298,7 @@ model Estate {
   facilityBookings   EstateFacilityBooking[]
   securityIncidents  EstateSecurityIncident[]
   staffInvitations   EstateStaffInvitation[]
+  wallets            EstateWallet[]
   expensePolicy      EstateExpensePolicy?
   expenseCategories  EstateExpenseCategory[]
   expensePayees      EstateExpensePayee[]
@@ -1577,6 +1578,48 @@ model AccountRecoveryCode {
   @@index([userId, purpose, createdAt])
   @@index([expiresAt])
   @@map("account_recovery_codes")
+}
+
+model EstateWallet {
+  id                String   @id @default(uuid()) @db.Uuid
+  estateId          String   @map("estate_id") @db.Uuid
+  userId            String   @map("user_id") @db.Uuid
+  currency          String   @db.VarChar(3)
+  accountNumber     String?  @map("account_number") @db.VarChar(34)
+  bankName          String?  @map("bank_name") @db.VarChar(120)
+  accountName       String?  @map("account_name") @db.VarChar(160)
+  providerReference String?  @map("provider_reference") @db.VarChar(120)
+  status            String   @db.VarChar(20)
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  transactions      EstateWalletTransaction[]
+  estate            Estate @relation(fields: [estateId], references: [id], onDelete: Restrict)
+
+  @@unique([estateId, userId, currency])
+  @@unique([accountNumber])
+  @@map("estate_wallets")
+}
+
+model EstateWalletTransaction {
+  id          String   @id @default(uuid()) @db.Uuid
+  walletId    String   @map("wallet_id") @db.Uuid
+  estateId    String   @map("estate_id") @db.Uuid
+  type        String   @db.VarChar(6)
+  amount      Decimal  @db.Decimal(14, 2)
+  currency    String   @db.VarChar(3)
+  reference   String   @db.VarChar(180)
+  description String   @db.VarChar(300)
+  sourceType  String   @map("source_type") @db.VarChar(30)
+  sourceId    String?  @map("source_id") @db.VarChar(180)
+  status      String   @db.VarChar(20)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  wallet      EstateWallet @relation(fields: [walletId], references: [id], onDelete: Restrict)
+
+  @@unique([reference])
+  @@index([walletId, createdAt])
+  @@map("estate_wallet_transactions")
 }
 
 model AuditEvent {
