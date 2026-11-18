@@ -261,7 +261,9 @@
       localStorage.setItem('estate_shared_refreshToken', session.refreshToken || '');
 
       const estates = await get('/estate/estates/mine', token);
-      const estateRoles = (estates.body.items || []).flatMap((item) => item.roles || []);
+      const estateRoles = (estates.body.items || [])
+        .flatMap((item) => item.roles || [])
+        .map((role) => String(role).toUpperCase());
       const platform = await get('/platform/admin/estates?pageSize=1', token);
       const application = await get('/estate/applications/mine', token);
       window.location.assign(overridePath || destination(estateRoles, platform.ok, (application.body.items || []).length > 0));
