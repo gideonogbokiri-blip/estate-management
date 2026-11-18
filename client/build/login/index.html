@@ -242,6 +242,7 @@
       if (estateRoles.some((role) => ['ESTATE_ADMINISTRATOR', 'ESTATE_MANAGER', 'FINANCE_MANAGER'].includes(role))) return '/admin/';
       if (estateRoles.includes('SECURITY_OFFICER')) return '/security/';
       if (estateRoles.includes('LANDLORD')) return '/landlord-live/';
+      if (estateRoles.includes('RESIDENT')) return '/web/';
       if (hasApplication) return '/onboarding/';
       return '/onboarding/';
     }
