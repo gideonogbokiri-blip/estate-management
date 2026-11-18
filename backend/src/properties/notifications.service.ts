@@ -15,18 +15,51 @@ export class EstateNotificationsService {
       select: { userId: true },
     });
     if (!members.length) return;
-    await tx.estateNotification.createMany({
-      data: members.map(({ userId }) => ({ estateId: input.estateId, recipientUserId: userId, eventKey: input.eventKey,
-        type: input.type, title: input.title, message: input.message, sourceId: input.sourceId })),
-      skipDuplicates: true,
+    const users = await tx.user.findMany({
+      where: { id: { in: members.map((member) => member.userId) } },
+      select: { id: true, emailNormalized: true },
     });
+    const emails = new Map(users.map((user) => [user.id, user.emailNormalized]));
+    for (const { userId } of members) {
+      let created;
+      try {
+        created = await tx.estateNotification.create({ data: {
+          estateId: input.estateId, recipientUserId: userId, eventKey: input.eventKey,
+          type: input.type, title: input.title, message: input.message, sourceId: input.sourceId,
+        }, select: { id: true } });
+      } catch (error) {
+        if ((error as { code?: string }).code === 'P2002') continue;
+        throw error;
+      }
+      const email = emails.get(userId);
+      if (email) {
+        await tx.estateNotificationDelivery.create({ data: {
+          notificationId: created.id, estateId: input.estateId, recipientUserId: userId,
+          recipientEmail: email, channel: 'email', status: 'pending',
+        } });
+      }
+    }
   }
 
   async enqueueUser(
     tx: Prisma.TransactionClient,
     input: { estateId: string; recipientUserId: string; eventKey: string; type: 'EXPENSE' | 'INCIDENT'; title: string; message: string; sourceId: string },
   ) {
-    await tx.estateNotification.createMany({ data: [{ ...input }], skipDuplicates: true });
+    const user = await tx.user.findUnique({
+      where: { id: input.recipientUserId },
+      select: { emailNormalized: true },
+    });
+    let created;
+    try {
+      created = await tx.estateNotification.create({ data: { ...input }, select: { id: true } });
+    } catch (error) {
+      if ((error as { code?: string }).code === 'P2002') return;
+      throw error;
+    }
+    await tx.estateNotificationDelivery.create({ data: {
+      notificationId: created.id, estateId: input.estateId, recipientUserId: input.recipientUserId,
+      recipientEmail: user?.emailNormalized ?? '', channel: 'email', status: 'pending',
+    } });
   }
 
   async listMine(userId: string) {
@@ -36,6 +69,19 @@ export class EstateNotificationsService {
       include: { estate: { select: { name: true } } },
     });
     return { unreadCount: rows.filter((row) => row.readAt === null).length, items: rows.map((row) => this.view(row)) };
+  }
+
+  async markAllRead(userId: string) {
+    const now = new Date();
+    const result = await this.prisma.estateNotification.updateMany({
+      where: {
+        recipientUserId: userId,
+        readAt: null,
+        estate: { is: { status: 'ACTIVE', memberships: { some: { userId, status: 'ACTIVE' } } } },
+      },
+      data: { readAt: now },
+    });
+    return { marked: result.count, readAt: now.toISOString() };
   }
 
   async markRead(userId: string, notificationId: string) {

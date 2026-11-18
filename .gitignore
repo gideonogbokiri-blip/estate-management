@@ -9,6 +9,7 @@ backend/.env.local
 # Local data and generated backend output
 node_modules/
 backend/dist/
+backups/
 backend/.private-documents/
 backend/.local/
 *.log

@@ -1052,6 +1052,7 @@ model EstateNotification {
   readAt            DateTime?               @map("read_at") @db.Timestamptz(3)
   estate            Estate                  @relation(fields: [estateId], references: [id], onDelete: Restrict)
   recipient         User                    @relation("EstateNotificationRecipient", fields: [recipientUserId], references: [id], onDelete: Restrict)
+  deliveries        EstateNotificationDelivery[]
 
   @@unique([estateId, recipientUserId, eventKey])
   @@index([recipientUserId, readAt, createdAt])
@@ -1541,6 +1542,41 @@ model EstateAccountAdjustment {
   @@index([estateId, accountUserId, createdAt])
   @@index([estateId, createdAt])
   @@map("estate_account_adjustments")
+}
+
+model EstateNotificationDelivery {
+  id              String    @id @default(uuid()) @db.Uuid
+  notificationId  String    @map("notification_id") @db.Uuid
+  estateId        String    @map("estate_id") @db.Uuid
+  recipientUserId String    @map("recipient_user_id") @db.Uuid
+  recipientEmail  String    @map("recipient_email") @db.VarChar(254)
+  channel         String    @db.VarChar(20)
+  status          String    @db.VarChar(20)
+  attempts        Int       @default(0)
+  lastError       String?   @map("last_error") @db.VarChar(500)
+  sentAt          DateTime? @map("sent_at") @db.Timestamptz(3)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  notification    EstateNotification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+
+  @@unique([notificationId, channel])
+  @@index([status, createdAt])
+  @@map("estate_notification_deliveries")
+}
+
+model AccountRecoveryCode {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @map("user_id") @db.Uuid
+  purpose         String    @db.VarChar(24)
+  codeHash        String    @map("code_hash") @db.VarChar(64)
+  expiresAt       DateTime  @map("expires_at") @db.Timestamptz(3)
+  usedAt          DateTime? @map("used_at") @db.Timestamptz(3)
+  createdByUserId String?   @map("created_by_user_id") @db.Uuid
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([userId, purpose, createdAt])
+  @@index([expiresAt])
+  @@map("account_recovery_codes")
 }
 
 model AuditEvent {

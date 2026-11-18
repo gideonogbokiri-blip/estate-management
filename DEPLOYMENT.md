@@ -31,6 +31,17 @@ docker compose --env-file backend/.env up -d --build
 
 Required environment values: `POSTGRES_PASSWORD`, `ACCESS_TOKEN_SECRET` (at least 32 random bytes), and `APP_ORIGINS` (exact public origins only). Generate a secret with a password manager or `openssl rand -base64 48`; never reuse the local demo secret.
 
+## Notifications and account lifecycle
+
+- In-app notices are written transactionally with their source events. Each notice also creates an outbound delivery record.
+- `npm run notifications:deliver` processes pending deliveries. With `SMTP_HOST` and `SMTP_FROM` configured it sends email through SMTP; without them it records `skipped / smtp_not_configured` so the queue does not grow silently. Push and SMS are not implemented.
+- Account lifecycle uses operator-issued, single-use codes valid for 30 minutes. `npm run accounts:issue-code -- <email> password_reset` (or `email_verification`) prints a code once; it is stored only as a hash. The account holder uses `/recover/` or `POST /auth/confirm-recovery`. Password reset revokes existing sessions; email verification stamps `emailVerifiedAt`. All actions are audited. Platform super admins can also issue codes via `POST /auth/accounts/:userId/recovery-codes`.
+
+## Backups and diagnostics
+
+- Run `powershell.exe -ExecutionPolicy Bypass -File .\scripts\backup-database.ps1` from the repo root to create a timestamped custom-format Postgres dump in `backups/` (gitignored). Requires `pg_dump` on the PATH and `DATABASE_URL`/`POSTGRES_PASSWORD` in `backend/.env`.
+- Both the local and serverless API entry points log one structured line per request with method, path, status and duration. `/api/v1/health/ready` checks the database dependency.
+
 ## Production gaps that remain
 
 1. **TLS** — the stack terminates plain HTTP. Put a TLS reverse proxy or load balancer in front and set `APP_ORIGINS` to the HTTPS origin before real use.

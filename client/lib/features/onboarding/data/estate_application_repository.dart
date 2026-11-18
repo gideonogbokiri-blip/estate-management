@@ -1504,6 +1504,7 @@ abstract interface class EstateApplicationApiRepository
   Future<void> markMyAnnouncementRead(String announcementId);
   Future<List<Map<String, dynamic>>> loadMyNotifications();
   Future<void> markEstateNotificationRead(String notificationId);
+  Future<int> markAllEstateNotificationsRead();
   Future<List<OwnershipReviewRecord>> loadPendingOwnershipReviews(
     String estateId,
   );
@@ -3070,6 +3071,15 @@ class EstateApplicationApiClient implements EstateApplicationApiRepository {
     await _json(
       _send('POST', '/notifications/$notificationId/read', accessToken: access),
     );
+  }
+
+  @override
+  Future<int> markAllEstateNotificationsRead() async {
+    final access = await _requireAccessToken();
+    final response = await _json(
+      _send('POST', '/notifications/read-all', accessToken: access),
+    );
+    return (response['marked'] as num?)?.toInt() ?? 0;
   }
 
   @override

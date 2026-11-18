@@ -4,14 +4,13 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#0d3b30" />
-  <title>Estate Management | One place for estate living</title>
+  <title>Estate Management | How it works</title>
   <style>
     :root {
       color-scheme: light;
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       color: #17231e;
       --forest: #0d3b30;
-      --forest-2: #115644;
       --muted: #617169;
       --line: #e3ebe6;
     }
@@ -21,53 +20,54 @@
 
     .hero {
       position: relative;
-      min-height: 520px;
+      min-height: 430px;
       display: grid;
       align-items: center;
-      padding: 72px 24px 64px;
+      padding: 56px 24px 58px;
       color: white;
-      background-image: linear-gradient(100deg, #0a2f27f2 0%, #0a2f27cc 42%, #0a2f2766 100%), url('login/family-background.jpg');
+      background-image: linear-gradient(100deg, #0a2f27f2 0%, #0a2f27cc 45%, #0a2f2759 100%), url('login/family-background.jpg');
       background-size: cover;
       background-position: center 45%;
     }
-    .hero-inner { width: min(1120px, 100%); margin: auto; }
-    .brand { display: flex; align-items: center; gap: 11px; font-weight: 700; font-size: 16px; margin-bottom: 60px; }
+    .hero-inner { width: min(1080px, 100%); margin: auto; }
+    .brand { display: flex; align-items: center; gap: 11px; font-weight: 700; font-size: 16px; margin-bottom: 44px; }
     .brand-mark { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; background: #ffffff24; border: 1px solid #ffffff40; }
     .brand-mark svg { width: 20px; height: 20px; }
     .eyebrow { font-size: 11px; font-weight: 800; letter-spacing: 1.8px; text-transform: uppercase; color: #a9d8bd; }
-    .hero h1 { margin: 12px 0 16px; max-width: 620px; font-size: clamp(36px, 6vw, 58px); line-height: 1.06; letter-spacing: -2px; }
-    .hero p { margin: 0 0 30px; max-width: 520px; font-size: 15px; line-height: 1.7; color: #dcece3; }
+    .hero h1 { margin: 12px 0 14px; max-width: 640px; font-size: clamp(34px, 5.5vw, 53px); line-height: 1.08; letter-spacing: -1.8px; }
+    .hero p { margin: 0 0 26px; max-width: 560px; font-size: 15px; line-height: 1.7; color: #dcece3; }
     .actions { display: flex; flex-wrap: wrap; gap: 12px; }
-    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 9px; padding: 14px 22px; border-radius: 12px; font-size: 14px; font-weight: 700; text-decoration: none; transition: transform .15s, background .15s; }
-    .btn:hover { transform: translateY(-2px); }
+    .btn { display: inline-flex; align-items: center; gap: 9px; padding: 13px 21px; border-radius: 12px; font-size: 14px; font-weight: 700; text-decoration: none; }
     .btn-primary { background: #d8f3e2; color: #0a2f27; }
     .btn-secondary { background: #ffffff1f; color: white; border: 1px solid #ffffff52; }
     .btn svg { width: 17px; height: 17px; }
 
-    main { width: min(1120px, calc(100% - 40px)); margin: 0 auto; padding: 66px 0 78px; }
-    .section-head { margin-bottom: 26px; }
+    main { width: min(1080px, calc(100% - 40px)); margin: 0 auto; padding: 60px 0 72px; }
+    .section-head { margin-bottom: 30px; }
     .section-head h2 { margin: 0 0 8px; font-size: 28px; letter-spacing: -0.8px; }
-    .section-head p { margin: 0; color: var(--muted); font-size: 14px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(245px, 1fr)); gap: 16px; }
-    .card { display: block; padding: 24px; border: 1px solid var(--line); border-radius: 18px; background: white; text-decoration: none; transition: transform .15s, box-shadow .15s, border-color .15s; }
-    .card:hover { transform: translateY(-3px); border-color: #a9c7b5; box-shadow: 0 16px 36px #0e503d12; }
-    .icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; background: #e8f2ec; color: var(--forest); }
-    .icon svg { width: 21px; height: 21px; }
-    .card h3 { margin: 16px 0 7px; font-size: 16px; }
-    .card p { margin: 0; color: var(--muted); font-size: 12.5px; line-height: 1.6; }
-    .card span.arrow { display: inline-block; margin-top: 16px; color: var(--forest); font-size: 12px; font-weight: 700; }
+    .section-head p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.6; max-width: 660px; }
 
-    .band { margin-top: 54px; padding: 28px 30px; border-radius: 18px; background: #eaf3ed; display: flex; flex-wrap: wrap; align-items: center; gap: 18px; }
-    .band h3 { margin: 0 0 5px; font-size: 17px; }
-    .band p { margin: 0; color: #3e5c4d; font-size: 13px; line-height: 1.6; flex: 1 1 380px; }
-    .band a { font-size: 13px; font-weight: 700; color: var(--forest); }
+    .flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+    .step { position: relative; padding: 24px; background: white; border: 1px solid var(--line); border-radius: 18px; }
+    .num { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 11px; background: var(--forest); color: white; font-size: 13px; font-weight: 800; }
+    .step h3 { margin: 16px 0 8px; font-size: 16px; }
+    .step p { margin: 0; color: var(--muted); font-size: 12.5px; line-height: 1.65; }
+    .step .actor { display: inline-block; margin-top: 13px; padding: 5px 9px; border-radius: 7px; background: #edf5ef; color: #315e48; font-size: 10.5px; font-weight: 700; }
+
+    .roles { margin-top: 52px; }
+    .role-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; }
+    .role { padding: 22px; border-left: 3px solid #258565; background: white; border-radius: 0 16px 16px 0; }
+    .role h3 { margin: 0 0 8px; font-size: 15px; }
+    .role p { margin: 0; color: var(--muted); font-size: 12.5px; line-height: 1.65; }
+
+    .note { margin-top: 50px; padding: 26px 28px; border-radius: 18px; background: #eaf3ed; }
+    .note h3 { margin: 0 0 7px; font-size: 16px; }
+    .note p { margin: 0; color: #3e5c4d; font-size: 13px; line-height: 1.65; }
+    .note a { color: var(--forest); font-weight: 700; }
+
     footer { border-top: 1px solid var(--line); padding: 22px 24px 30px; text-align: center; color: #7b8a82; font-size: 11px; }
     footer a { color: var(--forest); }
-    @media (max-width: 640px) {
-      .hero { min-height: 460px; padding-top: 40px; }
-      .brand { margin-bottom: 40px; }
-      main { padding-top: 46px; }
-    }
+    @media (max-width: 640px) { .hero { min-height: 390px; padding-top: 38px; } .brand { margin-bottom: 30px; } main { padding-top: 44px; } }
   </style>
 </head>
 <body>
@@ -77,75 +77,95 @@
         <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9.5 20v-6h5v6"/></svg></span>
         Estate Management
       </div>
-      <div class="eyebrow">Connected estate operations</div>
-      <h1>A better way to live in your estate.</h1>
-      <p>One connected place for estate operations, resident services, landlord portfolios and gate security. Sign in to open your workspace, or start by registering your estate.</p>
+      <div class="eyebrow">How the application works</div>
+      <h1>From an empty estate to a running community.</h1>
+      <p>This platform takes an estate from its first application through approval, setup and daily operations — with a separate, permission-scoped workspace for every person involved.</p>
       <div class="actions">
         <a class="btn btn-primary" href="/login/">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg>
-          Sign in
+          Sign in to your workspace
         </a>
-        <a class="btn btn-secondary" href="/login/?tab=create">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-          Create account
-        </a>
+        <a class="btn btn-secondary" href="/login/?tab=create">Create an estate</a>
       </div>
     </div>
   </header>
 
   <main>
     <div class="section-head">
-      <h2>One platform, every part of the estate</h2>
-      <p>Each workspace opens with your own sign-in and shows only the records you are authorized to see.</p>
+      <h2>The journey, step by step</h2>
+      <p>Every stage writes to the same estate database. Nothing is a mock screen once an estate is approved — records, decisions and history are persisted and audited.</p>
     </div>
-    <section class="grid" aria-label="Workspaces">
-      <a class="card" href="/onboarding/">
-        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h2M14 7h2M8 11h2M14 11h2M8 15h2M14 15h2"/><path d="M10.5 21v-4h3v4"/></svg></span>
-        <h3>Start an estate</h3>
-        <p>Register your estate, add its properties and choose the first administrator through the onboarding application.</p>
-        <span class="arrow">Open onboarding →</span>
-      </a>
-      <a class="card" href="/admin/">
-        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V9l8-5 8 5v11"/><path d="M9 20v-6h6v6"/><path d="M8 11h.01M12 11h.01M16 11h.01"/></svg></span>
-        <h3>Estate operations</h3>
-        <p>Manage properties, residents, maintenance, facilities, budgets, expenses and approvals from one dashboard.</p>
-        <span class="arrow">Open manager dashboard →</span>
-      </a>
-      <a class="card" href="/web/">
-        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><path d="M16 11l5 5m0-5-5 5"/></svg></span>
-        <h3>Resident services</h3>
-        <p>Your property access, bills and receipts, maintenance requests, visitor passes, facilities and community notices.</p>
-        <span class="arrow">Open resident app →</span>
-      </a>
-      <a class="card" href="/landlord-live/">
-        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9.5 20v-5.5h5V20"/></svg></span>
-        <h3>Landlord portfolio</h3>
-        <p>Verified ownership, occupancy, tenancy terms and maintenance requests linked to your properties.</p>
-        <span class="arrow">Open landlord portfolio →</span>
-      </a>
-      <a class="card" href="/security/">
-        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4.5 6v5.5c0 4.5 3 8 7.5 9.5 4.5-1.5 7.5-5 7.5-9.5V6L12 3Z"/><path d="m9 12 2 2 4-4"/></svg></span>
-        <h3>Gate &amp; security</h3>
-        <p>Assigned gates, expected visitors, pass verification, check-in/out, access history and incident reports.</p>
-        <span class="arrow">Open gate app →</span>
-      </a>
-      <a class="card" href="/platform/">
-        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l2 2 4-4"/><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 4V2m8 2V2"/></svg></span>
-        <h3>Platform operations</h3>
-        <p>Review estate applications, approve estates, manage platform roles and oversee balances and platform data.</p>
-        <span class="arrow">Open platform console →</span>
-      </a>
+
+    <section class="flow" aria-label="Application workflow">
+      <article class="step">
+        <span class="num">1</span>
+        <h3>Register the estate</h3>
+        <p>An applicant creates an account and submits an estate application: name, address, homes, phases and the proposed management entity. Supporting documents can be attached; they are optional.</p>
+        <span class="actor">Applicant</span>
+      </article>
+      <article class="step">
+        <span class="num">2</span>
+        <h3>Platform review</h3>
+        <p>A platform reviewer checks the application and documents, assigns the review and chooses an eligible active account as the estate's first administrator. Approval creates the estate and membership together.</p>
+        <span class="actor">Platform admin</span>
+      </article>
+      <article class="step">
+        <span class="num">3</span>
+        <h3>Set up operations</h3>
+        <p>The estate administrator registers properties and owners, adds structure, invites staff, configures charges, facilities, gates and budgets, and publishes the first resident notice.</p>
+        <span class="actor">Estate manager</span>
+      </article>
+      <article class="step">
+        <span class="num">4</span>
+        <h3>Residents and owners join</h3>
+        <p>Residents request access to a property; landlords are verified against ownership records. Once approved, each person sees only their own property, charges, requests and community notices.</p>
+        <span class="actor">Residents &amp; landlords</span>
+      </article>
+      <article class="step">
+        <span class="num">5</span>
+        <h3>Daily services run</h3>
+        <p>Maintenance requests move through review with resident-visible updates. Facility slots are requested and confirmed. Bills are issued, receipts recorded after a verified transfer, and expenses pass approval rules.</p>
+        <span class="actor">Everyone</span>
+      </article>
+      <article class="step">
+        <span class="num">6</span>
+        <h3>Gate and safety</h3>
+        <p>Assigned officers issue visitor passes, verify them at the gate, record entry and exit, report incidents and review the access history for their gate only.</p>
+        <span class="actor">Security officers</span>
+      </article>
     </section>
 
-    <aside class="band">
-      <div>
-        <h3>Presenting or testing this build?</h3>
-        <p>The full demo walkthrough, demo logins and gate pass code are kept on a separate page so this homepage stays clean.</p>
+    <section class="roles">
+      <div class="section-head">
+        <h2>Who sees what</h2>
+        <p>Access follows estate membership and verified relationships. A person with several roles gets the appropriate workspace for each sign-in.</p>
       </div>
-      <a href="/demo/">Open demo walkthrough →</a>
+      <div class="role-grid">
+        <article class="role">
+          <h3>Platform operations</h3>
+          <p>Oversees all estates, reviews new applications, grants platform roles and manages the manual balance ledger with a full audit trail.</p>
+        </article>
+        <article class="role">
+          <h3>Estate team</h3>
+          <p>Administrators, managers, finance staff and security officers work inside one estate: properties, people, money, facilities and gates.</p>
+        </article>
+        <article class="role">
+          <h3>Residents</h3>
+          <p>See approved property access, tenancy terms, service charges, receipts, maintenance progress, notices and bookings for their own home.</p>
+        </article>
+        <article class="role">
+          <h3>Landlords</h3>
+          <p>See verified ownership, occupancy, tenancy terms and maintenance requests linked only to the properties they own.</p>
+        </article>
+      </div>
+    </section>
+
+    <aside class="note">
+      <h3>This is a working local presentation build</h3>
+      <p>Connected workflows are backed by the Estate API and PostgreSQL. Payment-provider integration, outbound email/SMS delivery and account recovery are still being built. The <a href="/demo/">demo walkthrough</a> holds the local logins and gate pass code for presenters.</p>
     </aside>
   </main>
 
-  <footer>Local presentation build · <a href="/demo/">Demo walkthrough</a> · <a href="/login/">Sign in</a></footer>
+  <footer>Estate Management · <a href="/demo/">Demo walkthrough</a> · <a href="/login/">Sign in</a></footer>
 </body>
 </html>

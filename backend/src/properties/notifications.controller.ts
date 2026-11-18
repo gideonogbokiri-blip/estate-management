@@ -13,6 +13,11 @@ export class EstateNotificationsController {
     return this.notifications.listMine(request.actor.userId);
   }
 
+  @Post('read-all')
+  markAllRead(@Req() request: AuthenticatedRequest) {
+    return this.notifications.markAllRead(request.actor.userId);
+  }
+
   @Post(':notificationId/read')
   markRead(@Req() request: AuthenticatedRequest, @Param('notificationId', ParseUUIDPipe) notificationId: string) {
     return this.notifications.markRead(request.actor.userId, notificationId);

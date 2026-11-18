@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import helmet from 'helmet';
@@ -22,6 +22,16 @@ async function bootstrap(): Promise<void> {
   });
 
   app.use(helmet());
+  app.use((request: { method?: string; originalUrl?: string }, response: { statusCode: number; on: (event: string, listener: () => void) => void }, next: () => void) => {
+    const started = Date.now();
+    response.on('finish', () => {
+      Logger.log(
+        `${request.method ?? 'GET'} ${request.originalUrl ?? '/'} ${response.statusCode} ${Date.now() - started}ms`,
+        'HTTP',
+      );
+    });
+    next();
+  });
   app.enableCors({
     origin: origins,
     credentials: true,

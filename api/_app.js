@@ -25,6 +25,19 @@ async function getApp() {
       });
       const helmet = helmetModule.default ?? helmetModule;
       app.use(helmet());
+      app.use((request, response, next) => {
+        const started = Date.now();
+        response.on('finish', () => {
+          console.log(JSON.stringify({
+            at: new Date().toISOString(),
+            method: request.method,
+            path: request.originalUrl,
+            status: response.statusCode,
+            durationMs: Date.now() - started,
+          }));
+        });
+        next();
+      });
       app.enableCors({ origin: configuredOrigins(), credentials: true });
       app.useGlobalPipes(
         new ValidationPipe({

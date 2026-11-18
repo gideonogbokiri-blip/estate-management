@@ -63,12 +63,36 @@ class _EstateNotificationsPageState extends State<EstateNotificationsPage> {
     return '${date.day}/${date.month}/${date.year} at ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
 
+  Future<void> _markAllRead() async {
+    setState(() => _loading = true);
+    try {
+      final marked = await widget.repository.markAllEstateNotificationsRead();
+      await _load();
+      if (mounted && marked > 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$marked notification${marked == 1 ? '' : 's'} marked as read.')),
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Notifications could not be updated.')),
+      );
+      await _load();
+    }
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: EstateColors.canvas,
     appBar: AppBar(
       title: const Text('Notifications'),
       actions: [
+        IconButton(
+          tooltip: 'Mark all as read',
+          onPressed: _loading ? null : _markAllRead,
+          icon: const Icon(Icons.done_all_rounded),
+        ),
         IconButton(
           tooltip: 'Refresh notifications',
           onPressed: _loading ? null : _load,

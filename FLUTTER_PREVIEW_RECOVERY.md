@@ -1,5 +1,12 @@
 # Flutter preview status
 
+### Notifications, account lifecycle and operations (18 November 2026)
+
+- The homepage now explains the application flow step by step instead of showing a wall of link cards; developer logins and the gate pass code remain on `/demo/`. All static pages use inline SVG icons and the supplied family photograph.
+- Notifications gained **mark all as read** plus an outbound delivery outbox. Each in-app notice creates a delivery record; `npm run notifications:deliver` sends through SMTP when configured and records `skipped / smtp_not_configured` otherwise. Push and SMS remain unimplemented.
+- Account lifecycle uses operator-issued single-use codes (`npm run accounts:issue-code`), valid 30 minutes, stored only as hashes. `/recover/` resets a password and revokes existing sessions; email verification stamps `emailVerifiedAt`. All actions are audited.
+- Operations added a timestamped Postgres backup command and structured per-request logging in both local and serverless API entry points.
+
 ### Single sign-in and platform money controls (17 November 2026)
 
 - The hub now offers **Sign in once** at `/login/`. That page authenticates through the estate API, stores the session in shared browser storage, inspects platform grants and estate memberships, and opens the correct workspace: `/platform/`, `/admin/`, `/security/`, `/landlord-live/`, `/onboarding/` or `/web/`. Its **Create account** tab asks for the intended starting point — **Create an estate** (`/onboarding/`), **Create as tenant** (`/join-estate/`) or **Create as landlord** (`/landlord-live/`) — and stores that intent. A **join an estate** path serves people moving into an existing estate. The page uses the supplied family photograph with a dark-green overlay and a Venco-style card layout. Flutter web clients read the shared session, so apps no longer ask for a second sign-in. Routing, registration and shared-session adoption were verified in the browser.

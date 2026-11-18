@@ -49,7 +49,10 @@ try {
   $demoDir = Join-Path $client 'build/demo'
   New-Item -ItemType Directory -Force -Path $demoDir | Out-Null
   Copy-Item (Join-Path $client 'demo.html') (Join-Path $demoDir 'index.html') -Force
-  Write-Host 'Homepage, sign-in page, demo notes and family background copied.'
+  $recoverDir = Join-Path $client 'build/recover'
+  New-Item -ItemType Directory -Force -Path $recoverDir | Out-Null
+  Copy-Item (Join-Path $client 'recover.html') (Join-Path $recoverDir 'index.html') -Force
+  Write-Host 'Homepage, sign-in, recovery, demo notes and family background copied.'
 }
 finally {
   Pop-Location

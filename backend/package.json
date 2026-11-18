@@ -21,7 +21,9 @@
     "seed:demo": "node dist/src/cli/seed-local-demo.js",
     "seed:gate-demo": "node dist/src/cli/seed-gate-demo.js",
     "seed:walkthrough-accounts": "node dist/src/cli/seed-walkthrough-accounts.js",
-    "seed:landlord-demo": "node dist/src/cli/seed-landlord-demo.js"
+    "seed:landlord-demo": "node dist/src/cli/seed-landlord-demo.js",
+    "notifications:deliver": "node dist/src/cli/deliver-notifications.js",
+    "accounts:issue-code": "node dist/src/cli/issue-recovery-code.js"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.0",
@@ -35,6 +37,7 @@
     "class-validator": "^0.14.2",
     "dotenv": "^16.4.7",
     "helmet": "^8.1.0",
+    "nodemailer": "^10.6.0",
     "pg": "^8.16.3",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2"
@@ -46,6 +49,7 @@
     "@types/express": "^5.0.3",
     "@types/multer": "^2.3.0",
     "@types/node": "^24.0.0",
+    "@types/nodemailer": "^8.0.2",
     "@types/pg": "^8.15.5",
     "prisma": "^7.0.0",
     "ts-node": "^10.9.2",
