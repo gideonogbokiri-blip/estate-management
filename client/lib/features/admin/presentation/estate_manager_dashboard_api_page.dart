@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:flutter/material.dart';
 
@@ -845,7 +845,7 @@ class _EstateManagerDashboardApiPageState
                             (gate) => DropdownMenuItem(
                               value: gate.id,
                               child: Text(
-                                '${gate.code} · ${gate.name}',
+                                '${gate.code} Â· ${gate.name}',
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
@@ -1062,7 +1062,7 @@ class _EstateManagerDashboardApiPageState
                   }, color: EstateColors.forest),
                   title: Text(node.name),
                   subtitle: Text(
-                    '${node.type} · ${node.code ?? 'No code'} · ${node.linkedPropertyCount} properties${node.parentNames.isEmpty ? '' : ' · under ${node.parentNames.join(', ')}'}',
+                    '${node.type} Â· ${node.code ?? 'No code'} Â· ${node.linkedPropertyCount} properties${node.parentNames.isEmpty ? '' : ' Â· under ${node.parentNames.join(', ')}'}',
                   ),
                   trailing: IconButton(
                     tooltip: 'Archive structure node',
@@ -1079,6 +1079,89 @@ class _EstateManagerDashboardApiPageState
     );
   }
 
+  Drawer _buildMenuDrawer() {
+    final estate = _estate;
+    Widget item(IconData icon, String label, VoidCallback? onTap) => ListTile(
+      leading: Icon(icon, color: EstateColors.forest),
+      title: Text(label),
+      onTap: onTap,
+    );
+    Widget open(String label, IconData icon, Widget Function(ManagedEstateChoice current) page) =>
+        item(icon, label, estate == null ? null : () async {
+          final current = estate;
+          Navigator.of(context).pop();
+          await Navigator.of(context).push<void>(
+            MaterialPageRoute<void>(builder: (_) => page(current)),
+          );
+          if (mounted) _refresh();
+        });
+    return Drawer(
+      child: SafeArea(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            Container(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
+              color: EstateColors.forest,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.apartment_outlined, color: Colors.white, size: 28),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Estate Management',
+                    style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    estate?.name ?? 'Select an estate',
+                    style: const TextStyle(color: Color(0xFFCFE3D7), fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+            item(Icons.dashboard_outlined, 'Overview', () => Navigator.of(context).pop()),
+            const Divider(height: 1),
+            if (_canManageEstateOperations)
+              item(Icons.how_to_reg_outlined, 'Resident access',
+                  estate == null ? null : _openResidentAccessReview),
+            if (_canManageEstateOperations)
+              open('Ownership verification', Icons.verified_user_outlined,
+                  (e) => OwnershipReviewApiPage(repository: widget.repository, estateId: e.id, estateName: e.name)),
+            open('Tenancy approvals', Icons.key_outlined,
+                (e) => TenancyApprovalApiPage(repository: widget.repository, estateId: e.id, estateName: e.name)),
+            const Divider(height: 1),
+            open('Charges & invoice policy', Icons.receipt_long_outlined,
+                (e) => EstateChargesPage(repository: widget.repository, estateId: e.id, estateName: e.name, canReconcileSettlements: e.roles.any((role) => role == 'finance_manager' || role == 'estate_administrator'))),
+            open('Expenses & budgets', Icons.account_balance_wallet_outlined,
+                (e) => EstateExpensesApiPage(repository: widget.repository, estateId: e.id, estateName: e.name, roles: e.roles)),
+            open('Facilities & bookings', Icons.event_available_outlined,
+                (e) => EstateFacilitiesAdminPage(repository: widget.repository, estateId: e.id, estateName: e.name)),
+            open('Security incidents', Icons.shield_outlined,
+                (e) => EstateSecurityIncidentsApiPage(repository: widget.repository, estateId: e.id, estateName: e.name)),
+            open('Resident notices', Icons.campaign_outlined,
+                (e) => EstateAnnouncementsApiPage(repository: widget.repository, estateId: e.id, estateName: e.name)),
+            const Divider(height: 1),
+            open('Staff invitations', Icons.person_add_alt_1_outlined,
+                (e) => EstateStaffInvitationsApiPage(repository: widget.repository, estateId: e.id, estateName: e.name)),
+            open('Estate settings', Icons.settings_outlined,
+                (e) => EstateSettingsApiPage(repository: widget.repository, estateId: estate!.id)),
+            const Divider(height: 1),
+            item(Icons.notifications_outlined, 'Notifications', () {
+              Navigator.of(context).pop();
+              Navigator.of(context).push<void>(
+                MaterialPageRoute<void>(
+                  builder: (_) => EstateNotificationsPage(repository: widget.repository),
+                ),
+              );
+            }),
+            item(Icons.logout_outlined, 'Sign out', _signOut),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_restoring)
@@ -1086,6 +1169,7 @@ class _EstateManagerDashboardApiPageState
     if (_account == null) return _signInView();
     final summary = _summary;
     return Scaffold(
+      drawer: _buildMenuDrawer(),
       appBar: AppBar(
         title: const Row(
           children: [
@@ -1152,7 +1236,7 @@ class _EstateManagerDashboardApiPageState
               Text(
                 _estate == null
                     ? 'Estate operations and resident activity.'
-                    : '${_estate!.name} • ${_estate!.location}',
+                    : '${_estate!.name} â€¢ ${_estate!.location}',
                 style: TextStyle(color: EstateColors.muted),
               ),
               const SizedBox(height: 18),
@@ -1225,7 +1309,7 @@ class _EstateManagerDashboardApiPageState
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        'Live estate data • refreshed ${_formatDate(summary.asOf)}',
+                        'Live estate data â€¢ refreshed ${_formatDate(summary.asOf)}',
                         style: const TextStyle(
                           color: EstateColors.muted,
                           fontSize: 12,
@@ -1314,6 +1398,44 @@ class _EstateManagerDashboardApiPageState
                     ),
                   ],
                   const SizedBox(height: 18),
+                  _WalletCard(
+                    summary: summary,
+                    onOpenCharges: _estate == null
+                        ? null
+                        : () async {
+                            await Navigator.of(context).push<void>(
+                              MaterialPageRoute<void>(
+                                builder: (_) => EstateChargesPage(
+                                  repository: widget.repository,
+                                  estateId: _estate!.id,
+                                  estateName: _estate!.name,
+                                  canReconcileSettlements: _estate!.roles.any(
+                                    (role) =>
+                                        role == 'finance_manager' ||
+                                        role == 'estate_administrator',
+                                  ),
+                                ),
+                              ),
+                            );
+                            if (mounted) _refresh();
+                          },
+                    onOpenExpenses: _estate == null
+                        ? null
+                        : () async {
+                            await Navigator.of(context).push<void>(
+                              MaterialPageRoute<void>(
+                                builder: (_) => EstateExpensesApiPage(
+                                  repository: widget.repository,
+                                  estateId: _estate!.id,
+                                  estateName: _estate!.name,
+                                  roles: _estate!.roles,
+                                ),
+                              ),
+                            );
+                            if (mounted) _refresh();
+                          },
+                  ),
+                  const SizedBox(height: 18),
                   _IssuedInvoicesCard(summary: summary),
                   const SizedBox(height: 18),
                   if (_canReviewIncidents)
@@ -1346,7 +1468,7 @@ class _EstateManagerDashboardApiPageState
                             title: 'Facilities and bookings',
                             description: _facilityBookings.isEmpty
                                 ? 'Configure shared spaces and review resident booking requests.'
-                                : '$_pendingFacilityBookings booking requests pending · $_confirmedFacilityBookings confirmed.',
+                                : '$_pendingFacilityBookings booking requests pending Â· $_confirmedFacilityBookings confirmed.',
                             onTap: _busy ? null : _openEstateFacilities,
                           ),
                         ],
@@ -1553,7 +1675,7 @@ class _EstateManagerDashboardApiPageState
                           child: Text(
                             _maintenanceQueue.total == 0
                                 ? 'No matching requests.'
-                                : 'Showing ${(_maintenanceQueue.page - 1) * _maintenanceQueue.pageSize + 1}–${(_maintenanceQueue.page - 1) * _maintenanceQueue.pageSize + _maintenanceQueue.items.length} of ${_maintenanceQueue.total} matching requests.',
+                                : 'Showing ${(_maintenanceQueue.page - 1) * _maintenanceQueue.pageSize + 1}â€“${(_maintenanceQueue.page - 1) * _maintenanceQueue.pageSize + _maintenanceQueue.items.length} of ${_maintenanceQueue.total} matching requests.',
                             style: const TextStyle(
                               color: EstateColors.muted,
                               fontSize: 12,
@@ -1794,7 +1916,7 @@ class _EstateManagerDashboardApiPageState
                             const SizedBox(height: 18),
                             FilledButton(
                               onPressed: _busy ? null : _signIn,
-                              child: Text(_busy ? 'Signing in…' : 'Sign in'),
+                              child: Text(_busy ? 'Signing inâ€¦' : 'Sign in'),
                             ),
                           ],
                         ),
@@ -1871,6 +1993,86 @@ class _MetricsGrid extends StatelessWidget {
   );
 }
 
+class _WalletCard extends StatelessWidget {
+  const _WalletCard({
+    required this.summary,
+    required this.onOpenCharges,
+    required this.onOpenExpenses,
+  });
+  final EstateManagerDashboardSummary summary;
+  final VoidCallback? onOpenCharges;
+  final VoidCallback? onOpenExpenses;
+
+  @override
+  Widget build(BuildContext context) {
+    final totals = summary.outstandingIssuedInvoices;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.account_balance_wallet_outlined,
+                    color: EstateColors.forest),
+                const SizedBox(width: 9),
+                Text('Estate wallet & finance',
+                    style: Theme.of(context).textTheme.titleMedium),
+              ],
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'No payment provider wallet is connected. Amounts below are derived from verified estate records, not money held by the platform.',
+              style: TextStyle(color: EstateColors.muted, fontSize: 12),
+            ),
+            const SizedBox(height: 12),
+            if (totals.isEmpty)
+              const Text('No issued invoice balances or verified receipts recorded yet.',
+                  style: TextStyle(color: EstateColors.muted))
+            else
+              ...totals.map(
+                (item) => ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: CircleAvatar(
+                    backgroundColor: const Color(0xFFE4EFE8),
+                    child: Text(item.currency,
+                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700)),
+                  ),
+                  title: Text(
+                    '${item.currency} ${item.total}',
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  subtitle: Text(
+                    '${item.count} ${item.count == 1 ? 'invoice' : 'invoices'} with outstanding balance',
+                    style: const TextStyle(fontSize: 11),
+                  ),
+                ),
+              ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 10,
+              runSpacing: 8,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: onOpenCharges,
+                  icon: const Icon(Icons.receipt_long_outlined),
+                  label: const Text('Charge rules'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: onOpenExpenses,
+                  icon: const Icon(Icons.payments_outlined),
+                  label: const Text('Expenses & budgets'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _IssuedInvoicesCard extends StatelessWidget {
   const _IssuedInvoicesCard({required this.summary});
   final EstateManagerDashboardSummary summary;
@@ -1910,7 +2112,7 @@ class _IssuedInvoicesCard extends StatelessWidget {
                   style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
                 subtitle: Text(
-                  '${item.count} ${item.count == 1 ? 'invoice' : 'invoices'} · issued, no verified payment recorded',
+                  '${item.count} ${item.count == 1 ? 'invoice' : 'invoices'} Â· issued, no verified payment recorded',
                 ),
                 dense: true,
               ),
@@ -2123,12 +2325,12 @@ class _MaintenanceRequestCard extends StatelessWidget {
             ),
             const SizedBox(height: 7),
             Text(
-              '${request.propertyLabel} · ${_label(request.category)} · $dateLabel',
+              '${request.propertyLabel} Â· ${_label(request.category)} Â· $dateLabel',
               style: const TextStyle(fontSize: 12, color: EstateColors.muted),
             ),
             const SizedBox(height: 5),
             Text(
-              'Reported by ${request.requesterDisplayName}${request.assigneeDisplayName == null ? '' : ' · Assigned to ${request.assigneeDisplayName}'}',
+              'Reported by ${request.requesterDisplayName}${request.assigneeDisplayName == null ? '' : ' Â· Assigned to ${request.assigneeDisplayName}'}',
               style: const TextStyle(fontSize: 12, color: EstateColors.muted),
             ),
             const SizedBox(height: 10),
@@ -2300,7 +2502,7 @@ class _MaintenanceReviewDialogState extends State<_MaintenanceReviewDialog> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              '${widget.request.propertyLabel} · ${widget.request.requesterDisplayName}',
+              '${widget.request.propertyLabel} Â· ${widget.request.requesterDisplayName}',
               style: const TextStyle(color: EstateColors.muted, fontSize: 12),
             ),
             const SizedBox(height: 14),
