@@ -34,7 +34,7 @@ All three role dashboards now use `client/lib/core/design/dashboard_design.dart`
 
 ## Browser cache fix (20 November 2026)
 
-The API client now sends `Cache-Control: no-store` and the backend sets the same header on `/api/v1` responses (both local bootstrap and Vercel wrapper). Without this, repeated browser loads received `304 Not Modified` with an empty body, which the client treated as an error and left dashboards stuck on the loading indicator. Verified against live dashboard reloads.
+The API client now sends `Cache-Control: no-store`, appends a unique `nc` parameter to every GET, and the backend sets `Cache-Control: no-store` on `/api/v1` responses (both local bootstrap and Vercel wrapper). Without this, repeated browser loads could receive `304 Not Modified` with an empty body, which the client treated as an error and left dashboards stuck on the loading indicator.
 
 ## Dated decisions
 
