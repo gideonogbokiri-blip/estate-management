@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/estate_theme.dart';
 import '../../../core/design/dashboard_design.dart';
+import '../../../core/config/report_download.dart';
 import '../../onboarding/data/estate_application_repository.dart';
 import '../../resident_access/presentation/resident_access_review_page.dart';
 import 'ownership_review_api_page.dart';
@@ -49,6 +50,7 @@ class _EstateManagerDashboardApiPageState
   List<EstateServiceRecord> _services = const [];
   List<EstateServiceOrderRecord> _serviceOrders = const [];
   Map<String, dynamic> _walletStatement = const {};
+  Map<String, dynamic> _reportSummary = const {};
   List<dynamic> _auditLog = const [];
   EstateMaintenanceQueue _maintenanceQueue = const EstateMaintenanceQueue(
     items: [],
@@ -256,6 +258,7 @@ class _EstateManagerDashboardApiPageState
       widget.repository.loadEstateServiceOrders(estate.id),
       widget.repository.loadWalletStatement(estate.id),
       widget.repository.loadAuditLog(estate.id),
+      widget.repository.loadManagerReportSummary(estate.id),
     ]);
     _summary = result[0] as EstateManagerDashboardSummary;
     _maintenanceQueue = result[1] as EstateMaintenanceQueue;
@@ -277,6 +280,9 @@ class _EstateManagerDashboardApiPageState
     _auditLog = result.length > 17
         ? (result[17] as Map<String, dynamic>)['items'] as List<dynamic>? ?? const []
         : const [];
+    _reportSummary = result.length > 18
+        ? result[18] as Map<String, dynamic>
+        : const {};
     _selectedGateId = _estateGates.any((gate) => gate.id == _selectedGateId)
         ? _selectedGateId
         : (_estateGates.isEmpty ? null : _estateGates.first.id);
@@ -1544,6 +1550,30 @@ class _EstateManagerDashboardApiPageState
     );
   }
 
+  Future<void> _exportReport(String type) async {
+    final estate = _estate;
+    if (estate == null) return;
+    try {
+      final csv = await widget.repository.fetchReportCsv(estate.id, type);
+      final slug = estate.name.replaceAll(RegExp(r'[^A-Za-z0-9]+'), '-').toLowerCase();
+      downloadReportCsv('$slug-$type-report.csv', csv);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$type report exported as CSV.')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not export report: $error')),
+      );
+    }
+  }
+
+  String _reportValue(String section, String key) {
+    if (section == 'auditEvents') return _reportSummary['auditEvents']?.toString() ?? '0';
+    return (_reportSummary[section] as Map? ?? const {})[key]?.toString() ?? '0';
+  }
+
   Widget _referenceHeader() {
     final estate = _estate;
     return Column(
@@ -1832,6 +1862,57 @@ class _EstateManagerDashboardApiPageState
                       ),
                     ),
                   ],
+                  const SizedBox(height: 18),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(children: const [
+                            Icon(Icons.summarize_outlined, color: DashboardTokens.greenLeaf),
+                            SizedBox(width: 9),
+                            Text('Reports',
+                                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                          ]),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 18,
+                            runSpacing: 8,
+                            children: [
+                              _ReportMetric(label: 'Invoices', value: _reportValue('invoices', 'total')),
+                              _ReportMetric(label: 'Billed', value: '${_reportSummary['currency'] ?? 'NGN'} ${_reportValue('invoices', 'billed')}'),
+                              _ReportMetric(label: 'Rent outstanding', value: '${_reportSummary['currency'] ?? 'NGN'} ${_reportValue('rent', 'outstanding')}'),
+                              _ReportMetric(label: 'Expenses', value: _reportValue('expenses', 'total')),
+                              _ReportMetric(label: 'Payouts', value: _reportValue('payouts', 'total')),
+                              _ReportMetric(label: 'Audit events', value: _reportValue('auditEvents', '')),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+                          Wrap(
+                            spacing: 8,
+                            children: [
+                              OutlinedButton.icon(
+                                onPressed: () => _exportReport('wallet'),
+                                icon: const Icon(Icons.download_outlined, size: 16),
+                                label: const Text('Wallet CSV'),
+                              ),
+                              OutlinedButton.icon(
+                                onPressed: () => _exportReport('ledger'),
+                                icon: const Icon(Icons.download_outlined, size: 16),
+                                label: const Text('Ledger CSV'),
+                              ),
+                              OutlinedButton.icon(
+                                onPressed: () => _exportReport('audit'),
+                                icon: const Icon(Icons.download_outlined, size: 16),
+                                label: const Text('Audit CSV'),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 18),
                   Card(
                     child: Padding(
@@ -3439,4 +3520,36 @@ class _MaintenanceReviewDialogState extends State<_MaintenanceReviewDialog> {
       FilledButton(onPressed: _save, child: const Text('Save review')),
     ],
   );
+}
+
+class _ReportMetric extends StatelessWidget {
+  const _ReportMetric({required this.label, required this.value});
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+        width: 150,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              value,
+              style: const TextStyle(
+                color: DashboardTokens.text,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: const TextStyle(
+                color: DashboardTokens.muted,
+                fontSize: 11,
+              ),
+            ),
+          ],
+        ),
+      );
 }

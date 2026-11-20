@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { DEMO_ESTATE_PREFIX, demoEmails, estateInitials } from './demo-credentials.js';
 
 const TENANCY_ID = 'a1000000-0000-4000-8000-000000000001';
 
@@ -14,24 +15,24 @@ async function main() {
     });
     if (!property) throw new Error('Demo property PC-001 not found.');
 
-    const emails = [
-      'estate.resident.demo@example.test',
-      'estate.landlord.demo@example.test',
-      'estate.manager.demo@example.test',
-    ];
+    const demo = demoEmails(estateInitials(estate.name));
     const users = await prisma.user.findMany({
-      where: { emailNormalized: { in: emails } },
+      where: {
+        emailNormalized: {
+          in: [demo.resident, demo.landlord, demo.manager, ...Object.values(demoEmails(DEMO_ESTATE_PREFIX))],
+        },
+      },
       select: { id: true, emailNormalized: true },
     });
-    const find = (email: string) => {
-      const user = users.find((item) => item.emailNormalized === email);
-      if (!user) throw new Error(`Demo user ${email} not found.`);
+    const find = (...candidates: string[]) => {
+      const user = candidates.map((email) => users.find((item) => item.emailNormalized === email)).find(Boolean);
+      if (!user) throw new Error(`Demo user not found: ${candidates.join(', ')}`);
       return user.id;
     };
 
-    const tenantUserId = find('estate.resident.demo@example.test');
-    const payeeUserId = find('estate.landlord.demo@example.test');
-    const managerId = find('estate.manager.demo@example.test');
+    const tenantUserId = find(demo.resident, demoEmails(DEMO_ESTATE_PREFIX).resident);
+    const payeeUserId = find(demo.landlord, demoEmails(DEMO_ESTATE_PREFIX).landlord);
+    const managerId = find(demo.manager, demoEmails(DEMO_ESTATE_PREFIX).manager);
 
     await prisma.estateTenancy.upsert({
       where: { id: TENANCY_ID },

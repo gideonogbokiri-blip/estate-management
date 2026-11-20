@@ -12,6 +12,10 @@ Status: implemented; bank-statement import and distributed monitoring deferred.
 - Payouts: verified beneficiaries, threshold policy, self-approval prevention, distinct approvals, cleared-funds checks, idempotent demo execution and full audit.
 - Other single-step decisions: tenancy, household, ownership, incidents, budgets, identity.
 
+## Estate manager reports
+
+`GET /api/v1/estate/estates/:estateId/reports/summary` is management-scoped and aggregates invoice counts/billed amount, rent entitlement/collected/outstanding, expense and payout totals, and the audit-event count. The estate manager dashboard shows these as a Reports panel with CSV export buttons for wallet, ledger and audit statements.
+
 ## Statements and audit
 
 - `GET .../statements/wallet` — opening/closing balances and a running balance per entry; `?format=csv` exports.

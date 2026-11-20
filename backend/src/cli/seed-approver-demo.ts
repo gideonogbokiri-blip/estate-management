@@ -1,14 +1,15 @@
 import 'dotenv/config';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { hashAccountPassword } from '../auth/password-hash.js';
+import { DEMO_PASSWORD, demoEmails, estateInitials } from './demo-credentials.js';
 
 async function main() {
   const prisma = new PrismaService();
   try {
     const estate = await prisma.estate.findFirst({ where: { status: 'ACTIVE' }, orderBy: { createdAt: 'asc' } });
     if (!estate) throw new Error('No active estate found.');
-    const email = 'estate.approver.demo@example.test';
-    const passwordHash = await hashAccountPassword('Demo-Approve-4Pt8-Rx2k');
+    const email = demoEmails(estateInitials(estate.name)).approver;
+    const passwordHash = await hashAccountPassword(DEMO_PASSWORD);
     const user = await prisma.user.upsert({
       where: { emailNormalized: email },
       update: { status: 'ACTIVE', passwordHash },
@@ -20,7 +21,7 @@ async function main() {
       update: { status: 'ACTIVE' },
       create: { estateId: estate.id, userId: user.id, role: 'ESTATE_ADMINISTRATOR' },
     });
-    process.stdout.write(`Approver ready: ${email} / Demo-Approve-4Pt8-Rx2k\n`);
+    process.stdout.write(`Approver ready: ${email} / ${DEMO_PASSWORD}\n`);
   } finally {
     await prisma.$disconnect();
   }

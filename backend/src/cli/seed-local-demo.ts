@@ -1,7 +1,8 @@
 import 'dotenv/config';
-import { randomBytes, randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { hashAccountPassword } from '../auth/password-hash.js';
+import { DEMO_ESTATE_PREFIX, DEMO_PASSWORD, demoEmails } from './demo-credentials.js';
 
 const CONFIRMATION = '--confirm-local-demo';
 
@@ -20,10 +21,10 @@ async function main() {
     throw new Error('The local demo seed requires an empty users and estates database. Pass --allow-remote-demo-seed only for a fresh hosted demo database.');
   }
 
-  const managerEmail = 'estate.manager.demo@example.test';
-  const residentEmail = 'estate.resident.demo@example.test';
-  const managerPassword = `Demo-${randomBytes(12).toString('base64url')}`;
-  const residentPassword = `Demo-${randomBytes(12).toString('base64url')}`;
+  const managerEmail = demoEmails(DEMO_ESTATE_PREFIX).manager;
+  const residentEmail = demoEmails(DEMO_ESTATE_PREFIX).resident;
+  const managerPassword = DEMO_PASSWORD;
+  const residentPassword = DEMO_PASSWORD;
   const [managerPasswordHash, residentPasswordHash] = await Promise.all([
     hashAccountPassword(managerPassword),
     hashAccountPassword(residentPassword),

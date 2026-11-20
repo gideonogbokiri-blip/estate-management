@@ -2,15 +2,16 @@ import 'dotenv/config';
 import { createHash } from 'node:crypto';
 import { hashAccountPassword } from '../auth/password-hash.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { DEMO_ESTATE_PREFIX, DEMO_PASSWORD, demoEmails } from './demo-credentials.js';
 
 const CONFIRMATION = '--confirm-local-gate-demo';
 const RESET_FLAG = '--reset';
 
 const DEMO_ESTATE_NAME = 'Palm Crest Residences (Demo)';
-const OFFICER_EMAIL = 'estate.security.demo@example.test';
+const OFFICER_EMAIL = demoEmails(DEMO_ESTATE_PREFIX).security;
 const OFFICER_NAME = 'Estate Demo Security Officer';
-const OFFICER_PASSWORD = 'Demo-Gate-6Qm2-Vr8w';
-const RESIDENT_EMAIL = 'estate.resident.demo@example.test';
+const OFFICER_PASSWORD = DEMO_PASSWORD;
+const RESIDENT_EMAIL = demoEmails(DEMO_ESTATE_PREFIX).resident;
 const GATE_CODE = 'MAIN';
 const GATE_NAME = 'Main Gate';
 

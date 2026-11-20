@@ -23,6 +23,7 @@ Date: 20 November 2026. Status legend: **LIVE** = deployed and verified; **DEMO*
 | §12 Rate limiting | `RateLimitGuard` in local + Vercel bootstrap | — | — | `hardening.test.js` | LIVE |
 | §12 Audit query | `GET .../audit` with CSV | manager Statements & audit trail card | — | `hardening.test.js` | LIVE |
 | §12 Statements | `GET .../statements/wallet|ledger` | manager dashboard | — | `hardening.test.js` | LIVE |
+| §11 Estate manager reports | `GET .../reports/summary` + CSV exports | manager Reports panel | — | `reports.test.js` | LIVE |
 | §12 MFA/step-up | — | — | — | — | DEFERRED |
 | §8 Map with verified pins | property locations API | resident map still schematic | — | — | GAP |
 | §9 Real utility/airtime/data vending | — | — | — | — | DEFERRED |

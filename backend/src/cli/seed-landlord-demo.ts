@@ -1,11 +1,12 @@
 import 'dotenv/config';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { hashAccountPassword } from '../auth/password-hash.js';
+import { DEMO_ESTATE_PREFIX, DEMO_PASSWORD, demoEmails } from './demo-credentials.js';
 
 const CONFIRMATION = '--confirm-landlord-demo';
 
-const EMAIL = 'estate.landlord.demo@example.test';
-const PASSWORD = 'Demo-Landlord-8Wq3-Jt6e';
+const EMAIL = demoEmails(DEMO_ESTATE_PREFIX).landlord;
+const PASSWORD = DEMO_PASSWORD;
 const DISPLAY_NAME = 'Estate Demo Landlord';
 const ESTATE_NAME = 'Palm Crest Residences (Demo)';
 const PROPERTY_CODE = 'PC-002';

@@ -44,6 +44,67 @@ export class ReportsService {
     };
   }
 
+  async managerSummary(actorUserId: string, estateId: string) {
+    await this.membership(actorUserId, estateId, true);
+    const [invoices, rentSchedules, expenses, payouts, auditCount] = await Promise.all([
+      this.prisma.estateInvoiceDraft.findMany({
+        where: { estateId }, select: { status: true, total: true, currency: true },
+      }),
+      this.prisma.rentSchedule.findMany({
+        where: { estateId }, select: { amount: true, currency: true, payments: { select: { amount: true } } },
+      }),
+      this.prisma.estateExpenseRequest.findMany({
+        where: { estateId }, select: { status: true, amount: true, currency: true },
+      }),
+      this.prisma.estatePayoutRequest.findMany({
+        where: { estateId }, select: { status: true, amount: true, currency: true },
+      }),
+      this.prisma.auditEvent.count({ where: { scope: 'estate', estateId } }),
+    ]);
+
+    const sum = <T>(rows: T[], pick: (row: T) => { toString(): string }) =>
+      rows.reduce((total, row) => total.plus(pick(row).toString()), new Prisma.Decimal(0));
+    const invoicesByStatus = (status: string) =>
+      invoices.filter((row) => row.status === status);
+
+    const rentEntitlement = sum(rentSchedules, (row) => row.amount);
+    const rentCollected = sum(rentSchedules.flatMap((row) => row.payments), (row) => row.amount);
+    const currency = invoices[0]?.currency
+      ?? rentSchedules[0]?.currency
+      ?? expenses[0]?.currency
+      ?? 'NGN';
+
+    return {
+      estateId,
+      generatedAt: new Date().toISOString(),
+      currency,
+      invoices: {
+        total: invoices.length,
+        issued: invoicesByStatus('ISSUED').length,
+        partiallyPaid: invoicesByStatus('PARTIALLY_PAID').length,
+        paid: invoicesByStatus('PAID').length,
+        billed: sum(invoices, (row) => row.total).toString(),
+      },
+      rent: {
+        schedules: rentSchedules.length,
+        entitlement: rentEntitlement.toString(),
+        collected: rentCollected.toString(),
+        outstanding: rentEntitlement.minus(rentCollected).toString(),
+      },
+      expenses: {
+        total: expenses.length,
+        pending: expenses.filter((row) => row.status !== 'PAID').length,
+        amount: sum(expenses, (row) => row.amount).toString(),
+      },
+      payouts: {
+        total: payouts.length,
+        pending: payouts.filter((row) => row.status === 'PENDING_APPROVAL').length,
+        amount: sum(payouts, (row) => row.amount).toString(),
+      },
+      auditEvents: auditCount,
+    };
+  }
+
   async walletStatement(actorUserId: string, estateId: string, filters: Range & { walletId?: string }) {
     const membership = await this.membership(actorUserId, estateId);
     const isManager = MANAGEMENT_ROLES.includes(membership.role);

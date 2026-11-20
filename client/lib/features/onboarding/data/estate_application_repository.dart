@@ -2104,6 +2104,8 @@ abstract interface class EstateApplicationApiRepository
     required String amount,
     required String idempotencyKey,
   });
+  Future<Map<String, dynamic>> loadManagerReportSummary(String estateId);
+  Future<String> fetchReportCsv(String estateId, String type);
   Future<Map<String, dynamic>> loadWalletStatement(String estateId, {String? from, String? to});
   Future<Map<String, dynamic>> loadAuditLog(String estateId, {String? action, String? from, String? to});
   Future<List<EstateServiceRecord>> loadEstateServices(String estateId);
@@ -4333,6 +4335,29 @@ class EstateApplicationApiClient implements EstateApplicationApiRepository {
         body: {'estateId': estateId, 'amount': amount},
       ),
     );
+  }
+
+  @override
+  Future<Map<String, dynamic>> loadManagerReportSummary(String estateId) async {
+    final access = await _requireAccessToken();
+    return _json(
+      _send('GET', '/estate/estates/$estateId/reports/summary', accessToken: access),
+    );
+  }
+
+  @override
+  Future<String> fetchReportCsv(String estateId, String type) async {
+    final access = await _requireAccessToken();
+    final path = switch (type) {
+      'ledger' => '/estate/estates/$estateId/statements/ledger?format=csv',
+      'audit' => '/estate/estates/$estateId/audit?format=csv',
+      _ => '/estate/estates/$estateId/statements/wallet?format=csv',
+    };
+    final response = await _send('GET', path, accessToken: access);
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw EstateApiException('The report could not be exported.', statusCode: response.statusCode);
+    }
+    return response.body;
   }
 
   @override

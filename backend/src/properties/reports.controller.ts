@@ -18,6 +18,11 @@ function toCsv(headers: string[], rows: unknown[][]) {
 export class ReportsController {
   constructor(private readonly reports: ReportsService) {}
 
+  @Get('reports/summary')
+  summary(@Req() request: AuthenticatedRequest, @Param('estateId', ParseUUIDPipe) estateId: string) {
+    return this.reports.managerSummary(request.actor.userId, estateId);
+  }
+
   @Get('statements/wallet')
   async walletStatement(@Req() request: AuthenticatedRequest, @Param('estateId', ParseUUIDPipe) estateId: string,
     @Query('from') from: string | undefined, @Query('to') to: string | undefined,

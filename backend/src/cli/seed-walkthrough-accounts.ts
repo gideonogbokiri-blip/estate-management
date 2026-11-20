@@ -1,25 +1,27 @@
 import 'dotenv/config';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { hashAccountPassword } from '../auth/password-hash.js';
+import { DEMO_ESTATE_PREFIX, DEMO_PASSWORD, demoEmails } from './demo-credentials.js';
 
 const CONFIRMATION = '--confirm-walkthrough-accounts';
+const emails = demoEmails(DEMO_ESTATE_PREFIX);
 
 const ACCOUNTS = [
   {
-    email: 'estate.applicant.demo@example.test',
+    email: emails.applicant,
     displayName: 'Estate Applicant (Demo)',
-    password: 'Demo-Apply-5Nm8-Vt2q',
+    password: DEMO_PASSWORD,
   },
   {
-    email: 'estate.platform.demo@example.test',
-    displayName: 'Estate Platform Reviewer (Demo)',
-    password: 'Demo-Review-7Kp4-nQ8v',
+    email: emails.platform,
+    displayName: 'Estate Platform Super Administrator (Demo)',
+    password: DEMO_PASSWORD,
     platformRole: 'platform_super_admin',
   },
   {
-    email: 'estate.security.demo@example.test',
+    email: emails.security,
     displayName: 'Estate Demo Security Officer',
-    password: 'Demo-Gate-6Qm2-Vr8w',
+    password: DEMO_PASSWORD,
   },
 ];
 
