@@ -90140,40 +90140,38 @@ A.a4M.prototype={
 tN(a,b,c,d){return this.ah1(a,b,c,d)},
 nE(a,b,c){return this.tN(a,b,c,null)},
 RW(a,b,c){return this.tN(a,b,null,c)},
-ah1(a,b,a0,a1){var s=0,r=A.Q(t.Wd),q,p=this,o,n,m,l,k,j,i,h,g,f,e,d,c
-var $async$tN=A.R(function(a2,a3){if(a2===1)return A.N(a3,r)
-for(;;)switch(s){case 0:f=t.N
-e=A.aD(["Accept","application/json","Cache-Control","no-store"],f,f)
-d=a1!=null
-if(d)e.m(0,"Content-Type","application/json")
-if(a0!=null)e.m(0,"Authorization","Bearer "+a0)
-if(a==="GET"){o=B.c.v(b,"?")?"&":"?"
-n=b+o+"nc="+1000*Date.now()}else n=b
+ah1(a,b,c,a0){var s=0,r=A.Q(t.Wd),q,p=this,o,n,m,l,k,j,i,h,g,f,e,d
+var $async$tN=A.R(function(a1,a2){if(a1===1)return A.N(a2,r)
+for(;;)switch(s){case 0:g=t.N
+f=A.aD(["Accept","application/json","Cache-Control","no-store"],g,g)
+e=a0!=null
+if(e)f.m(0,"Content-Type","application/json")
+if(c!=null)f.m(0,"Authorization","Bearer "+c)
 o=document.documentElement
-m=o==null?null:o.getAttribute("data-api-base")
-o=m!=null&&m.length!==0?m:null
-l=A.aOz(a,A.hF((o==null?"http://127.0.0.1:4100/api/v1":o)+n))
-l.r.P(0,e)
-if(d){d=B.cA.VZ(a1,null)
-d=l.gI8(0).qj(d)
-l.a6a()
-l.y=A.aGJ(d)
-k=l.glO()
-if(k==null){d=l.gI8(0)
-l.slO(A.ab1("text","plain",A.aD(["charset",d.gmL(d)],f,f)))}else{d=l.glO()
-if(d!=null){o=d.a
-if(o!=="text"){d=o+"/"+d.b
-d=d==="application/xml"||d==="application/xml-external-parsed-entity"||d==="application/xml-dtd"||B.c.l8(d,"+xml")}else d=!0}else d=!1
-if(d&&!k.c.a.ar(0,"charset")){d=l.gI8(0)
-j=A.aD(["charset",d.gmL(d)],f,f)
-i=k.a
-h=k.b
-g=A.aBG(k.c,f,f)
-g.P(0,j)
-l.slO(A.ab1(i,h,g))}}}c=A
+n=o==null?null:o.getAttribute("data-api-base")
+o=n!=null&&n.length!==0?n:null
+m=A.aOz(a,A.hF((o==null?"http://127.0.0.1:4100/api/v1":o)+b))
+m.r.P(0,f)
+if(e){e=B.cA.VZ(a0,null)
+e=m.gI8(0).qj(e)
+m.a6a()
+m.y=A.aGJ(e)
+l=m.glO()
+if(l==null){e=m.gI8(0)
+m.slO(A.ab1("text","plain",A.aD(["charset",e.gmL(e)],g,g)))}else{e=m.glO()
+if(e!=null){o=e.a
+if(o!=="text"){e=o+"/"+e.b
+e=e==="application/xml"||e==="application/xml-external-parsed-entity"||e==="application/xml-dtd"||B.c.l8(e,"+xml")}else e=!0}else e=!1
+if(e&&!l.c.a.ar(0,"charset")){e=m.gI8(0)
+k=A.aD(["charset",e.gmL(e)],g,g)
+j=l.a
+i=l.b
+h=A.aBG(l.c,g,g)
+h.P(0,k)
+m.slO(A.ab1(j,i,h))}}}d=A
 s=3
-return A.H(p.c.hr(0,l),$async$tN)
-case 3:q=c.aet(a3)
+return A.H(p.c.hr(0,m),$async$tN)
+case 3:q=d.aet(a2)
 s=1
 break
 case 1:return A.O(q,r)}})

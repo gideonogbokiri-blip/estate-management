@@ -2453,12 +2453,7 @@ class EstateApplicationApiClient implements EstateApplicationApiRepository {
     if (accessToken != null) {
       headers['Authorization'] = 'Bearer $accessToken';
     }
-    // Some browsers keep stale conditional-cache entries even when the server
-    // sends no-store. A unique query parameter on reads guarantees a fresh body.
-    final readPath = method == 'GET'
-        ? '$path${path.contains('?') ? '&' : '?'}nc=${DateTime.now().microsecondsSinceEpoch}'
-        : path;
-    final request = http.Request(method, _uri(readPath))..headers.addAll(headers);
+    final request = http.Request(method, _uri(path))..headers.addAll(headers);
     if (additionalHeaders != null) request.headers.addAll(additionalHeaders);
     if (body != null) request.body = jsonEncode(body);
     return http.Response.fromStream(await _client.send(request));

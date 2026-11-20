@@ -28,8 +28,13 @@ async function bootstrap(): Promise<void> {
   });
 
   app.use(helmet());
+  // API responses are stateful. Disable ETag generation so Express never answers
+  // a conditional request with 304 and an empty body.
+  app.getHttpAdapter().getInstance().set('etag', false);
   app.use('/api/v1', (_request: express.Request, response: express.Response, next: express.NextFunction) => {
     response.setHeader('Cache-Control', 'no-store');
+    response.removeHeader('ETag');
+    response.removeHeader('Last-Modified');
     next();
   });
   app.use((request: { method?: string; originalUrl?: string }, response: { statusCode: number; on: (event: string, listener: () => void) => void }, next: () => void) => {

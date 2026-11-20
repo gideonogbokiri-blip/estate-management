@@ -28,8 +28,11 @@ async function getApp() {
       app.use('/api/v1/payments/paystack/webhook', express.raw({ type: '*/*' }));
       const helmet = helmetModule.default ?? helmetModule;
       app.use(helmet());
+      app.getHttpAdapter().getInstance().set('etag', false);
       app.use('/api/v1', (_request, response, next) => {
         response.setHeader('Cache-Control', 'no-store');
+        response.removeHeader('ETag');
+        response.removeHeader('Last-Modified');
         next();
       });
       app.use((request, response, next) => {
