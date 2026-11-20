@@ -3,7 +3,7 @@ import { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { LedgerService } from './ledger.service.js';
 
-const MANAGEMENT_ROLES = ['estate_administrator', 'estate_manager', 'finance_manager'];
+const MANAGEMENT_ROLES = ['ESTATE_ADMINISTRATOR', 'ESTATE_MANAGER', 'FINANCE_MANAGER'];
 
 @Injectable()
 export class EstateTreasuryService {
