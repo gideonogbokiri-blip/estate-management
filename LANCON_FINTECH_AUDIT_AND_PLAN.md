@@ -91,6 +91,14 @@ Added capture/verification metadata to `EstateProperty` (accuracy, capture metho
 
 Added `IdentityVerification` records with explicit consent capture, method (demo declaration / provider token / document review), level, provider reference, status lifecycle and audited manager decisions. The spec's preference for provider tokens over stored biometrics is followed — no identity documents or biometric templates are persisted. Demo declarations are clearly labelled (`DEMO-…`, `demo: true`) and must not be treated as provider-verified. Real provider integration (and any document upload, which would require Vercel Blob) remains intentionally deferred. Residents submit and view their own records; managers review and decide.
 
+## 6g. Phase 4 — services catalogue and demo vending (20 November 2026)
+
+Added `EstateServiceDefinition` and `EstateServiceOrder`. Managers configure services with code/name/category/provider/price; all are created in explicitly labelled demo mode because real utility/airtime/data providers are not configured. Residents order from their fund account: the order is idempotency-keyed, server-priced, wallet-debited under a row lock, and posted as a balanced ledger journal to a provider clearing account. Fulfilment is immediate in demo mode with a `DEMO-VOUCHER-…` code and `demo: true` response. Facility bookings already existed and were reused rather than duplicated.
+
+## 6h. Phase 5 — statements, audit visibility and baseline rate limiting (20 November 2026)
+
+Added read-only statement endpoints for wallet activity (with opening/closing balances and running balance per entry) and posted ledger journals, both with CSV export. Added a management-scoped audit query endpoint over the existing `AuditEvent` records — audit was written extensively but never queryable before. Added a dependency-free sliding-window rate-limit guard wired into both the local bootstrap and the Vercel serverless wrapper; it is explicitly documented as a per-instance baseline, not a distributed quota. Monitoring/alerting and secrets-manager integration remain external dependencies.
+
 ## 7. External dependencies still required
 
 Paystack TEST/LIVE secret keys, approved merchant/DVA product confirmation, webhook registration, settlement/KYC/KYB and Nigerian regulatory/legal sign-off. Payout, withdrawal, transfers and third-party vending remain feature-flagged/inactive until these are confirmed.

@@ -205,6 +205,79 @@ class RentScheduleRecord {
       );
 }
 
+class EstateServiceRecord {
+  const EstateServiceRecord({
+    required this.id,
+    required this.code,
+    required this.name,
+    required this.category,
+    required this.provider,
+    required this.amount,
+    required this.currency,
+    required this.demo,
+    required this.status,
+    this.description,
+  });
+  final String id;
+  final String code;
+  final String name;
+  final String category;
+  final String provider;
+  final String amount;
+  final String currency;
+  final bool demo;
+  final String status;
+  final String? description;
+
+  factory EstateServiceRecord.fromJson(Map<String, dynamic> json) => EstateServiceRecord(
+        id: json['id'] as String? ?? '',
+        code: json['code'] as String? ?? '',
+        name: json['name'] as String? ?? '',
+        category: json['category'] as String? ?? '',
+        provider: json['provider'] as String? ?? '',
+        amount: json['amount']?.toString() ?? '0',
+        currency: json['currency'] as String? ?? '',
+        demo: json['demo'] as bool? ?? false,
+        status: json['status'] as String? ?? '',
+        description: json['description'] as String?,
+      );
+}
+
+class EstateServiceOrderRecord {
+  const EstateServiceOrderRecord({
+    required this.id,
+    required this.serviceId,
+    required this.amount,
+    required this.currency,
+    required this.status,
+    required this.provider,
+    required this.demo,
+    required this.createdAt,
+    this.fulfilmentCode,
+  });
+  final String id;
+  final String serviceId;
+  final String amount;
+  final String currency;
+  final String status;
+  final String provider;
+  final bool demo;
+  final String createdAt;
+  final String? fulfilmentCode;
+
+  factory EstateServiceOrderRecord.fromJson(Map<String, dynamic> json) => EstateServiceOrderRecord(
+        id: json['id'] as String? ?? '',
+        serviceId: json['serviceId'] as String? ?? '',
+        amount: json['amount']?.toString() ?? '0',
+        currency: json['currency'] as String? ?? '',
+        status: json['status'] as String? ?? '',
+        provider: json['provider'] as String? ?? '',
+        demo: json['demo'] as bool? ?? false,
+        createdAt: json['createdAt'] as String? ?? '',
+        fulfilmentCode: json['fulfilmentCode'] as String?,
+      );
+}
+
 class IdentityVerificationRecord {
   const IdentityVerificationRecord({
     required this.id,
@@ -2031,6 +2104,25 @@ abstract interface class EstateApplicationApiRepository
     required String amount,
     required String idempotencyKey,
   });
+  Future<Map<String, dynamic>> loadWalletStatement(String estateId, {String? from, String? to});
+  Future<Map<String, dynamic>> loadAuditLog(String estateId, {String? action, String? from, String? to});
+  Future<List<EstateServiceRecord>> loadEstateServices(String estateId);
+  Future<EstateServiceRecord> createEstateService({
+    required String estateId,
+    required String code,
+    required String name,
+    required String category,
+    required String provider,
+    required String amount,
+    required String currency,
+    String? description,
+  });
+  Future<EstateServiceOrderRecord> orderEstateService({
+    required String estateId,
+    required String serviceId,
+    required String idempotencyKey,
+  });
+  Future<List<EstateServiceOrderRecord>> loadEstateServiceOrders(String estateId);
   Future<List<IdentityVerificationRecord>> loadMyIdentityVerifications(String estateId);
   Future<List<IdentityVerificationRecord>> loadEstateIdentityVerifications(String estateId);
   Future<IdentityVerificationRecord> submitIdentityVerification({
@@ -4234,6 +4326,102 @@ class EstateApplicationApiClient implements EstateApplicationApiRepository {
         body: {'estateId': estateId, 'amount': amount},
       ),
     );
+  }
+
+  @override
+  Future<Map<String, dynamic>> loadWalletStatement(String estateId, {String? from, String? to}) async {
+    final access = await _requireAccessToken();
+    final query = <String>[
+      if (from != null) 'from=$from',
+      if (to != null) 'to=$to',
+    ];
+    final suffix = query.isEmpty ? '' : '?${query.join('&')}';
+    return _json(
+      _send('GET', '/estate/estates/$estateId/statements/wallet$suffix', accessToken: access),
+    );
+  }
+
+  @override
+  Future<Map<String, dynamic>> loadAuditLog(String estateId, {String? action, String? from, String? to}) async {
+    final access = await _requireAccessToken();
+    final query = <String>[
+      if (action != null) 'action=${Uri.encodeComponent(action)}',
+      if (from != null) 'from=$from',
+      if (to != null) 'to=$to',
+    ];
+    final suffix = query.isEmpty ? '' : '?${query.join('&')}';
+    return _json(
+      _send('GET', '/estate/estates/$estateId/audit$suffix', accessToken: access),
+    );
+  }
+
+  @override
+  Future<List<EstateServiceRecord>> loadEstateServices(String estateId) async {
+    final access = await _requireAccessToken();
+    final response = await _json(
+      _send('GET', '/estate/estates/$estateId/services', accessToken: access),
+    );
+    return (response['items'] as List? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .map(EstateServiceRecord.fromJson)
+        .toList(growable: false);
+  }
+
+  @override
+  Future<EstateServiceRecord> createEstateService({
+    required String estateId,
+    required String code,
+    required String name,
+    required String category,
+    required String provider,
+    required String amount,
+    required String currency,
+    String? description,
+  }) async {
+    final access = await _requireAccessToken();
+    final response = await _json(
+      _send(
+        'POST',
+        '/estate/estates/$estateId/services',
+        accessToken: access,
+        body: {
+          'code': code, 'name': name, 'category': category, 'provider': provider,
+          'amount': amount, 'currency': currency,
+          if (description != null) 'description': description,
+        },
+      ),
+    );
+    return EstateServiceRecord.fromJson(response);
+  }
+
+  @override
+  Future<EstateServiceOrderRecord> orderEstateService({
+    required String estateId,
+    required String serviceId,
+    required String idempotencyKey,
+  }) async {
+    final access = await _requireAccessToken();
+    final response = await _json(
+      _send(
+        'POST',
+        '/estate/estates/$estateId/services/$serviceId/orders',
+        accessToken: access,
+        additionalHeaders: {'Idempotency-Key': idempotencyKey},
+      ),
+    );
+    return EstateServiceOrderRecord.fromJson(response);
+  }
+
+  @override
+  Future<List<EstateServiceOrderRecord>> loadEstateServiceOrders(String estateId) async {
+    final access = await _requireAccessToken();
+    final response = await _json(
+      _send('GET', '/estate/estates/$estateId/services/orders', accessToken: access),
+    );
+    return (response['items'] as List? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .map(EstateServiceOrderRecord.fromJson)
+        .toList(growable: false);
   }
 
   List<IdentityVerificationRecord> _identityFrom(Map<String, dynamic> response) =>

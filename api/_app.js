@@ -3,6 +3,7 @@ const { NestFactory } = require('../backend/node_modules/@nestjs/core');
 const { ValidationPipe } = require('../backend/node_modules/@nestjs/common');
 const helmetModule = require('../backend/node_modules/helmet');
 const { AppModule } = require('../backend/dist/src/app.module.js');
+const { RateLimitGuard } = require('../backend/dist/src/security/rate-limit.guard.js');
 
 let appPromise;
 
@@ -41,6 +42,7 @@ async function getApp() {
         next();
       });
       app.enableCors({ origin: configuredOrigins(), credentials: true });
+      app.useGlobalGuards(new RateLimitGuard());
       app.useGlobalPipes(
         new ValidationPipe({
           whitelist: true,

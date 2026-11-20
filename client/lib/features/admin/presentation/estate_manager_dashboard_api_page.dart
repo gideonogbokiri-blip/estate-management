@@ -45,6 +45,10 @@ class _EstateManagerDashboardApiPageState
   List<HouseholdMemberRecord> _household = const [];
   List<PropertyLocationRecord> _locations = const [];
   List<IdentityVerificationRecord> _identity = const [];
+  List<EstateServiceRecord> _services = const [];
+  List<EstateServiceOrderRecord> _serviceOrders = const [];
+  Map<String, dynamic> _walletStatement = const {};
+  List<dynamic> _auditLog = const [];
   EstateMaintenanceQueue _maintenanceQueue = const EstateMaintenanceQueue(
     items: [],
     assignableStaff: [],
@@ -247,6 +251,10 @@ class _EstateManagerDashboardApiPageState
       widget.repository.loadEstateHousehold(estate.id),
       widget.repository.loadPropertyLocations(estate.id),
       widget.repository.loadEstateIdentityVerifications(estate.id),
+      widget.repository.loadEstateServices(estate.id),
+      widget.repository.loadEstateServiceOrders(estate.id),
+      widget.repository.loadWalletStatement(estate.id),
+      widget.repository.loadAuditLog(estate.id),
     ]);
     _summary = result[0] as EstateManagerDashboardSummary;
     _maintenanceQueue = result[1] as EstateMaintenanceQueue;
@@ -262,6 +270,12 @@ class _EstateManagerDashboardApiPageState
     _household = result.length > 11 ? result[11] as List<HouseholdMemberRecord> : const [];
     _locations = result.length > 12 ? result[12] as List<PropertyLocationRecord> : const [];
     _identity = result.length > 13 ? result[13] as List<IdentityVerificationRecord> : const [];
+    _services = result.length > 14 ? result[14] as List<EstateServiceRecord> : const [];
+    _serviceOrders = result.length > 15 ? result[15] as List<EstateServiceOrderRecord> : const [];
+    _walletStatement = result.length > 16 ? result[16] as Map<String, dynamic> : const {};
+    _auditLog = result.length > 17
+        ? (result[17] as Map<String, dynamic>)['items'] as List<dynamic>? ?? const []
+        : const [];
     _selectedGateId = _estateGates.any((gate) => gate.id == _selectedGateId)
         ? _selectedGateId
         : (_estateGates.isEmpty ? null : _estateGates.first.id);
@@ -1125,6 +1139,68 @@ class _EstateManagerDashboardApiPageState
     }
   }
 
+  Future<void> _createService() async {
+    final estate = _estate;
+    if (estate == null) return;
+    final code = TextEditingController();
+    final name = TextEditingController();
+    final category = TextEditingController(text: 'utilities');
+    final provider = TextEditingController(text: 'demo');
+    final amount = TextEditingController(text: '1000.00');
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Add demo service'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: code, decoration: const InputDecoration(labelText: 'Code (e.g. AIRTIME)')),
+              const SizedBox(height: 10),
+              TextField(controller: name, decoration: const InputDecoration(labelText: 'Name')),
+              const SizedBox(height: 10),
+              TextField(controller: category, decoration: const InputDecoration(labelText: 'Category')),
+              const SizedBox(height: 10),
+              TextField(controller: provider, decoration: const InputDecoration(labelText: 'Provider')),
+              const SizedBox(height: 10),
+              TextField(controller: amount, keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Amount (NGN)')),
+              const SizedBox(height: 10),
+              const Text('Services are created in demo mode; no real vending provider is contacted.',
+                  style: TextStyle(fontSize: 11, color: EstateColors.muted)),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Create')),
+        ],
+      ),
+    );
+    if (saved != true) return;
+    try {
+      await widget.repository.createEstateService(
+        estateId: estate.id,
+        code: code.text.trim().toUpperCase(),
+        name: name.text.trim(),
+        category: category.text.trim(),
+        provider: provider.text.trim(),
+        amount: amount.text.trim(),
+        currency: 'NGN',
+      );
+      await _loadSummary();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Demo service created.')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not create service: $error')),
+      );
+    }
+  }
+
   Future<void> _decideIdentity(IdentityVerificationRecord row, String decision) async {
     final estate = _estate;
     if (estate == null) return;
@@ -1702,6 +1778,87 @@ class _EstateManagerDashboardApiPageState
                       ),
                     ),
                   ],
+                  const SizedBox(height: 18),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(children: const [
+                            Icon(Icons.assessment_outlined, color: EstateColors.forest),
+                            SizedBox(width: 9),
+                            Text('Statements & audit trail',
+                                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                          ]),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Wallet closing balance ${_walletStatement['summary']?['closing'] ?? '0'} · '
+                            '${(_walletStatement['items'] as List? ?? const []).length} entries. '
+                            'CSV exports are available from the statements API.',
+                            style: const TextStyle(color: EstateColors.muted, fontSize: 12),
+                          ),
+                          const SizedBox(height: 8),
+                          ..._auditLog.take(5).map(
+                                (entry) => ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  title: Text(
+                                    '${entry['action']} · ${entry['outcome']}',
+                                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                                  ),
+                                  subtitle: Text(
+                                    '${entry['actorName'] ?? 'System'} · ${entry['occurredAt']}',
+                                    style: const TextStyle(fontSize: 10),
+                                  ),
+                                ),
+                              ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(children: const [
+                            Icon(Icons.storefront_outlined, color: EstateColors.forest),
+                            SizedBox(width: 9),
+                            Text('Services catalogue (demo)',
+                                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                          ]),
+                          const SizedBox(height: 8),
+                          Text(
+                            '${_services.length} services · ${_serviceOrders.length} demo orders. '
+                            'Orders are paid from resident wallets and fulfil with labelled demo vouchers.',
+                            style: const TextStyle(color: EstateColors.muted, fontSize: 12),
+                          ),
+                          const SizedBox(height: 10),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: OutlinedButton.icon(
+                              onPressed: _createService,
+                              icon: const Icon(Icons.add),
+                              label: const Text('Add demo service'),
+                            ),
+                          ),
+                          ..._serviceOrders.take(4).map(
+                                (row) => ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  title: Text('${row.currency} ${row.amount} · ${row.status}',
+                                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                                  subtitle: Text(
+                                    '${row.provider}${row.demo ? ' · demo' : ''} · ${row.fulfilmentCode ?? ''}',
+                                    style: const TextStyle(fontSize: 11),
+                                  ),
+                                ),
+                              ),
+                        ],
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 18),
                   Card(
                     child: Padding(

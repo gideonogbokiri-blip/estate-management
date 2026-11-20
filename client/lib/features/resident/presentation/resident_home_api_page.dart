@@ -39,6 +39,7 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
   List<RentScheduleRecord> _rentSchedule = const [];
   List<HouseholdMemberRecord> _household = const [];
   List<IdentityVerificationRecord> _identity = const [];
+  List<EstateServiceRecord> _servicesCatalogue = const [];
   List<ResidentMaintenanceRecord> _maintenanceRequests = const [];
   String? _selectedMaintenancePropertyId;
   String? _maintenanceEstateId;
@@ -204,6 +205,14 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
           : await widget.repository.loadMyIdentityVerifications(estateId);
     } catch (_) {
       _identity = const [];
+    }
+    try {
+      final estateId = _memberships.firstOrNull?.id;
+      _servicesCatalogue = estateId == null
+          ? const []
+          : await widget.repository.loadEstateServices(estateId);
+    } catch (_) {
+      _servicesCatalogue = const [];
     }
     final securityMembership = _memberships
         .where((estate) => estate.roles.contains('security_officer'))
@@ -685,6 +694,34 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
   String _money(dynamic value) {
     final amount = double.tryParse(value.toString()) ?? 0;
     return 'NGN ${amount.toStringAsFixed(2).replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (_) => ',')}';
+  }
+
+  Future<void> _orderService(EstateServiceRecord service) async {
+    final estateId = _memberships.firstOrNull?.id;
+    if (estateId == null) return;
+    final key = 'svc-order-${DateTime.now().microsecondsSinceEpoch}-'
+        '${service.id.substring(service.id.length > 8 ? service.id.length - 8 : 0)}';
+    try {
+      final result = await widget.repository.orderEstateService(
+        estateId: estateId,
+        serviceId: service.id,
+        idempotencyKey: key,
+      );
+      await _loadWorkspace();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            result.demo
+                ? 'Demo service fulfilled. Voucher: ${result.fulfilmentCode ?? 'demo'}'
+                : 'Service ordered successfully.',
+          ),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_message(error))));
+    }
   }
 
   Future<void> _submitDemoIdentity() async {
@@ -1434,6 +1471,47 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                               '${row.relationship.toLowerCase()} · ${row.propertyCode} · ${row.status}'
                               '${row.financialAccess ? ' · wallet access' : ''}',
                               style: const TextStyle(fontSize: 11),
+                            ),
+                          ),
+                        ),
+                      ),
+                const SizedBox(height: 18),
+              ],
+              if (_selectedTab == 3) ...[
+                _sectionTitle('Services catalogue'),
+                if (_servicesCatalogue.isEmpty)
+                  const Card(
+                    child: Padding(
+                      padding: EdgeInsets.all(20),
+                      child: Text('No services are configured for this estate yet.'),
+                    ),
+                  )
+                else
+                  ..._servicesCatalogue.where((row) => row.status == 'active').take(6).map(
+                        (row) => Card(
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: const Color(0xFFE9F2ED),
+                              child: Icon(
+                                row.category.toLowerCase().contains('airtime') ||
+                                        row.category.toLowerCase().contains('data')
+                                    ? Icons.phone_android_outlined
+                                    : Icons.bolt_outlined,
+                                color: EstateColors.forest,
+                              ),
+                            ),
+                            title: Text(row.name,
+                                style: const TextStyle(fontWeight: FontWeight.w700)),
+                            subtitle: Text(
+                              '${row.currency} ${row.amount} · ${row.provider}'
+                              '${row.demo ? ' · demo service' : ''}',
+                              style: const TextStyle(fontSize: 11),
+                            ),
+                            trailing: TextButton(
+                              onPressed: _wallets.firstOrNull == null
+                                  ? null
+                                  : () => _orderService(row),
+                              child: const Text('Order'),
                             ),
                           ),
                         ),

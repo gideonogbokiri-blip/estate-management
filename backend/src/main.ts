@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import helmet from 'helmet';
 import { AppModule } from './app.module.js';
+import { RateLimitGuard } from './security/rate-limit.guard.js';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
@@ -43,6 +44,7 @@ async function bootstrap(): Promise<void> {
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
   });
   app.setGlobalPrefix('api/v1');
+  app.useGlobalGuards(new RateLimitGuard());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
