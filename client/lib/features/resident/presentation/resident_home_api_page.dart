@@ -37,6 +37,7 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
   List<Map<String, dynamic>> _invoiceRecords = const [];
   List<EstateWalletRecord> _wallets = const [];
   List<RentScheduleRecord> _rentSchedule = const [];
+  List<HouseholdMemberRecord> _household = const [];
   List<ResidentMaintenanceRecord> _maintenanceRequests = const [];
   String? _selectedMaintenancePropertyId;
   String? _maintenanceEstateId;
@@ -189,6 +190,11 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
           : await widget.repository.loadRentSchedule(estateId);
     } catch (_) {
       _rentSchedule = const [];
+    }
+    try {
+      _household = await widget.repository.loadMyHousehold();
+    } catch (_) {
+      _household = const [];
     }
     final securityMembership = _memberships
         .where((estate) => estate.roles.contains('security_officer'))
@@ -670,6 +676,97 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
   String _money(dynamic value) {
     final amount = double.tryParse(value.toString()) ?? 0;
     return 'NGN ${amount.toStringAsFixed(2).replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (_) => ',')}';
+  }
+
+  Future<void> _addHouseholdMember() async {
+    final estateId = _memberships.firstOrNull?.id;
+    final propertyId = _propertyId ?? _properties.firstOrNull?.id;
+    if (estateId == null || propertyId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Select your property before adding a household member.')),
+      );
+      return;
+    }
+    final nameController = TextEditingController();
+    var relationship = 'SPOUSE';
+    var memberType = 'ADULT';
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Add household member'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(labelText: 'Full name'),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  initialValue: relationship,
+                  decoration: const InputDecoration(labelText: 'Relationship'),
+                  items: const [
+                    DropdownMenuItem(value: 'SPOUSE', child: Text('Spouse')),
+                    DropdownMenuItem(value: 'CHILD', child: Text('Child')),
+                    DropdownMenuItem(value: 'PARENT', child: Text('Parent')),
+                    DropdownMenuItem(value: 'DEPENDENT', child: Text('Dependant')),
+                    DropdownMenuItem(value: 'OTHER', child: Text('Other')),
+                  ],
+                  onChanged: (value) => setState(() => relationship = value ?? 'SPOUSE'),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  initialValue: memberType,
+                  decoration: const InputDecoration(labelText: 'Member type'),
+                  items: const [
+                    DropdownMenuItem(value: 'ADULT', child: Text('Adult')),
+                    DropdownMenuItem(value: 'CHILD', child: Text('Child / dependant')),
+                    DropdownMenuItem(value: 'RESTRICTED', child: Text('Restricted member')),
+                  ],
+                  onChanged: (value) => setState(() => memberType = value ?? 'ADULT'),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'New members are reviewed by estate management. Dependants and restricted members never receive wallet access.',
+                  style: TextStyle(fontSize: 11, color: EstateColors.muted),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Submit'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (saved != true || nameController.text.trim().isEmpty) return;
+    try {
+      await widget.repository.addHouseholdMember(
+        estateId: estateId,
+        propertyId: propertyId,
+        fullName: nameController.text.trim(),
+        relationship: relationship,
+        memberType: memberType,
+        effectiveFrom: DateTime.now().toUtc().toIso8601String().substring(0, 10),
+      );
+      await _loadWorkspace();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Household member submitted for review.')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_message(error))));
+    }
   }
 
   Future<void> _payRentSchedule(RentScheduleRecord row) async {
@@ -1235,6 +1332,49 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                                         : () => _payRentSchedule(row),
                                     child: const Text('Pay'),
                                   ),
+                          ),
+                        ),
+                      ),
+                const SizedBox(height: 18),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Household',
+                        style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                    TextButton.icon(
+                      onPressed: _addHouseholdMember,
+                      icon: const Icon(Icons.person_add_alt_1_outlined, size: 18),
+                      label: const Text('Add member'),
+                    ),
+                  ],
+                ),
+                if (_household.isEmpty)
+                  const Card(
+                    child: Padding(
+                      padding: EdgeInsets.all(20),
+                      child: Text('No household members have been added yet.'),
+                    ),
+                  )
+                else
+                  ..._household.take(6).map(
+                        (row) => Card(
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: const Color(0xFFE9F2ED),
+                              child: Icon(
+                                row.memberType == 'CHILD'
+                                    ? Icons.child_care_outlined
+                                    : Icons.person_outline,
+                                color: EstateColors.forest,
+                              ),
+                            ),
+                            title: Text(row.fullName,
+                                style: const TextStyle(fontWeight: FontWeight.w700)),
+                            subtitle: Text(
+                              '${row.relationship.toLowerCase()} · ${row.propertyCode} · ${row.status}'
+                              '${row.financialAccess ? ' · wallet access' : ''}',
+                              style: const TextStyle(fontSize: 11),
+                            ),
                           ),
                         ),
                       ),

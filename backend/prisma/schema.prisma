@@ -594,6 +594,34 @@ model PropertyOccupancy {
   @@map("property_occupancies")
 }
 
+model HouseholdMember {
+  id              String    @id @default(uuid()) @db.Uuid
+  estateId        String    @map("estate_id") @db.Uuid
+  propertyId      String    @map("property_id") @db.Uuid
+  primaryUserId   String    @map("primary_user_id") @db.Uuid
+  fullName        String    @db.VarChar(160)
+  relationship    String    @db.VarChar(30)
+  memberType      String    @map("member_type") @db.VarChar(20)
+  dateOfBirth     DateTime? @map("date_of_birth") @db.Date
+  phone           String?   @db.VarChar(30)
+  email           String?   @db.VarChar(254)
+  linkedUserId    String?   @map("linked_user_id") @db.Uuid
+  financialAccess Boolean   @default(false) @map("financial_access")
+  status          String    @db.VarChar(20)
+  effectiveFrom   DateTime  @map("effective_from") @db.Date
+  effectiveTo     DateTime? @map("effective_to") @db.Date
+  addedById       String    @map("added_by_id") @db.Uuid
+  decidedById     String?   @map("decided_by_id") @db.Uuid
+  decidedAt       DateTime? @map("decided_at") @db.Timestamptz(3)
+  decisionReason  String?   @map("decision_reason") @db.VarChar(500)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([estateId, propertyId, status])
+  @@index([primaryUserId, status])
+  @@map("household_members")
+}
+
 model EstateTenancy {
   id                       String             @id @default(uuid()) @db.Uuid
   estateId                 String             @map("estate_id") @db.Uuid

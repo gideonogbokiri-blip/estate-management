@@ -42,6 +42,7 @@ class _EstateManagerDashboardApiPageState
   List<EstatePayoutRecord> _payouts = const [];
   List<RentScheduleRecord> _rentSchedule = const [];
   List<LandlordRentSummaryRecord> _landlordRent = const [];
+  List<HouseholdMemberRecord> _household = const [];
   EstateMaintenanceQueue _maintenanceQueue = const EstateMaintenanceQueue(
     items: [],
     assignableStaff: [],
@@ -241,6 +242,7 @@ class _EstateManagerDashboardApiPageState
       widget.repository.loadPayouts(estate.id),
       widget.repository.loadRentSchedule(estate.id),
       widget.repository.loadLandlordRentSummary(estate.id),
+      widget.repository.loadEstateHousehold(estate.id),
     ]);
     _summary = result[0] as EstateManagerDashboardSummary;
     _maintenanceQueue = result[1] as EstateMaintenanceQueue;
@@ -253,6 +255,7 @@ class _EstateManagerDashboardApiPageState
     _payouts = result.length > 8 ? result[8] as List<EstatePayoutRecord> : const [];
     _rentSchedule = result.length > 9 ? result[9] as List<RentScheduleRecord> : const [];
     _landlordRent = result.length > 10 ? result[10] as List<LandlordRentSummaryRecord> : const [];
+    _household = result.length > 11 ? result[11] as List<HouseholdMemberRecord> : const [];
     _selectedGateId = _estateGates.any((gate) => gate.id == _selectedGateId)
         ? _selectedGateId
         : (_estateGates.isEmpty ? null : _estateGates.first.id);
@@ -1116,6 +1119,29 @@ class _EstateManagerDashboardApiPageState
     }
   }
 
+  Future<void> _decideHousehold(String memberId, String decision) async {
+    final estate = _estate;
+    if (estate == null) return;
+    try {
+      await widget.repository.decideHouseholdMember(
+        estateId: estate.id,
+        memberId: memberId,
+        decision: decision,
+        note: decision == 'approve' ? 'Reviewed by estate management.' : 'Does not meet household policy.',
+      );
+      await _loadSummary();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Household member $decision.')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not update household member: $error')),
+      );
+    }
+  }
+
   Future<void> _generateRecurringLevies() async {
     final estate = _estate;
     if (estate == null) return;
@@ -1566,6 +1592,56 @@ class _EstateManagerDashboardApiPageState
                       ),
                     ),
                   ],
+                  const SizedBox(height: 18),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(children: const [
+                            Icon(Icons.family_restroom_outlined, color: EstateColors.forest),
+                            SizedBox(width: 9),
+                            Text('Household review',
+                                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                          ]),
+                          const SizedBox(height: 8),
+                          Text(
+                            '${_household.where((row) => row.status == 'pending_approval').length} pending review · '
+                            '${_household.length} total members',
+                            style: const TextStyle(color: EstateColors.muted, fontSize: 12),
+                          ),
+                          ..._household
+                              .where((row) => row.status == 'pending_approval')
+                              .take(5)
+                              .map(
+                                (row) => ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  title: Text(row.fullName,
+                                      style: const TextStyle(fontWeight: FontWeight.w600)),
+                                  subtitle: Text(
+                                    '${row.relationship.toLowerCase()} · ${row.propertyCode} · added by ${row.primaryUserName}',
+                                    style: const TextStyle(fontSize: 11),
+                                  ),
+                                  trailing: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      TextButton(
+                                        onPressed: () => _decideHousehold(row.id, 'reject'),
+                                        child: const Text('Reject'),
+                                      ),
+                                      FilledButton(
+                                        onPressed: () => _decideHousehold(row.id, 'approve'),
+                                        child: const Text('Approve'),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                        ],
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 18),
                   Card(
                     child: Padding(

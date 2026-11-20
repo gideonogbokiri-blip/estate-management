@@ -71,13 +71,17 @@ Phase 1 will be considered complete when:
 - Added a read-only estate treasury summary endpoint backed by the ledger, wallet transactions, invoice settlements, expense requests, funding intents and quarantined provider events: `GET /api/v1/estate/estates/:estateId/treasury/summary`.
 - Authorization is limited to active estate administrator, manager and finance-manager memberships. The manager dashboard now renders an Estate treasury card with collections, wallet balances, outstanding invoices, pending settlements and reconciliation exceptions.
 - Payout controls added: verified beneficiaries, estate payout policy with threshold-based approvals, self-approval prevention, cleared-funds checks, idempotent initiation, separate approve/reject decisions and provider execution behind `PAYSTACK_SECRET_KEY`. The manager dashboard can request and decide payouts.
-- Rent engine added: deterministic, idempotent schedule generation from active tenancies (monthly/quarterly/annual), rent receipts, landlord entitlement/arrears summary, and wallet-funded rent payment posting to a landlord payable ledger account. Rent is kept separate from estate levies and treasury.
+- **Phase 2 COMPLETE and verified live.** Rent engine added: deterministic, idempotent schedule generation from active tenancies (monthly/quarterly/annual), rent receipts, landlord entitlement/arrears summary, and wallet-funded rent payment posting to a landlord payable ledger account. Rent is kept separate from estate levies and treasury.
 - Charge applicability preview added: `GET /estate/estates/:estateId/charges/versions/:versionId/applicability` lists the properties and payers a version would bill, with the relationship reason, for a given billing period.
 - Deterministic recurring levy generation added: `GET .../charges/recurring/preview` shows the calendar periods and recipient counts; `POST .../charges/recurring/generate` creates and issues invoices for active recurring charges with deterministic idempotency keys. Re-running returns the same invoices instead of duplicating them, and an invoice already created manually for the same business tuple is treated as a replay. All finance roles are scoped by active estate membership.
 
 ## 6c. Demo-first mode (20 November 2026)
 
 Per product direction, Paystack is deferred to the final step. `FINANCIAL_DEMO_MODE=true` now supplies clearly labelled `DEMO-…` account numbers, an explicit **Simulate demo credit** action that posts a balanced ledger journal, and demo payout execution. All demo responses and UI states are marked `DEMO MODE · NO REAL MONEY`. Production requires `FINANCIAL_DEMO_MODE=false` plus a verified Paystack arrangement.
+
+## 6d. Phase 3 — household profiles (20 November 2026)
+
+Added a `HouseholdMember` model and connected API: residents submit household members for management review, managers approve/reject or add directly, and either party can end a membership with a recorded reason. Adult/children/restricted member types and relationship are captured with effective dates. Dependants and restricted members are prevented from receiving wallet/financial privileges in both add and decision paths. All mutations are membership-scoped, audited and concurrency-controlled. The resident home shows a Household section with an add form; the manager dashboard shows a pending-review card with approve/reject actions. Registration approval lifecycle was already connected and was not duplicated.
 
 ## 7. External dependencies still required
 

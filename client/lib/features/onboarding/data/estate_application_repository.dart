@@ -205,6 +205,56 @@ class RentScheduleRecord {
       );
 }
 
+class HouseholdMemberRecord {
+  const HouseholdMemberRecord({
+    required this.id,
+    required this.fullName,
+    required this.relationship,
+    required this.memberType,
+    required this.status,
+    required this.effectiveFrom,
+    required this.propertyCode,
+    required this.primaryUserName,
+    this.effectiveTo,
+    this.financialAccess = false,
+    this.decisionReason,
+    this.dateOfBirth,
+    this.phone,
+    this.email,
+  });
+  final String id;
+  final String fullName;
+  final String relationship;
+  final String memberType;
+  final String status;
+  final String effectiveFrom;
+  final String propertyCode;
+  final String primaryUserName;
+  final String? effectiveTo;
+  final bool financialAccess;
+  final String? decisionReason;
+  final String? dateOfBirth;
+  final String? phone;
+  final String? email;
+
+  factory HouseholdMemberRecord.fromJson(Map<String, dynamic> json) => HouseholdMemberRecord(
+        id: json['id'] as String? ?? '',
+        fullName: json['fullName'] as String? ?? '',
+        relationship: json['relationship'] as String? ?? '',
+        memberType: json['memberType'] as String? ?? '',
+        status: json['status'] as String? ?? '',
+        effectiveFrom: json['effectiveFrom'] as String? ?? '',
+        propertyCode: json['propertyCode'] as String? ?? '',
+        primaryUserName: json['primaryUserName'] as String? ?? '',
+        effectiveTo: json['effectiveTo'] as String?,
+        financialAccess: json['financialAccess'] as bool? ?? false,
+        decisionReason: json['decisionReason'] as String?,
+        dateOfBirth: json['dateOfBirth'] as String?,
+        phone: json['phone'] as String?,
+        email: json['email'] as String?,
+      );
+}
+
 class LandlordRentSummaryRecord {
   const LandlordRentSummaryRecord({
     required this.payeeUserId,
@@ -1895,6 +1945,32 @@ abstract interface class EstateApplicationApiRepository
     required String estateId,
     required String amount,
     required String idempotencyKey,
+  });
+  Future<List<HouseholdMemberRecord>> loadMyHousehold();
+  Future<List<HouseholdMemberRecord>> loadEstateHousehold(String estateId);
+  Future<HouseholdMemberRecord> addHouseholdMember({
+    required String estateId,
+    required String propertyId,
+    required String fullName,
+    required String relationship,
+    required String memberType,
+    required String effectiveFrom,
+    String? primaryUserId,
+    String? dateOfBirth,
+    String? phone,
+    String? email,
+    bool financialAccess = false,
+  });
+  Future<HouseholdMemberRecord> decideHouseholdMember({
+    required String estateId,
+    required String memberId,
+    required String decision,
+    String? note,
+  });
+  Future<HouseholdMemberRecord> endHouseholdMember({
+    required String estateId,
+    required String memberId,
+    required String reason,
   });
   Future<Map<String, dynamic>> previewRecurringLevies(String estateId, {int months = 3});
   Future<Map<String, dynamic>> generateRecurringLevies(String estateId, {int months = 3});
@@ -4041,6 +4117,102 @@ class EstateApplicationApiClient implements EstateApplicationApiRepository {
         body: {'estateId': estateId, 'amount': amount},
       ),
     );
+  }
+
+  List<HouseholdMemberRecord> _householdFrom(Map<String, dynamic> response) =>
+      (response['items'] as List? ?? const [])
+          .whereType<Map<String, dynamic>>()
+          .map(HouseholdMemberRecord.fromJson)
+          .toList(growable: false);
+
+  @override
+  Future<List<HouseholdMemberRecord>> loadMyHousehold() async {
+    final access = await _requireAccessToken();
+    return _householdFrom(
+      await _json(_send('GET', '/estate/household/mine', accessToken: access)),
+    );
+  }
+
+  @override
+  Future<List<HouseholdMemberRecord>> loadEstateHousehold(String estateId) async {
+    final access = await _requireAccessToken();
+    return _householdFrom(
+      await _json(_send('GET', '/estate/estates/$estateId/household', accessToken: access)),
+    );
+  }
+
+  @override
+  Future<HouseholdMemberRecord> addHouseholdMember({
+    required String estateId,
+    required String propertyId,
+    required String fullName,
+    required String relationship,
+    required String memberType,
+    required String effectiveFrom,
+    String? primaryUserId,
+    String? dateOfBirth,
+    String? phone,
+    String? email,
+    bool financialAccess = false,
+  }) async {
+    final access = await _requireAccessToken();
+    final response = await _json(
+      _send(
+        'POST',
+        '/estate/estates/$estateId/household',
+        accessToken: access,
+        body: {
+          'propertyId': propertyId,
+          'fullName': fullName,
+          'relationship': relationship,
+          'memberType': memberType,
+          'effectiveFrom': effectiveFrom,
+          if (primaryUserId != null) 'primaryUserId': primaryUserId,
+          if (dateOfBirth != null) 'dateOfBirth': dateOfBirth,
+          if (phone != null) 'phone': phone,
+          if (email != null) 'email': email,
+          'financialAccess': financialAccess,
+        },
+      ),
+    );
+    return HouseholdMemberRecord.fromJson(response);
+  }
+
+  @override
+  Future<HouseholdMemberRecord> decideHouseholdMember({
+    required String estateId,
+    required String memberId,
+    required String decision,
+    String? note,
+  }) async {
+    final access = await _requireAccessToken();
+    final response = await _json(
+      _send(
+        'POST',
+        '/estate/estates/$estateId/household/$memberId/decide',
+        accessToken: access,
+        body: {'decision': decision, if (note != null) 'note': note},
+      ),
+    );
+    return HouseholdMemberRecord.fromJson(response);
+  }
+
+  @override
+  Future<HouseholdMemberRecord> endHouseholdMember({
+    required String estateId,
+    required String memberId,
+    required String reason,
+  }) async {
+    final access = await _requireAccessToken();
+    final response = await _json(
+      _send(
+        'POST',
+        '/estate/estates/$estateId/household/$memberId/end',
+        accessToken: access,
+        body: {'reason': reason},
+      ),
+    );
+    return HouseholdMemberRecord.fromJson(response);
   }
 
   @override
