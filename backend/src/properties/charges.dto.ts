@@ -31,6 +31,16 @@ export class CreateEstateInvoiceDraftDto {
   @IsString() @Matches(/^\d{4}-\d{2}-\d{2}$/) periodEnd!: string;
 }
 
+export class PreviewChargeApplicabilityDto {
+  @IsOptional() @IsString() @Matches(/^\d{4}-\d{2}-\d{2}$/) periodStart?: string;
+  @IsOptional() @IsString() @Matches(/^\d{4}-\d{2}-\d{2}$/) periodEnd?: string;
+}
+
+export class GenerateRecurringInvoicesDto {
+  @IsOptional() @IsString() @Matches(/^\d{4}-\d{2}-\d{2}$/) from?: string;
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(24) months?: number;
+}
+
 export class CreateEstateSettlementPolicyDto {
   @IsString() @Matches(/^[A-Z]{3}$/) currency!: string;
   @IsString() @MinLength(2) @MaxLength(100) bankName!: string;

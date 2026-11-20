@@ -1,7 +1,7 @@
-import { Body, Controller, Get, Headers, Param, ParseUUIDPipe, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Param, ParseUUIDPipe, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { AccessTokenGuard } from '../auth/access-token.guard.js';
 import type { AuthenticatedRequest } from '../auth/access-token.guard.js';
-import { CreateEstateChargeDto, CreateEstateChargeVersionDto, CreateEstateInvoiceDraftDto, CreateEstateSettlementPolicyDto, RecordEstateInvoiceSettlementDto } from './charges.dto.js';
+import { CreateEstateChargeDto, CreateEstateChargeVersionDto, CreateEstateInvoiceDraftDto, CreateEstateSettlementPolicyDto, GenerateRecurringInvoicesDto, PreviewChargeApplicabilityDto, RecordEstateInvoiceSettlementDto } from './charges.dto.js';
 import { EstateChargesService } from './charges.service.js';
 
 @Controller('estate/estates/:estateId/charges')
@@ -17,6 +17,24 @@ export class EstateChargesController {
   @Get('invoice-drafts')
   listInvoiceDrafts(@Req() request: AuthenticatedRequest, @Param('estateId', ParseUUIDPipe) estateId: string) {
     return this.charges.listInvoiceDrafts(request.actor.userId, estateId);
+  }
+
+  @Get('recurring/preview')
+  previewRecurring(@Req() request: AuthenticatedRequest, @Param('estateId', ParseUUIDPipe) estateId: string,
+    @Query('from') from?: string, @Query('months') months?: string) {
+    return this.charges.previewRecurring(request.actor.userId, estateId, { from, months: months ? Number(months) : undefined });
+  }
+
+  @Post('recurring/generate')
+  generateRecurring(@Req() request: AuthenticatedRequest, @Param('estateId', ParseUUIDPipe) estateId: string,
+    @Body() body: GenerateRecurringInvoicesDto) {
+    return this.charges.generateRecurring(request.actor.userId, estateId, body);
+  }
+
+  @Get('versions/:versionId/applicability')
+  previewApplicability(@Req() request: AuthenticatedRequest, @Param('estateId', ParseUUIDPipe) estateId: string,
+    @Param('versionId', ParseUUIDPipe) versionId: string, @Query() query: PreviewChargeApplicabilityDto) {
+    return this.charges.previewApplicability(request.actor.userId, estateId, versionId, query);
   }
 
   @Get('settlement-policies')

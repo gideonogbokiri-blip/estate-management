@@ -199,6 +199,14 @@ export class EstateChargesService {
           if (existing.payloadHash !== payloadHash) throw new ConflictException('This idempotency key was already used for different invoice details.');
           return replay(existing);
         }
+        const existingPayer = await this.prisma.user.findFirst({ where: { emailNormalized: payerEmail }, select: { id: true } });
+        if (existingPayer) {
+          const existingInvoice = await this.prisma.estateInvoiceDraft.findFirst({ where: {
+            estateId, chargeVersionId: input.chargeVersionId, propertyId: input.propertyId,
+            payerUserId: existingPayer.id, periodStart: this.date(input.periodStart), periodEnd: this.date(input.periodEnd),
+          } });
+          if (existingInvoice) return replay(existingInvoice);
+        }
         throw new ConflictException('An invoice draft already exists for this payer, property, charge version and billing period.');
       }
       if (code === 'P2034') throw new ConflictException('The invoice draft changed during creation. Retry with the same idempotency key.');
@@ -389,6 +397,204 @@ export class EstateChargesService {
       lines: (Array.isArray(row.lineSnapshot) ? row.lineSnapshot : []).map((line: any) => ({ description: String(line.description ?? ''), amount: String(line.amount ?? '0.00') })),
       verifiedPayments: row.settlements.map((item) => ({ amount: item.amount.toFixed(2), currency: item.currency, receivedAt: item.receivedAt.toISOString(), receiptNumber: item.receiptNumber })),
     })) };
+  }
+
+  private periodStartFor(value: string, recurrence: string) {
+    const parsed = this.date(value);
+    if (recurrence === 'MONTHLY') return new Date(Date.UTC(parsed.getUTCFullYear(), parsed.getUTCMonth(), 1));
+    if (recurrence === 'QUARTERLY') return new Date(Date.UTC(parsed.getUTCFullYear(), Math.floor(parsed.getUTCMonth() / 3) * 3, 1));
+    return new Date(Date.UTC(parsed.getUTCFullYear(), 0, 1));
+  }
+
+  private addPeriods(cursor: Date, recurrence: string, count: number) {
+    const step = recurrence === 'MONTHLY' ? 1 : recurrence === 'QUARTERLY' ? 3 : 12;
+    return new Date(Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth() + step * count, 1));
+  }
+
+  private periodFor(cursor: Date, recurrence: string) {
+    const endExclusive = this.addPeriods(cursor, recurrence, 1);
+    return {
+      start: this.dateOnly(cursor),
+      end: this.dateOnly(new Date(endExclusive.getTime() - 86400000)),
+    };
+  }
+
+  private async applicableTargets(estateId: string, version: any, period: { start: string; end: string }) {
+    const properties = await this.prisma.estateProperty.findMany({
+      where: { estateId, status: { not: 'ARCHIVED' } },
+      select: { id: true, code: true, propertyType: true },
+      orderBy: { code: 'asc' },
+    });
+    const scoped = properties.filter((property) => {
+      if (version.appliesTo === 'PROPERTY') return property.id === version.propertyId;
+      if (version.appliesTo === 'PROPERTY_TYPE') {
+        return property.propertyType.toLowerCase() === String(version.propertyType ?? '').toLowerCase();
+      }
+      return true;
+    });
+    const start = this.date(period.start);
+    const end = this.date(period.end);
+    const relationshipWindow = {
+      effectiveFrom: { lte: end },
+      OR: [{ effectiveTo: null }, { effectiveTo: { gte: start } }],
+    };
+    const targets: Array<{
+      propertyId: string; propertyCode: string; propertyType: string;
+      payerUserId: string; payerEmail: string; payerName: string; relationship: string;
+    }> = [];
+    for (const property of scoped) {
+      const [occupancies, tenancies, ownerships] = await Promise.all([
+        this.prisma.propertyOccupancy.findMany({ where: { estateId, propertyId: property.id, status: 'ACTIVE', ...relationshipWindow }, select: { residentId: true } }),
+        this.prisma.estateTenancy.findMany({ where: { estateId, propertyId: property.id, status: 'ACTIVE', ...relationshipWindow }, select: { tenantUserId: true } }),
+        this.prisma.estateOwnershipInterest.findMany({ where: { estateId, propertyId: property.id, status: 'ACTIVE', verificationStatus: 'VERIFIED', ...relationshipWindow }, select: { ownerUserId: true } }),
+      ]);
+      const relationshipByUser = new Map<string, string>();
+      occupancies.forEach((row) => relationshipByUser.set(row.residentId, 'occupancy'));
+      tenancies.forEach((row) => relationshipByUser.set(row.tenantUserId, 'tenancy'));
+      ownerships.forEach((row) => relationshipByUser.set(row.ownerUserId, 'ownership'));
+      if (relationshipByUser.size === 0) continue;
+      const users = await this.prisma.user.findMany({
+        where: { id: { in: [...relationshipByUser.keys()] }, status: 'ACTIVE' },
+        select: { id: true, emailNormalized: true, displayName: true },
+      });
+      for (const user of users) {
+        targets.push({
+          propertyId: property.id, propertyCode: property.code, propertyType: property.propertyType,
+          payerUserId: user.id, payerEmail: user.emailNormalized, payerName: user.displayName,
+          relationship: relationshipByUser.get(user.id)!,
+        });
+      }
+    }
+    return targets;
+  }
+
+  async previewApplicability(actorUserId: string, estateId: string, versionId: string,
+    input: { periodStart?: string; periodEnd?: string }) {
+    await this.requireAccess(actorUserId, estateId);
+    const version = await this.prisma.estateChargeVersion.findFirst({
+      where: { id: versionId, charge: { estateId } },
+      include: { charge: { select: { code: true } } },
+    });
+    if (!version) throw new NotFoundException('Charge version not found in this estate.');
+    const effectiveFrom = this.dateOnly(version.effectiveFrom);
+    const period = input.periodStart && input.periodEnd
+      ? { start: input.periodStart, end: input.periodEnd }
+      : version.recurrence === 'ONE_TIME'
+        ? { start: effectiveFrom, end: effectiveFrom }
+        : this.periodFor(this.periodStartFor(effectiveFrom, version.recurrence), version.recurrence);
+    this.validateDatePair(period.start, period.end);
+    this.validateBillingPeriod(version.recurrence, period.start, period.end);
+    const targets = await this.applicableTargets(estateId, version, period);
+    return {
+      chargeCode: version.charge.code, versionNumber: version.versionNumber,
+      recurrence: version.recurrence.toLowerCase(), scope: version.appliesTo.toLowerCase(),
+      amount: version.amount.toString(), currency: version.currency, period,
+      count: targets.length,
+      items: targets.map((target) => ({
+        propertyId: target.propertyId, propertyCode: target.propertyCode,
+        propertyType: target.propertyType, payerUserId: target.payerUserId,
+        payerEmail: target.payerEmail, payerName: target.payerName,
+        relationship: target.relationship, invoiceAmount: version.amount.toString(),
+      })),
+    };
+  }
+
+  async previewRecurring(actorUserId: string, estateId: string, input: { from?: string; months?: number }) {
+    await this.requireAccess(actorUserId, estateId);
+    const from = input.from ?? this.businessToday();
+    this.validateDatePair(from, from);
+    const months = Math.max(1, Math.min(input.months ?? 3, 24));
+    const versions = await this.prisma.estateChargeVersion.findMany({
+      where: { status: 'ACTIVE', recurrence: { in: ['MONTHLY', 'QUARTERLY', 'ANNUALLY'] }, charge: { estateId } },
+      include: { charge: { select: { code: true } } },
+      orderBy: [{ effectiveFrom: 'asc' }],
+    });
+    const horizon = this.addPeriods(this.periodStartFor(from, 'MONTHLY'), 'MONTHLY', months);
+    const charges = [];
+    for (const version of versions) {
+      const effectiveFrom = this.dateOnly(version.effectiveFrom);
+      const startValue = from > effectiveFrom ? from : effectiveFrom;
+      let cursor = this.periodStartFor(startValue, version.recurrence);
+      const periods = [];
+      while (cursor < horizon) {
+        const period = this.periodFor(cursor, version.recurrence);
+        if (version.effectiveTo && period.start > this.dateOnly(version.effectiveTo)) break;
+        const targets = await this.applicableTargets(estateId, version, period);
+        periods.push({ ...period, recipients: targets.length, amount: version.amount.toString(), currency: version.currency });
+        cursor = this.addPeriods(cursor, version.recurrence, 1);
+      }
+      charges.push({
+        chargeId: version.chargeId, versionId: version.id, chargeCode: version.charge.code,
+        recurrence: version.recurrence.toLowerCase(), scope: version.appliesTo.toLowerCase(),
+        periods,
+      });
+    }
+    return { from, months, charges, totalPeriods: charges.reduce((sum, item) => sum + item.periods.length, 0) };
+  }
+
+  async generateRecurring(actorUserId: string, estateId: string, input: { from?: string; months?: number }) {
+    await this.requireAccess(actorUserId, estateId);
+    const from = input.from ?? this.businessToday();
+    this.validateDatePair(from, from);
+    const months = Math.max(1, Math.min(input.months ?? 3, 24));
+    const policies = await this.prisma.estateSettlementPolicy.findMany({ where: { estateId, status: 'ACTIVE' }, select: { currency: true } });
+    if (policies.length === 0) throw new ConflictException('Activate at least one bank settlement policy before generating levies.');
+    const activeCurrencies = new Set(policies.map((item) => item.currency));
+    const versions = await this.prisma.estateChargeVersion.findMany({
+      where: { status: 'ACTIVE', recurrence: { in: ['MONTHLY', 'QUARTERLY', 'ANNUALLY'] }, charge: { estateId } },
+      include: { charge: { select: { code: true } } },
+      orderBy: [{ effectiveFrom: 'asc' }],
+    });
+    const result = {
+      created: 0, replayed: 0, issued: 0, alreadyIssued: 0, skipped: 0, failed: 0,
+      charges: versions.length, errors: [] as string[],
+    };
+    for (const version of versions) {
+      if (!activeCurrencies.has(version.currency)) {
+        result.failed += 1;
+        result.errors.push(`${version.charge.code}: no active ${version.currency} settlement policy.`);
+        continue;
+      }
+      const effectiveFrom = this.dateOnly(version.effectiveFrom);
+      const startValue = from > effectiveFrom ? from : effectiveFrom;
+      let cursor = this.periodStartFor(startValue, version.recurrence);
+      const horizon = this.addPeriods(this.periodStartFor(from, version.recurrence), version.recurrence, months);
+      while (cursor < horizon) {
+        const period = this.periodFor(cursor, version.recurrence);
+        if (version.effectiveTo && period.start > this.dateOnly(version.effectiveTo)) break;
+        const targets = await this.applicableTargets(estateId, version, period);
+        if (targets.length === 0) result.skipped += 1;
+        for (const target of targets) {
+          const key = `rec-${this.hash(`${version.id}|${target.propertyId}|${target.payerUserId}|${period.start}|${period.end}`).slice(0, 40)}`;
+          try {
+            const draft = await this.createInvoiceDraft(actorUserId, estateId, {
+              chargeVersionId: version.id, propertyId: target.propertyId,
+              payerEmail: target.payerEmail, periodStart: period.start, periodEnd: period.end,
+            }, key);
+            if (draft.replayed) result.replayed += 1;
+            else result.created += 1;
+            if (['issued', 'partially_paid', 'paid'].includes(draft.status)) {
+              result.alreadyIssued += 1;
+              continue;
+            }
+            await this.issueInvoiceDraft(actorUserId, estateId, draft.id);
+            result.issued += 1;
+          } catch (error) {
+            result.failed += 1;
+            if (result.errors.length < 20) {
+              result.errors.push(`${version.charge.code} ${period.start}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            }
+          }
+        }
+        cursor = this.addPeriods(cursor, version.recurrence, 1);
+      }
+    }
+    await this.prisma.auditEvent.create({ data: {
+      actorUserId, scope: 'estate', estateId, action: 'estate_invoice.recurring_generated',
+      targetType: 'estate', targetId: estateId, outcome: 'success', occurredAt: new Date(),
+      metadata: { created: result.created, replayed: result.replayed, issued: result.issued, failed: result.failed, from, months },
+    } });
+    return result;
   }
 
   private date(value: string) { return new Date(`${value}T00:00:00.000Z`); }

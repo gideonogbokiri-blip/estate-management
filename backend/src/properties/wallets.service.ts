@@ -333,6 +333,7 @@ export class EstateWalletService {
     if (!this.demoMode()) {
       throw new BadRequestException('Financial demo mode is disabled.');
     }
+    if (!intentId) throw new BadRequestException('A funding intent is required.');
     const intent = await this.prisma.walletFundingIntent.findUnique({ where: { id: intentId } });
     if (!intent || intent.userId !== userId) throw new NotFoundException('Funding intent not found.');
     if (intent.status !== 'awaiting_provider') throw new ConflictException('Funding intent is no longer awaiting funding.');

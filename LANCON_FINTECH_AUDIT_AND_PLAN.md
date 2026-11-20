@@ -72,7 +72,8 @@ Phase 1 will be considered complete when:
 - Authorization is limited to active estate administrator, manager and finance-manager memberships. The manager dashboard now renders an Estate treasury card with collections, wallet balances, outstanding invoices, pending settlements and reconciliation exceptions.
 - Payout controls added: verified beneficiaries, estate payout policy with threshold-based approvals, self-approval prevention, cleared-funds checks, idempotent initiation, separate approve/reject decisions and provider execution behind `PAYSTACK_SECRET_KEY`. The manager dashboard can request and decide payouts.
 - Rent engine added: deterministic, idempotent schedule generation from active tenancies (monthly/quarterly/annual), rent receipts, landlord entitlement/arrears summary, and wallet-funded rent payment posting to a landlord payable ledger account. Rent is kept separate from estate levies and treasury.
-- Charge applicability preview remains outstanding.
+- Charge applicability preview added: `GET /estate/estates/:estateId/charges/versions/:versionId/applicability` lists the properties and payers a version would bill, with the relationship reason, for a given billing period.
+- Deterministic recurring levy generation added: `GET .../charges/recurring/preview` shows the calendar periods and recipient counts; `POST .../charges/recurring/generate` creates and issues invoices for active recurring charges with deterministic idempotency keys. Re-running returns the same invoices instead of duplicating them, and an invoice already created manually for the same business tuple is treated as a replay. All finance roles are scoped by active estate membership.
 
 ## 6c. Demo-first mode (20 November 2026)
 

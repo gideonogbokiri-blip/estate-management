@@ -1116,6 +1116,29 @@ class _EstateManagerDashboardApiPageState
     }
   }
 
+  Future<void> _generateRecurringLevies() async {
+    final estate = _estate;
+    if (estate == null) return;
+    try {
+      final result = await widget.repository.generateRecurringLevies(estate.id);
+      await _loadSummary();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Levies: ${result['created']} new, ${result['issued']} issued, '
+            '${result['replayed']} already generated.',
+          ),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not generate levies: $error')),
+      );
+    }
+  }
+
   Future<void> _requestPayout() async {
     final estate = _estate;
     if (estate == null) return;
@@ -1543,6 +1566,38 @@ class _EstateManagerDashboardApiPageState
                       ),
                     ),
                   ],
+                  const SizedBox(height: 18),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(children: const [
+                            Icon(Icons.receipt_long_outlined, color: EstateColors.forest),
+                            SizedBox(width: 9),
+                            Text('Recurring estate levies',
+                                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                          ]),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Generate and issue the next 3 months of invoices for active '
+                            'recurring charges. Re-running is safe and will not duplicate invoices.',
+                            style: TextStyle(color: EstateColors.muted, fontSize: 12),
+                          ),
+                          const SizedBox(height: 10),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: OutlinedButton.icon(
+                              onPressed: _generateRecurringLevies,
+                              icon: const Icon(Icons.receipt_long_outlined),
+                              label: const Text('Generate levies'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 18),
                   Card(
                     child: Padding(

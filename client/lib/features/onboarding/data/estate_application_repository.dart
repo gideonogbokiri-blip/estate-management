@@ -1896,6 +1896,8 @@ abstract interface class EstateApplicationApiRepository
     required String amount,
     required String idempotencyKey,
   });
+  Future<Map<String, dynamic>> previewRecurringLevies(String estateId, {int months = 3});
+  Future<Map<String, dynamic>> generateRecurringLevies(String estateId, {int months = 3});
   Future<Map<String, dynamic>> generateRentSchedule(String estateId, {String? from, int months = 3});
   Future<List<RentScheduleRecord>> loadRentSchedule(String estateId);
   Future<List<LandlordRentSummaryRecord>> loadLandlordRentSummary(String estateId);
@@ -4037,6 +4039,31 @@ class EstateApplicationApiClient implements EstateApplicationApiRepository {
         accessToken: access,
         additionalHeaders: {'Idempotency-Key': idempotencyKey},
         body: {'estateId': estateId, 'amount': amount},
+      ),
+    );
+  }
+
+  @override
+  Future<Map<String, dynamic>> previewRecurringLevies(String estateId, {int months = 3}) async {
+    final access = await _requireAccessToken();
+    return _json(
+      _send(
+        'GET',
+        '/estate/estates/$estateId/charges/recurring/preview?months=$months',
+        accessToken: access,
+      ),
+    );
+  }
+
+  @override
+  Future<Map<String, dynamic>> generateRecurringLevies(String estateId, {int months = 3}) async {
+    final access = await _requireAccessToken();
+    return _json(
+      _send(
+        'POST',
+        '/estate/estates/$estateId/charges/recurring/generate',
+        accessToken: access,
+        body: {'months': months},
       ),
     );
   }
