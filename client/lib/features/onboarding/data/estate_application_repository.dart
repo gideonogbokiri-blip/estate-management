@@ -83,6 +83,36 @@ class EstateWalletRecord {
       );
 }
 
+class EstateTreasurySummary {
+  const EstateTreasurySummary({
+    required this.collections,
+    required this.walletBalances,
+    required this.outstandingInvoices,
+    required this.pendingSettlements,
+    required this.reconciliationExceptions,
+    required this.expenses,
+  });
+  final String collections;
+  final String walletBalances;
+  final String outstandingInvoices;
+  final int pendingSettlements;
+  final int reconciliationExceptions;
+  final List<Map<String, dynamic>> expenses;
+
+  factory EstateTreasurySummary.fromJson(Map<String, dynamic> json) =>
+      EstateTreasurySummary(
+        collections: json['collections']?.toString() ?? '0',
+        walletBalances: json['walletBalances']?.toString() ?? '0',
+        outstandingInvoices: json['outstandingInvoices']?.toString() ?? '0',
+        pendingSettlements: (json['pendingSettlements'] as num?)?.toInt() ?? 0,
+        reconciliationExceptions:
+            (json['reconciliationExceptions'] as num?)?.toInt() ?? 0,
+        expenses: (json['expenses'] as List? ?? const [])
+            .whereType<Map<String, dynamic>>()
+            .toList(growable: false),
+      );
+}
+
 class EstateApplicationDraft {
   const EstateApplicationDraft({
     required this.reference,
@@ -1551,6 +1581,7 @@ abstract interface class EstateApplicationApiRepository
     required String estateId,
     required String code,
   });
+  Future<EstateTreasurySummary> loadTreasurySummary(String estateId);
   Future<EstateManagerDashboardSummary> loadManagerDashboard(String estateId);
   Future<Map<String, dynamic>> loadEstateSettings(String estateId);
   Future<Map<String, dynamic>> updateEstateSettings({
@@ -3010,6 +3041,19 @@ class EstateApplicationApiClient implements EstateApplicationApiRepository {
         body: {'token': code.trim()},
       ),
     );
+  }
+
+  @override
+  Future<EstateTreasurySummary> loadTreasurySummary(String estateId) async {
+    final access = await _requireAccessToken();
+    final response = await _json(
+      _send(
+        'GET',
+        '/estate/estates/$estateId/treasury/summary',
+        accessToken: access,
+      ),
+    );
+    return EstateTreasurySummary.fromJson(response);
   }
 
   @override

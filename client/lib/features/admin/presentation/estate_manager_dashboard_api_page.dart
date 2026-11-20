@@ -37,6 +37,7 @@ class _EstateManagerDashboardApiPageState
   List<ManagedEstateChoice> _estates = const [];
   ManagedEstateChoice? _estate;
   EstateManagerDashboardSummary? _summary;
+  EstateTreasurySummary? _treasury;
   EstateMaintenanceQueue _maintenanceQueue = const EstateMaintenanceQueue(
     items: [],
     assignableStaff: [],
@@ -231,6 +232,7 @@ class _EstateManagerDashboardApiPageState
       widget.repository.loadSecurityOfficers(estate.id),
       widget.repository.loadEstateStructure(estate.id),
       widget.repository.loadEstateFacilityBookings(estate.id),
+      widget.repository.loadTreasurySummary(estate.id),
     ]);
     _summary = result[0] as EstateManagerDashboardSummary;
     _maintenanceQueue = result[1] as EstateMaintenanceQueue;
@@ -238,6 +240,7 @@ class _EstateManagerDashboardApiPageState
     _securityOfficers = result[3] as List<EstateStaffChoice>;
     _estateStructure = result[4] as List<EstateStructureRecord>;
     _facilityBookings = result[5] as List<EstateFacilityBookingRecord>;
+    _treasury = result.length > 6 ? result[6] as EstateTreasurySummary? : null;
     _selectedGateId = _estateGates.any((gate) => gate.id == _selectedGateId)
         ? _selectedGateId
         : (_estateGates.isEmpty ? null : _estateGates.first.id);
@@ -1398,6 +1401,32 @@ class _EstateManagerDashboardApiPageState
                     ),
                   ],
                   const SizedBox(height: 18),
+                  if (_treasury != null)
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(18),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(children: const [
+                              Icon(Icons.account_balance_outlined, color: EstateColors.forest),
+                              SizedBox(width: 9),
+                              Text('Estate treasury',
+                                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                            ]),
+                            const SizedBox(height: 10),
+                            Wrap(spacing: 20, runSpacing: 12, children: [
+                              _TreasuryFigure(label: 'Collections', value: _treasury!.collections),
+                              _TreasuryFigure(label: 'Wallet balances', value: _treasury!.walletBalances),
+                              _TreasuryFigure(label: 'Outstanding invoices', value: _treasury!.outstandingInvoices),
+                              _TreasuryFigure(label: 'Pending settlements', value: '${_treasury!.pendingSettlements}'),
+                              _TreasuryFigure(label: 'Reconciliation exceptions', value: '${_treasury!.reconciliationExceptions}'),
+                            ]),
+                          ],
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 18),
                   _WalletCard(
                     summary: summary,
                     onOpenCharges: _estate == null
@@ -1990,6 +2019,21 @@ class _MetricsGrid extends StatelessWidget {
             .toList(),
       );
     },
+  );
+}
+
+class _TreasuryFigure extends StatelessWidget {
+  const _TreasuryFigure({required this.label, required this.value});
+  final String label;
+  final String value;
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(value, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+      const SizedBox(height: 2),
+      Text(label, style: const TextStyle(color: EstateColors.muted, fontSize: 11)),
+    ],
   );
 }
 

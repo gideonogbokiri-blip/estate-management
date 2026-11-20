@@ -69,7 +69,7 @@ Phase 1 will be considered complete when:
 ## 6b. Phase 2 progress (20 November 2026)
 
 - Added a read-only estate treasury summary endpoint backed by the ledger, wallet transactions, invoice settlements, expense requests, funding intents and quarantined provider events: `GET /api/v1/estate/estates/:estateId/treasury/summary`.
-- Authorization is limited to active estate administrator, manager and finance-manager memberships. The UI card for this summary is the next step.
+- Authorization is limited to active estate administrator, manager and finance-manager memberships. The manager dashboard now renders an Estate treasury card with collections, wallet balances, outstanding invoices, pending settlements and reconciliation exceptions.
 - Rent schedule generation, landlord payable ledger and payout approvals remain outstanding.
 
 ## 7. External dependencies still required

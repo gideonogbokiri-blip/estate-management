@@ -778,8 +778,8 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
             ],
           ),
           const SizedBox(height: 14),
-          const Text('Available balance',
-              style: TextStyle(color: Color(0xFFBFD8C9), fontSize: 12)),
+          const Text('MY WALLET BALANCE',
+              style: TextStyle(color: Color(0xFFBFD8C9), fontSize: 11)),
           const SizedBox(height: 3),
           Text(
             wallet == null ? '—' : _money(wallet.balance),
@@ -794,6 +794,12 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
             style: const TextStyle(color: Color(0xFFCFE3D7), fontSize: 12),
           ),
           const SizedBox(height: 18),
+          const Text('Quick Services',
+              style: TextStyle(
+                  color: Color(0xFFCFE3D7),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700)),
+          const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -1372,7 +1378,7 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                 const SizedBox(height: 18),
                 KeyedSubtree(
                   key: _billingSectionKey,
-                  child: _sectionTitle('Estate charges and receipts'),
+                  child: _sectionTitle('Outstanding Payments'),
                 ),
                 if (_invoiceRecords.isEmpty)
                   const _MessageCard(
