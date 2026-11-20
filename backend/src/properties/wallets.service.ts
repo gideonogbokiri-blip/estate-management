@@ -1,4 +1,4 @@
-import {
+﻿import {
   BadRequestException,
   ForbiddenException,
   Injectable,
@@ -8,13 +8,17 @@ import {
 import { createHash, createHmac, randomUUID, timingSafeEqual } from 'node:crypto';
 import { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { LedgerService } from './ledger.service.js';
 
 const PAYSTACK_BASE = process.env.PAYSTACK_BASE_URL ?? 'https://api.paystack.co';
 const CURRENCY = 'NGN';
 
 @Injectable()
 export class EstateWalletService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly ledger: LedgerService,
+  ) {}
 
   private key() {
     const secret = process.env.PAYSTACK_SECRET_KEY;
@@ -163,25 +167,91 @@ export class EstateWalletService {
 
     const now = new Date();
     const reference = `WALLET-RENT-${invoiceId}-${now.getTime()}`;
-    await this.prisma.$transaction([
-      this.prisma.estateWalletTransaction.create({ data: {
+    return this.prisma.$transaction(async (tx) => {
+      // Lock the wallet row so concurrent debits cannot overspend.
+      await tx.$queryRaw`SELECT id FROM estate_wallets WHERE id = ${wallet.id} FOR UPDATE`;
+      const paidNow = await tx.estateInvoiceSettlement.aggregate({ where: { invoiceId }, _sum: { amount: true } });
+      if (amount.gt(invoice.total.sub(paidNow._sum.amount ?? new Prisma.Decimal(0)))) {
+        throw new BadRequestException('Amount exceeds the invoice balance.');
+      }
+      const sumsNow = await tx.estateWalletTransaction.groupBy({
+        by: ['type'], where: { walletId: wallet.id, status: 'posted' }, _sum: { amount: true },
+      });
+      const creditNow = sumsNow.find((row) => row.type === 'credit')?._sum.amount ?? new Prisma.Decimal(0);
+      const debitNow = sumsNow.find((row) => row.type === 'debit')?._sum.amount ?? new Prisma.Decimal(0);
+      if (creditNow.sub(debitNow).lt(amount)) throw new BadRequestException('Insufficient fund account balance.');
+
+      const journalId = await this.ledger.post(tx, {
+        estateId,
+        reference: `JRN-${reference}`,
+        sourceType: 'wallet_rent_payment',
+        sourceId: invoiceId,
+        description: `Wallet rent payment for ${invoice.invoiceNumber}`,
+        currency: CURRENCY,
+        debitAccount: this.ledger.walletAccount(wallet.id),
+        creditAccount: this.ledger.estateCollection(estateId, CURRENCY),
+        amount,
+        occurredAt: now,
+      });
+      await tx.estateWalletTransaction.create({ data: {
         walletId: wallet.id, estateId, type: 'debit', amount, currency: CURRENCY,
         reference, description: `Rent payment for ${invoice.invoiceNumber}`,
-        sourceType: 'rent_payment', sourceId: invoiceId, status: 'posted',
-      } }),
-      this.prisma.estateInvoiceSettlement.create({ data: {
+        sourceType: 'rent_payment', sourceId: invoiceId, status: 'posted', journalId,
+      } });
+      await tx.estateInvoiceSettlement.create({ data: {
         estateId, invoiceId, verifiedById: userId, amount, currency: CURRENCY,
         bankReference: reference, normalizedBankReference: reference.toLowerCase(),
         receiptNumber: `RCP-${randomUUID().replace(/-/g, '').slice(0, 16).toUpperCase()}`,
         receivedAt: now,
         verificationNote: 'Paid from the resident estate fund account.',
-      } }),
-      this.prisma.auditEvent.create({ data: {
+      } });
+      await tx.auditEvent.create({ data: {
         actorUserId: userId, scope: 'estate', estateId, action: 'wallet.rent_paid',
         targetType: 'estate_invoice', targetId: invoiceId, outcome: 'success', occurredAt: now,
-      } }),
-    ]);
-    return { paid: true, reference, amount: amount.toString() };
+      } });
+      return { paid: true, reference, amount: amount.toString(), journalId };
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+  }
+
+  async createFundingIntent(userId: string, estateId: string, amountText: string,
+    idempotencyKey: string | undefined) {
+    const amount = new Prisma.Decimal(amountText);
+    if (amount.lte(0) || amount.decimalPlaces() > 2) {
+      throw new BadRequestException('Amount must be positive with at most two decimals.');
+    }
+    if (!idempotencyKey || !/^[A-Za-z0-9._~-]{24,128}$/.test(idempotencyKey)) {
+      throw new BadRequestException('A valid Idempotency-Key is required.');
+    }
+    const membership = await this.prisma.estateMembership.findFirst({
+      where: { userId, estateId, status: 'ACTIVE', estate: { status: 'ACTIVE' } },
+      select: { id: true },
+    });
+    if (!membership) throw new ForbiddenException('Active estate membership is required.');
+    const wallet = await this.prisma.estateWallet.findUnique({
+      where: { estateId_userId_currency: { estateId, userId, currency: CURRENCY } },
+    });
+    if (!wallet || wallet.status !== 'active' || !wallet.accountNumber) {
+      throw new BadRequestException('Provision an active fund account before requesting funding.');
+    }
+    const hash = createHash('sha256').update(`funding-intent:v1:${idempotencyKey}`, 'utf8').digest('hex');
+    const existing = await this.prisma.walletFundingIntent.findUnique({
+      where: { userId_estateId_idempotencyKeyHash: { userId, estateId, idempotencyKeyHash: hash } },
+    });
+    if (existing) return { ...existing, replayed: true, accountNumber: wallet.accountNumber, bankName: wallet.bankName, accountName: wallet.accountName };
+    const intent = await this.prisma.walletFundingIntent.create({ data: {
+      walletId: wallet.id, estateId, userId, amount, currency: CURRENCY,
+      status: 'awaiting_provider', providerReference: null,
+      idempotencyKeyHash: hash,
+      expiresAt: new Date(Date.now() + 30 * 60 * 1000),
+    } });
+    const reference = `FUND-${intent.id}`;
+    await this.prisma.walletFundingIntent.update({ where: { id: intent.id }, data: { providerReference: reference } });
+    await this.prisma.auditEvent.create({ data: {
+      actorUserId: userId, scope: 'estate', estateId, action: 'wallet.funding_intent_created',
+      targetType: 'wallet_funding_intent', targetId: intent.id, outcome: 'success', occurredAt: new Date(),
+      metadata: { amount: amount.toString(), currency: CURRENCY },
+    } });
+    return { ...intent, providerReference: reference, replayed: false, accountNumber: wallet.accountNumber, bankName: wallet.bankName, accountName: wallet.accountName };
   }
 
   async handleWebhook(rawBody: Buffer, signature: string | undefined) {
@@ -194,33 +264,83 @@ export class EstateWalletService {
       throw new BadRequestException('Invalid webhook signature.');
     }
     const event = JSON.parse(rawBody.toString('utf8'));
+    const eventId = String(event.id ?? '').trim();
+    if (!eventId) throw new BadRequestException('Provider event id is required.');
+    const existingEvent = await this.prisma.providerWebhookEvent.findUnique({
+      where: { provider_eventId: { provider: 'paystack', eventId } },
+    });
+    if (existingEvent?.status === 'processed') return { credited: false, replayed: true };
+
     const supported = ['dedicatedvirtualaccount.success', 'transfer.success'];
-    if (!supported.includes(event.event)) return { ignored: event.event };
+    if (!supported.includes(event.event)) {
+      await this.prisma.providerWebhookEvent.create({ data: {
+        provider: 'paystack', eventId, eventType: String(event.event ?? ''),
+        status: 'ignored', payload: event, processedAt: new Date(),
+      } });
+      return { ignored: event.event };
+    }
     const data = event.data ?? {};
     const accountNumber = String(data.account_number ?? data.accountNumber ?? '').trim();
-    const reference = String(data.reference ?? data.id ?? '').trim();
-    if (!accountNumber || !reference) return { ignored: 'missing_account_or_reference' };
+    const providerReference = String(data.reference ?? '').trim();
     const kobo = Number(data.amount ?? 0);
-    if (!Number.isFinite(kobo) || kobo <= 0) return { ignored: 'invalid_amount' };
-    const amount = new Prisma.Decimal((kobo / 100).toFixed(2));
+    const currency = String(data.currency ?? CURRENCY).toUpperCase();
+    const amount = new Prisma.Decimal(Number.isFinite(kobo) && kobo > 0 ? (kobo / 100).toFixed(2) : '0');
+
+    const intent = providerReference
+      ? await this.prisma.walletFundingIntent.findFirst({ where: { providerReference } })
+      : null;
     const wallet = await this.prisma.estateWallet.findUnique({ where: { accountNumber } });
-    if (!wallet) return { ignored: 'unknown_account' };
-    const existing = await this.prisma.estateWalletTransaction.findUnique({ where: { reference } });
-    if (existing) return { credited: false, replayed: true };
-    await this.prisma.$transaction([
-      this.prisma.estateWalletTransaction.create({ data: {
-        walletId: wallet.id, estateId: wallet.estateId, type: 'credit', amount,
-        currency: wallet.currency, reference,
+    const eventRecord = await this.prisma.providerWebhookEvent.create({ data: {
+      provider: 'paystack', eventId, eventType: String(event.event),
+      status: 'pending', payload: event,
+    } });
+
+    let failure: string | null = null;
+    if (!wallet) failure = 'unknown_account';
+    else if (!intent) failure = 'no_matching_funding_intent';
+    else if (wallet.id !== intent.walletId) failure = 'wallet_mismatch';
+    else if (currency !== wallet.currency || currency !== intent.currency) failure = 'currency_mismatch';
+    else if (amount.lte(0) || amount.toString() !== intent.amount.toString()) failure = 'amount_mismatch';
+    else if (intent.status !== 'awaiting_provider') failure = 'intent_not_awaiting_provider';
+    else if (data.account_name && String(data.account_name).trim().toLowerCase() !== (wallet.accountName ?? '').toLowerCase()) failure = 'recipient_mismatch';
+
+    if (failure) {
+      await this.prisma.providerWebhookEvent.update({ where: { id: eventRecord.id },
+        data: { status: 'quarantined', error: failure, processedAt: new Date() } });
+      return { quarantined: true, reason: failure };
+    }
+
+    const creditWallet = wallet!;
+    const matchedIntent = intent!;
+    const now = new Date();
+    await this.prisma.$transaction(async (tx) => {
+      const journalId = await this.ledger.post(tx, {
+        estateId: creditWallet.estateId,
+        reference: `JRN-FUND-${providerReference}`,
+        sourceType: 'paystack_funding',
+        sourceId: providerReference,
+        description: 'Wallet funding received via Paystack',
+        currency: creditWallet.currency,
+        debitAccount: this.ledger.providerClearing('paystack', creditWallet.currency),
+        creditAccount: this.ledger.walletAccount(creditWallet.id),
+        amount,
+        occurredAt: now,
+      });
+      await tx.estateWalletTransaction.create({ data: {
+        walletId: creditWallet.id, estateId: creditWallet.estateId, type: 'credit', amount,
+        currency: creditWallet.currency, reference: providerReference,
         description: 'Funding received to estate fund account',
-        sourceType: 'paystack_webhook', sourceId: reference, status: 'posted',
-      } }),
-      this.prisma.auditEvent.create({ data: {
-        actorUserId: null, scope: 'estate', estateId: wallet.estateId,
-        action: 'wallet.funding_received', targetType: 'estate_wallet', targetId: wallet.id,
-        outcome: 'success', occurredAt: new Date(), metadata: { reference, amount: amount.toString() },
-      } }),
-    ]);
-    return { credited: true, reference, amount: amount.toString() };
+        sourceType: 'paystack_webhook', sourceId: providerReference, status: 'posted', journalId,
+      } });
+      await tx.walletFundingIntent.update({ where: { id: matchedIntent.id }, data: { status: 'completed' } });
+      await tx.providerWebhookEvent.update({ where: { id: eventRecord.id }, data: { status: 'processed', processedAt: now } });
+      await tx.auditEvent.create({ data: {
+        actorUserId: null, scope: 'estate', estateId: creditWallet.estateId,
+        action: 'creditWallet.funding_received', targetType: 'estate_wallet', targetId: creditWallet.id,
+        outcome: 'success', occurredAt: now, metadata: { reference: providerReference, amount: amount.toString() },
+      } });
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+    return { credited: true, reference: providerReference, amount: amount.toString() };
   }
 
   private async walletView(walletId: string) {

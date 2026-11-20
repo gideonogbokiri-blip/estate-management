@@ -1732,6 +1732,11 @@ abstract interface class EstateApplicationApiRepository
   );
   Future<List<EstateWalletRecord>> loadMyWallets();
   Future<EstateWalletRecord> provisionEstateWallet(String estateId);
+  Future<Map<String, dynamic>> createWalletFundingIntent({
+    required String estateId,
+    required String amount,
+    required String idempotencyKey,
+  });
   Future<Map<String, dynamic>> payRentFromWallet({
     required String estateId,
     required String invoiceId,
@@ -3773,6 +3778,24 @@ class EstateApplicationApiClient implements EstateApplicationApiRepository {
       ),
     );
     return EstateWalletRecord.fromJson(response);
+  }
+
+  @override
+  Future<Map<String, dynamic>> createWalletFundingIntent({
+    required String estateId,
+    required String amount,
+    required String idempotencyKey,
+  }) async {
+    final access = await _requireAccessToken();
+    return _json(
+      _send(
+        'POST',
+        '/estate/wallets/funding-intents',
+        accessToken: access,
+        additionalHeaders: {'Idempotency-Key': idempotencyKey},
+        body: {'estateId': estateId, 'amount': amount},
+      ),
+    );
   }
 
   @override

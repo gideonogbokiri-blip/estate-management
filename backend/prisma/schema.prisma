@@ -99,6 +99,7 @@ model User {
   sessions              UserSession[]
   platformGrants        PlatformRoleGrant[]
   estateMemberships     EstateMembership[]
+  fundingIntents       WalletFundingIntent[]
   createdProperties     EstateProperty[]            @relation("PropertyCreator")
   updatedProperties     EstateProperty[]            @relation("PropertyUpdater")
   createdStructureNodes EstateStructureNode[]       @relation("StructureCreator")
@@ -299,6 +300,8 @@ model Estate {
   securityIncidents  EstateSecurityIncident[]
   staffInvitations   EstateStaffInvitation[]
   wallets            EstateWallet[]
+  journals           LedgerJournal[]
+  fundingIntents     WalletFundingIntent[]
   expensePolicy      EstateExpensePolicy?
   expenseCategories  EstateExpenseCategory[]
   expensePayees      EstateExpensePayee[]
@@ -1580,6 +1583,78 @@ model AccountRecoveryCode {
   @@map("account_recovery_codes")
 }
 
+model LedgerJournal {
+  id                  String   @id @default(uuid()) @db.Uuid
+  estateId            String?  @map("estate_id") @db.Uuid
+  reference           String   @db.VarChar(180)
+  sourceType          String   @map("source_type") @db.VarChar(40)
+  sourceId            String?  @map("source_id") @db.VarChar(180)
+  description         String   @db.VarChar(300)
+  currency            String   @db.VarChar(3)
+  status              String   @db.VarChar(20)
+  reversedByJournalId String?  @map("reversed_by_journal_id") @db.Uuid
+  occurredAt          DateTime @map("occurred_at") @db.Timestamptz(3)
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  entries             LedgerEntry[]
+  estate              Estate? @relation(fields: [estateId], references: [id], onDelete: Restrict)
+
+  @@unique([reference])
+  @@index([estateId, createdAt])
+  @@map("ledger_journals")
+}
+
+model LedgerEntry {
+  id          String   @id @default(uuid()) @db.Uuid
+  journalId   String   @map("journal_id") @db.Uuid
+  accountCode String   @map("account_code") @db.VarChar(120)
+  direction   String   @db.VarChar(6)
+  amount      Decimal  @db.Decimal(14, 2)
+  currency    String   @db.VarChar(3)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  journal     LedgerJournal @relation(fields: [journalId], references: [id], onDelete: Restrict)
+
+  @@index([journalId])
+  @@index([accountCode, createdAt])
+  @@map("ledger_entries")
+}
+
+model WalletFundingIntent {
+  id                 String   @id @default(uuid()) @db.Uuid
+  walletId           String   @map("wallet_id") @db.Uuid
+  estateId           String   @map("estate_id") @db.Uuid
+  userId             String   @map("user_id") @db.Uuid
+  amount             Decimal  @db.Decimal(14, 2)
+  currency           String   @db.VarChar(3)
+  status             String   @db.VarChar(20)
+  providerReference  String?  @map("provider_reference") @db.VarChar(180)
+  idempotencyKeyHash String   @map("idempotency_key_hash") @db.VarChar(64)
+  expiresAt          DateTime @map("expires_at") @db.Timestamptz(3)
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  estate             Estate @relation(fields: [estateId], references: [id], onDelete: Restrict)
+  user               User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, estateId, idempotencyKeyHash])
+  @@map("wallet_funding_intents")
+}
+
+model ProviderWebhookEvent {
+  id          String    @id @default(uuid()) @db.Uuid
+  provider    String    @db.VarChar(30)
+  eventId     String    @map("event_id") @db.VarChar(180)
+  eventType   String    @map("event_type") @db.VarChar(80)
+  status      String    @db.VarChar(20)
+  payload     Json
+  error       String?   @db.VarChar(500)
+  receivedAt  DateTime  @default(now()) @map("received_at") @db.Timestamptz(3)
+  processedAt DateTime? @map("processed_at") @db.Timestamptz(3)
+
+  @@unique([provider, eventId])
+  @@map("provider_webhook_events")
+}
+
 model EstateWallet {
   id                String   @id @default(uuid()) @db.Uuid
   estateId          String   @map("estate_id") @db.Uuid
@@ -1615,6 +1690,7 @@ model EstateWalletTransaction {
   status      String   @db.VarChar(20)
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
+  journalId   String?  @map("journal_id") @db.Uuid
   wallet      EstateWallet @relation(fields: [walletId], references: [id], onDelete: Restrict)
 
   @@unique([reference])

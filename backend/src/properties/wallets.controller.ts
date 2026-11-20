@@ -1,8 +1,8 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Post, Req, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
 import { AccessTokenGuard } from '../auth/access-token.guard.js';
 import type { AuthenticatedRequest } from '../auth/access-token.guard.js';
-import { PayWalletRentDto, ProvisionWalletDto } from './wallets.dto.js';
+import { CreateFundingIntentDto, PayWalletRentDto, ProvisionWalletDto } from './wallets.dto.js';
 import { EstateWalletService } from './wallets.service.js';
 
 @Controller('estate/wallets')
@@ -18,6 +18,13 @@ export class EstateWalletsController {
   @Post('provision')
   provision(@Req() request: AuthenticatedRequest, @Body() body: ProvisionWalletDto) {
     return this.wallets.provision(request.actor.userId, body.estateId);
+  }
+
+  @Post('funding-intents')
+  fundingIntent(@Req() request: AuthenticatedRequest,
+    @Headers('idempotency-key') key: string | undefined,
+    @Body() body: CreateFundingIntentDto) {
+    return this.wallets.createFundingIntent(request.actor.userId, body.estateId, body.amount, key);
   }
 
   @Post('pay-rent')

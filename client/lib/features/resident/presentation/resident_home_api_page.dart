@@ -658,6 +658,172 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
     }
   }
 
+  String _money(dynamic value) {
+    final amount = double.tryParse(value.toString()) ?? 0;
+    return 'NGN ${amount.toStringAsFixed(2).replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (_) => ',')}';
+  }
+
+  Future<void> _startFunding(EstateWalletRecord wallet) async {
+    final amount = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        final controller = TextEditingController();
+        return AlertDialog(
+          title: const Text('Add money'),
+          content: TextField(
+            controller: controller,
+            keyboardType: TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(
+              labelText: 'Amount to fund',
+              prefixText: 'NGN ',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                final value = controller.text.trim();
+                if (RegExp(r'^[0-9]+(\.[0-9]{1,2})?$').hasMatch(value) &&
+                    double.tryParse(value) != null &&
+                    double.parse(value) > 0) {
+                  Navigator.pop(context, value);
+                }
+              },
+              child: const Text('Continue'),
+            ),
+          ],
+        );
+      },
+    );
+    if (amount == null) return;
+    try {
+      final key = 'fund-${DateTime.now().microsecondsSinceEpoch}-'
+          '${DateTime.now().millisecond}';
+      await widget.repository.createWalletFundingIntent(
+        estateId: wallet.estateId,
+        amount: amount,
+        idempotencyKey: key,
+      );
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Transfer to fund your account'),
+          content: Text(
+            '${wallet.accountName ?? ''}\n'
+            '${wallet.bankName ?? ''}\n'
+            '${wallet.accountNumber ?? ''}\n\n'
+            'Use the reference shown with your funding request. The balance updates only after the provider verifies your transfer.',
+          ),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_message(error))),
+      );
+    }
+  }
+
+  Widget _bankHero() {
+    final wallet = _wallets.firstOrNull;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF0A2F27), Color(0xFF0D3B30), Color(0xFF176B4B)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.account_balance_wallet_outlined, color: Color(0xFFCFE3D7), size: 18),
+              const SizedBox(width: 8),
+              const Text('My estate wallet',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14)),
+              const Spacer(),
+              IconButton(
+                tooltip: 'Account settings',
+                onPressed: () => showDialog<void>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Account settings'),
+                    content: Text('${_account?.displayName ?? ''}\n${_account?.email ?? ''}'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Close'),
+                      ),
+                      FilledButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _signOut();
+                        },
+                        child: const Text('Sign out'),
+                      ),
+                    ],
+                  ),
+                ),
+                icon: const Icon(Icons.settings_outlined, color: Colors.white, size: 19),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          const Text('Available balance',
+              style: TextStyle(color: Color(0xFFBFD8C9), fontSize: 12)),
+          const SizedBox(height: 3),
+          Text(
+            wallet == null ? '—' : _money(wallet.balance),
+            style: const TextStyle(
+              color: Colors.white, fontSize: 32, fontWeight: FontWeight.w700, letterSpacing: -1),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            wallet == null
+                ? 'No fund account yet'
+                : '${wallet.accountNumber ?? 'Account pending'} · ${wallet.bankName ?? ''}',
+            style: const TextStyle(color: Color(0xFFCFE3D7), fontSize: 12),
+          ),
+          const SizedBox(height: 18),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _QuickService(
+                icon: Icons.add_rounded,
+                label: 'Fund',
+                onTap: wallet == null ? _provisionWallet : () => _startFunding(wallet),
+              ),
+              _QuickService(
+                icon: Icons.payments_outlined,
+                label: 'Pay rent',
+                onTap: wallet == null ? _provisionWallet : () => _payRentFromWallet(wallet),
+              ),
+              _QuickService(
+                icon: Icons.receipt_long_outlined,
+                label: 'Bills',
+                onTap: _openResidentBilling,
+              ),
+              _QuickService(
+                icon: Icons.miscellaneous_services_outlined,
+                label: 'Services',
+                onTap: () => setState(() => _selectedTab = 3),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _moneyCard() {
     final wallet = _wallets.firstOrNull;
     var outstanding = 0.0;
@@ -746,19 +912,7 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                 runSpacing: 8,
                 children: [
                   FilledButton.icon(
-                    onPressed: () => showDialog<void>(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Fund your account'),
-                        content: Text(
-                          'Transfer only to your account:\n\n'
-                          '${wallet.accountName ?? ''}\n'
-                          '${wallet.bankName ?? ''}\n'
-                          '${wallet.accountNumber ?? ''}\n\n'
-                          'Deposits appear after Paystack verifies the transfer.',
-                        ),
-                      ),
-                    ),
+                    onPressed: () => _startFunding(wallet),
                     icon: const Icon(Icons.qr_code_2_outlined),
                     label: const Text('Fund account'),
                   ),
@@ -940,6 +1094,8 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
           child: ListView(
             padding: const EdgeInsets.all(22),
             children: [
+              _bankHero(),
+              const SizedBox(height: 20),
               Text(
                 'Welcome, ${_account!.displayName}',
                 style: const TextStyle(color: EstateColors.muted),
@@ -953,20 +1109,10 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                   _ => 'Your estate home',
                 },
                 style: const TextStyle(
-                  fontSize: 30,
+                  fontSize: 25,
                   fontWeight: FontWeight.w700,
                   color: EstateColors.ink,
                 ),
-              ),
-              const SizedBox(height: 7),
-              Text(
-                switch (_selectedTab) {
-                  1 => 'Request estate access and follow each request as it is reviewed.',
-                  2 => 'Report a property issue and follow updates from your estate team.',
-                  3 => 'Find estate services, billing and visitor tools.',
-                  _ => 'Your membership, approved tenancy and property services in one place.',
-                },
-                style: const TextStyle(color: EstateColors.muted, height: 1.5),
               ),
               if (_error != null) ...[
                 const SizedBox(height: 14),
@@ -978,7 +1124,7 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                   child: LinearProgressIndicator(),
                 ),
               const SizedBox(height: 18),
-              if (_selectedTab == 0 || _selectedTab == 3) ...[
+              if (_selectedTab == 3) ...[
                 _moneyCard(),
                 const SizedBox(height: 18),
               ],
@@ -2044,6 +2190,38 @@ class _ResidentHomeHero extends StatelessWidget {
       ),
     );
   }
+}
+
+class _QuickService extends StatelessWidget {
+  const _QuickService({required this.icon, required this.label, required this.onTap});
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) => InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(14),
+    child: SizedBox(
+      width: 68,
+      child: Column(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: .16),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.white24),
+            ),
+            child: Icon(icon, color: Colors.white, size: 21),
+          ),
+          const SizedBox(height: 6),
+          Text(label,
+              style: const TextStyle(color: Color(0xFFDCECE3), fontSize: 11)),
+        ],
+      ),
+    ),
+  );
 }
 
 class _MoneyFigure extends StatelessWidget {
