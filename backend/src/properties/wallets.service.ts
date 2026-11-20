@@ -1,5 +1,6 @@
 ﻿import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -19,6 +20,10 @@ export class EstateWalletService {
     private readonly prisma: PrismaService,
     private readonly ledger: LedgerService,
   ) {}
+
+  private demoMode() {
+    return (process.env.FINANCIAL_DEMO_MODE ?? 'true').toLowerCase() !== 'false';
+  }
 
   private key() {
     const secret = process.env.PAYSTACK_SECRET_KEY;
@@ -87,53 +92,57 @@ export class EstateWalletService {
     });
     if (wallet?.accountNumber) return this.walletView(wallet.id);
 
-    const secret = this.key();
-    const parts = user.displayName.trim().split(/\s+/);
-    const firstName = parts[0] || 'Estate';
-    const lastName = parts.slice(1).join(' ') || 'Resident';
-    const response = await fetch(`${PAYSTACK_BASE}/dedicated_virtual_accounts`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${secret}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: user.emailNormalized,
-        first_name: firstName,
-        last_name: lastName,
-        preferred_bank: process.env.PAYSTACK_DVA_BANK ?? 'wema-bank',
-      }),
-    });
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      throw new ServiceUnavailableException(
-        `Paystack could not provision an account: ${payload.message ?? response.status}`,
-      );
-    }
-    const data = payload.data?.dedicated_account ?? payload.data ?? {};
-    const accountNumber = String(data.account_number ?? data.accountNumber ?? '').trim();
-    if (!accountNumber) {
-      throw new ServiceUnavailableException('Paystack did not return an account number.');
+    let accountNumber: string;
+    let bankName: string;
+    let accountName: string;
+    let providerReference: string;
+    let demo = false;
+
+    if (process.env.PAYSTACK_SECRET_KEY) {
+      const secret = this.key();
+      const parts = user.displayName.trim().split(/\s+/);
+      const response = await fetch(`${PAYSTACK_BASE}/dedicated_virtual_accounts`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${secret}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: user.emailNormalized,
+          first_name: parts[0] || 'Estate',
+          last_name: parts.slice(1).join(' ') || 'Resident',
+          preferred_bank: process.env.PAYSTACK_DVA_BANK ?? 'wema-bank',
+        }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new ServiceUnavailableException(
+          `Paystack could not provision an account: ${payload.message ?? response.status}`,
+        );
+      }
+      const data = payload.data?.dedicated_account ?? payload.data ?? {};
+      accountNumber = String(data.account_number ?? data.accountNumber ?? '').trim();
+      bankName = String(data.bank_name ?? data.bankName ?? 'Paystack partner bank');
+      accountName = String(data.account_name ?? data.accountName ?? user.displayName);
+      providerReference = String(data.id ?? data.reference ?? '');
+      if (!accountNumber) throw new ServiceUnavailableException('Paystack did not return an account number.');
+    } else if (this.demoMode()) {
+      demo = true;
+      accountNumber = `DEMO-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+      bankName = 'LANCON Demo Bank (no transfers)';
+      accountName = user.displayName;
+      providerReference = 'DEMO_ACCOUNT';
+    } else {
+      throw new ServiceUnavailableException('Paystack is not configured and financial demo mode is disabled.');
     }
     wallet = await this.prisma.estateWallet.upsert({
       where: { estateId_userId_currency: { estateId, userId, currency: CURRENCY } },
-      update: {
-        accountNumber,
-        bankName: String(data.bank_name ?? data.bankName ?? 'Paystack partner bank'),
-        accountName: String(data.account_name ?? data.accountName ?? user.displayName),
-        providerReference: String(data.id ?? data.reference ?? ''),
-        status: 'active',
-      },
-      create: {
-        estateId, userId, currency: CURRENCY, accountNumber,
-        bankName: String(data.bank_name ?? data.bankName ?? 'Paystack partner bank'),
-        accountName: String(data.account_name ?? data.accountName ?? user.displayName),
-        providerReference: String(data.id ?? data.reference ?? ''),
-        status: 'active',
-      },
+      update: { accountNumber, bankName, accountName, providerReference, status: 'active' },
+      create: { estateId, userId, currency: CURRENCY, accountNumber, bankName, accountName, providerReference, status: 'active' },
     });
     await this.prisma.auditEvent.create({ data: {
-      actorUserId: userId, scope: 'estate', estateId, action: 'wallet.account_provisioned',
+      actorUserId: userId, scope: 'estate', estateId, action: demo ? 'wallet.demo_account_provisioned' : 'wallet.account_provisioned',
       targetType: 'estate_wallet', targetId: wallet.id, outcome: 'success', occurredAt: new Date(),
+      metadata: { demo },
     } });
-    return this.walletView(wallet.id);
+    return { ...(await this.walletView(wallet.id)), demo };
   }
 
   async payRent(userId: string, estateId: string, invoiceId: string, amountText: string) {
@@ -252,6 +261,49 @@ export class EstateWalletService {
       metadata: { amount: amount.toString(), currency: CURRENCY },
     } });
     return { ...intent, providerReference: reference, replayed: false, accountNumber: wallet.accountNumber, bankName: wallet.bankName, accountName: wallet.accountName };
+  }
+
+  async demoCredit(userId: string, intentId: string) {
+    if (!this.demoMode()) {
+      throw new BadRequestException('Financial demo mode is disabled.');
+    }
+    const intent = await this.prisma.walletFundingIntent.findUnique({ where: { id: intentId } });
+    if (!intent || intent.userId !== userId) throw new NotFoundException('Funding intent not found.');
+    if (intent.status !== 'awaiting_provider') throw new ConflictException('Funding intent is no longer awaiting funding.');
+    if (intent.expiresAt <= new Date()) {
+      await this.prisma.walletFundingIntent.update({ where: { id: intent.id }, data: { status: 'expired' } });
+      throw new ConflictException('Funding intent has expired.');
+    }
+    const wallet = await this.prisma.estateWallet.findUnique({ where: { id: intent.walletId } });
+    if (!wallet) throw new NotFoundException('Wallet not found.');
+    const now = new Date();
+    return this.prisma.$transaction(async (tx) => {
+      const journalId = await this.ledger.post(tx, {
+        estateId: wallet.estateId,
+        reference: `JRN-DEMO-FUND-${intent.providerReference ?? intent.id}`,
+        sourceType: 'demo_funding',
+        sourceId: intent.id,
+        description: 'Demo wallet funding (no real money received)',
+        currency: wallet.currency,
+        debitAccount: 'DEMO_FUNDING_CLEARING:NGN',
+        creditAccount: this.ledger.walletAccount(wallet.id),
+        amount: intent.amount,
+        occurredAt: now,
+      });
+      await tx.estateWalletTransaction.create({ data: {
+        walletId: wallet.id, estateId: wallet.estateId, type: 'credit', amount: intent.amount,
+        currency: wallet.currency, reference: `DEMO-FUND-${intent.id}`,
+        description: 'Demo funding (no real money)', sourceType: 'demo_funding',
+        sourceId: intent.id, status: 'posted', journalId,
+      } });
+      await tx.walletFundingIntent.update({ where: { id: intent.id }, data: { status: 'completed' } });
+      await tx.auditEvent.create({ data: {
+        actorUserId: userId, scope: 'estate', estateId: wallet.estateId,
+        action: 'wallet.demo_funding_posted', targetType: 'wallet_funding_intent', targetId: intent.id,
+        outcome: 'success', occurredAt: now, metadata: { amount: intent.amount.toString(), demo: true },
+      } });
+      return { credited: true, demo: true, amount: intent.amount.toString(), journalId };
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
   }
 
   async handleWebhook(rawBody: Buffer, signature: string | undefined) {

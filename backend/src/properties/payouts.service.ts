@@ -190,8 +190,40 @@ export class EstatePayoutService {
     if (membership?.role !== ADMIN) throw new ForbiddenException('Only the estate administrator can execute payouts.');
     if (payout.status !== 'approved') throw new ConflictException('Payout must be approved before execution.');
     const key = process.env.PAYSTACK_SECRET_KEY;
-    if (!key) throw new ServiceUnavailableException('Paystack is not configured; payout execution is unavailable.');
+    const demoMode = (process.env.FINANCIAL_DEMO_MODE ?? 'true').toLowerCase() !== 'false';
+    if (!key && !demoMode) {
+      throw new ServiceUnavailableException('Paystack is not configured and financial demo mode is disabled.');
+    }
     if (!idempotencyKey) throw new BadRequestException('An Idempotency-Key is required.');
+
+    if (!key && demoMode) {
+      return this.prisma.$transaction(async (tx) => {
+        const journalId = await this.ledger.post(tx, {
+          estateId: payout.estateId,
+          reference: `JRN-DEMO-PAYOUT-${payout.id}`,
+          sourceType: 'demo_payout',
+          sourceId: payout.id,
+          description: 'Demo payout execution (no real money sent)',
+          currency: payout.currency,
+          debitAccount: this.ledger.estateCollection(payout.estateId, payout.currency),
+          creditAccount: 'DEMO_FUNDING_CLEARING:NGN',
+          amount: payout.amount,
+        });
+        const execution = await tx.estatePayoutExecution.upsert({
+          where: { payoutId },
+          update: { status: 'paid', provider: 'demo', providerReference: `DEMO-PAYOUT-${payout.id}` },
+          create: { payoutId, provider: 'demo', status: 'paid', providerReference: `DEMO-PAYOUT-${payout.id}`, executedBy: actorUserId,
+            providerResponse: { demo: true, journalId } },
+        });
+        await tx.estatePayoutRequest.update({ where: { id: payoutId }, data: { status: 'paid' } });
+        await tx.auditEvent.create({ data: {
+          actorUserId, scope: 'estate', estateId: payout.estateId, action: 'payout.demo_executed',
+          targetType: 'estate_payout_request', targetId: payoutId, outcome: 'success', occurredAt: new Date(),
+          metadata: { demo: true, journalId },
+        } });
+        return execution;
+      }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+    }
 
     const response = await fetch('https://api.paystack.co/transfer', {
       method: 'POST',

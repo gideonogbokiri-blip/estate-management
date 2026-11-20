@@ -73,6 +73,10 @@ Phase 1 will be considered complete when:
 - Payout controls added: verified beneficiaries, estate payout policy with threshold-based approvals, self-approval prevention, cleared-funds checks, idempotent initiation, separate approve/reject decisions and provider execution behind `PAYSTACK_SECRET_KEY`. The manager dashboard can request and decide payouts.
 - Rent schedule generation and the landlord payable ledger remain outstanding.
 
+## 6c. Demo-first mode (20 November 2026)
+
+Per product direction, Paystack is deferred to the final step. `FINANCIAL_DEMO_MODE=true` now supplies clearly labelled `DEMO-…` account numbers, an explicit **Simulate demo credit** action that posts a balanced ledger journal, and demo payout execution. All demo responses and UI states are marked `DEMO MODE · NO REAL MONEY`. Production requires `FINANCIAL_DEMO_MODE=false` plus a verified Paystack arrangement.
+
 ## 7. External dependencies still required
 
 Paystack TEST/LIVE secret keys, approved merchant/DVA product confirmation, webhook registration, settlement/KYC/KYB and Nigerian regulatory/legal sign-off. Payout, withdrawal, transfers and third-party vending remain feature-flagged/inactive until these are confirmed.

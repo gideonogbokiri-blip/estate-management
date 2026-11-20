@@ -702,22 +702,53 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
     try {
       final key = 'fund-${DateTime.now().microsecondsSinceEpoch}-'
           '${DateTime.now().millisecond}';
-      await widget.repository.createWalletFundingIntent(
+      final intent = await widget.repository.createWalletFundingIntent(
         estateId: wallet.estateId,
         amount: amount,
         idempotencyKey: key,
       );
       if (!mounted) return;
+      final isDemo = intent['demo'] == true ||
+          wallet.bankName?.toLowerCase().contains('demo') == true;
       await showDialog<void>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Transfer to fund your account'),
+          title: Text(isDemo ? 'Demo funding' : 'Transfer to fund your account'),
           content: Text(
             '${wallet.accountName ?? ''}\n'
             '${wallet.bankName ?? ''}\n'
             '${wallet.accountNumber ?? ''}\n\n'
-            'Use the reference shown with your funding request. The balance updates only after the provider verifies your transfer.',
+            '${isDemo ? 'No real bank transfer is involved. Use the button below to simulate a verified demo credit.' : 'The balance updates only after the provider verifies your transfer.'}',
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            ),
+            if (isDemo)
+              FilledButton(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  try {
+                    await widget.repository
+                        .creditDemoWallet(intent['id'] as String);
+                    await _loadWorkspace();
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Demo funding posted to your wallet.'),
+                      ),
+                    );
+                  } catch (error) {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(_message(error))),
+                    );
+                  }
+                },
+                child: const Text('Simulate demo credit'),
+              ),
+          ],
         ),
       );
     } catch (error) {
@@ -777,6 +808,20 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
               ),
             ],
           ),
+          const SizedBox(height: 6),
+          if (wallet == null ||
+              wallet.bankName?.toLowerCase().contains('demo') == true)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: .14),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Text(
+                'DEMO MODE · NO REAL MONEY',
+                style: TextStyle(color: Color(0xFFDCECE3), fontSize: 9, fontWeight: FontWeight.w700),
+              ),
+            ),
           const SizedBox(height: 14),
           const Text('MY WALLET BALANCE',
               style: TextStyle(color: Color(0xFFBFD8C9), fontSize: 11)),

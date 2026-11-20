@@ -37,7 +37,8 @@ Required environment values: `POSTGRES_PASSWORD`, `ACCESS_TOKEN_SECRET` (at leas
 - `GET /api/v1/estate/wallets/mine` returns the account, derived balance and transaction history.
 - Paystack webhook: `POST /api/v1/payments/paystack/webhook`. The raw body is verified with HMAC-SHA512 against `PAYSTACK_SECRET_KEY`; duplicates are ignored by unique transaction reference. Supported events: `dedicatedvirtualaccount.success`, `transfer.success`.
 - `POST /api/v1/estate/wallets/pay-rent` debits the wallet and records an invoice settlement with a receipt atomically.
-- Required environment: `PAYSTACK_SECRET_KEY` (TEST key to start), optional `PAYSTACK_DVA_BANK` and `PAYSTACK_BASE_URL`. Until the key is set, provisioning returns HTTP 503 with a clear message instead of inventing account numbers.
+- `FINANCIAL_DEMO_MODE=true` (the current hosted setting) provisions clearly labelled `DEMO-…` accounts, allows an explicit **Simulate demo credit** action and executes demo payouts against the internal ledger. It never claims real money was received or sent.
+- Required for real provider mode: `PAYSTACK_SECRET_KEY` (TEST key to start), optional `PAYSTACK_DVA_BANK` and `PAYSTACK_BASE_URL`, and `FINANCIAL_DEMO_MODE=false`. Without a key and with demo mode disabled, provisioning returns HTTP 503 instead of inventing account numbers. Paystack is intentionally the last step of the rollout.
 
 ## Notifications and account lifecycle
 
