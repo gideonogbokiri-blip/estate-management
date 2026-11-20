@@ -63,7 +63,7 @@ Phase 1 will be considered complete when:
 - `LedgerService` posts exactly two balanced entries per journal and supports compensating reversals without deleting posted history.
 - Wallet rent payment now runs in a serializable transaction with a wallet row lock, posts a balanced journal, then records the invoice settlement and receipt atomically.
 - Funding intents are explicit: a pending intent never credits a wallet. Provider webhooks are signature-verified, stored for replay protection, matched to an intent and rejected/quarantined on wrong amount, currency, recipient or reference. Verified funding posts exactly one credited journal.
-- Automated ledger tests cover balanced postings, invalid instructions and reversals. 11 tests pass, 2 opt-in integration tests skipped.
+- Automated tests cover balanced postings, invalid instructions, reversals and payout authorization. 13 tests pass, 2 opt-in integration tests skipped.
 - Resident dashboard now uses the bank-style green header with balance, Add Money, Pay Bills, History, Quick Services and Settings. **Add Money** creates a server-side funding intent before showing transfer details, so a client-side amount cannot credit a wallet.
 
 ## 6b. Phase 2 progress (20 November 2026)
