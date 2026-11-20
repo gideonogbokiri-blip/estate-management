@@ -31,8 +31,12 @@ async function getApp() {
       app.getHttpAdapter().getInstance().set('etag', false);
       app.use('/api/v1', (_request, response, next) => {
         response.setHeader('Cache-Control', 'no-store');
-        response.removeHeader('ETag');
-        response.removeHeader('Last-Modified');
+        const setHeader = response.setHeader.bind(response);
+        response.setHeader = (name, value) => {
+          const lower = String(name).toLowerCase();
+          if (lower === 'etag' || lower === 'last-modified') return response;
+          return setHeader(name, value);
+        };
         next();
       });
       app.use((request, response, next) => {

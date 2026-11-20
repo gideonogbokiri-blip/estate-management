@@ -33,8 +33,12 @@ async function bootstrap(): Promise<void> {
   app.getHttpAdapter().getInstance().set('etag', false);
   app.use('/api/v1', (_request: express.Request, response: express.Response, next: express.NextFunction) => {
     response.setHeader('Cache-Control', 'no-store');
-    response.removeHeader('ETag');
-    response.removeHeader('Last-Modified');
+    const setHeader = response.setHeader.bind(response);
+    response.setHeader = ((name: string, value: number | readonly string[]) => {
+      const lower = name.toLowerCase();
+      if (lower === 'etag' || lower === 'last-modified') return response;
+      return setHeader(name, value);
+    }) as typeof response.setHeader;
     next();
   });
   app.use((request: { method?: string; originalUrl?: string }, response: { statusCode: number; on: (event: string, listener: () => void) => void }, next: () => void) => {
