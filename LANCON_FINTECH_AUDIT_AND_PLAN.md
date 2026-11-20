@@ -99,6 +99,18 @@ Added `EstateServiceDefinition` and `EstateServiceOrder`. Managers configure ser
 
 Added read-only statement endpoints for wallet activity (with opening/closing balances and running balance per entry) and posted ledger journals, both with CSV export. Added a management-scoped audit query endpoint over the existing `AuditEvent` records — audit was written extensively but never queryable before. Added a dependency-free sliding-window rate-limit guard wired into both the local bootstrap and the Vercel serverless wrapper; it is explicitly documented as a per-instance baseline, not a distributed quota. Monitoring/alerting and secrets-manager integration remain external dependencies.
 
+## 6i. Product expansion restructure (20 November 2026)
+
+Realigned the project with `LANCON_Product_Expansion_Documents_v1.0/LANCON_Fintech_Estate_Product_Expansion_Specification_v1.0.md` (the umbrella spec) and the supplied resident-dashboard reference image. Created `docs/product-expansion/` with the specification, document control, eight workstream documents, the reference image and a requirement → code → test → release traceability matrix (Appendix B/C of the spec).
+
+Introduced a shared dashboard design system at `client/lib/core/design/dashboard_design.dart` (dark canvas, greeting header, deep-green hero card with three white actions, 12-tile Quick Services grid, section titles and list rows). Applied it to all three role dashboards:
+
+- Resident (`main.dart` → `ResidentHomeApiPage`): MY WALLET BALANCE hero with Add Money / Pay Bills / History, 12-tile services grid, Outstanding Payments with View all.
+- Estate management (`admin_main.dart` → `EstateManagerDashboardApiPage`): ESTATE COLLECTIONS hero with Record expense / Approvals / Generate levies, management services grid, then treasury, reconciliation, audit and approval sections.
+- Landlord (`landlord_portal_main.dart` → `LandlordPortfolioApiPage`): RENT ENTITLEMENT hero wired to the landlord summary API, landlord services grid, then verified properties and maintenance.
+
+No backend duplication was introduced; every new tile calls an existing repository capability.
+
 ## 7. External dependencies still required
 
 Paystack TEST/LIVE secret keys, approved merchant/DVA product confirmation, webhook registration, settlement/KYC/KYB and Nigerian regulatory/legal sign-off. Payout, withdrawal, transfers and third-party vending remain feature-flagged/inactive until these are confirmed.

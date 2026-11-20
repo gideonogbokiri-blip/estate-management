@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/estate_theme.dart';
+import '../../../core/design/dashboard_design.dart';
 import '../../onboarding/data/estate_application_repository.dart';
 import '../data/resident_estate_repository.dart';
 import 'resident_visitor_passes_page.dart';
@@ -954,117 +955,182 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
 
   Widget _bankHero() {
     final wallet = _wallets.firstOrNull;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF0A2F27), Color(0xFF0D3B30), Color(0xFF176B4B)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.account_balance_wallet_outlined, color: Color(0xFFCFE3D7), size: 18),
-              const SizedBox(width: 8),
-              const Text('My estate wallet',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14)),
-              const Spacer(),
-              IconButton(
-                tooltip: 'Account settings',
-                onPressed: () => showDialog<void>(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Account settings'),
-                    content: Text('${_account?.displayName ?? ''}\n${_account?.email ?? ''}'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Close'),
+    final estateName = _memberships.firstOrNull?.name ?? 'Your estate';
+    final property = _properties.firstOrNull;
+    final propertyLabel = property == null
+        ? 'Property'
+        : '${property.code}${property.unitNumber != null ? ' · ${property.unitNumber}' : ''}';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        DashboardGreeting(
+          period: _greetingPeriod(),
+          title: 'Welcome, ${_account?.displayName.split(' ').last ?? 'Resident'}',
+          subtitle: '$estateName · $propertyLabel',
+          trailing: [
+            IconButton(
+              tooltip: 'Notifications',
+              onPressed: _busy
+                  ? null
+                  : () => Navigator.of(context).push<void>(
+                      MaterialPageRoute(
+                        builder: (_) => EstateNotificationsPage(
+                          repository: widget.repository,
+                        ),
                       ),
-                      FilledButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          _signOut();
-                        },
-                        child: const Text('Sign out'),
-                      ),
-                    ],
-                  ),
-                ),
-                icon: const Icon(Icons.settings_outlined, color: Colors.white, size: 19),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          if (wallet == null ||
-              wallet.bankName?.toLowerCase().contains('demo') == true)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: .14),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Text(
-                'DEMO MODE · NO REAL MONEY',
-                style: TextStyle(color: Color(0xFFDCECE3), fontSize: 9, fontWeight: FontWeight.w700),
-              ),
+                    ),
+              icon: const Icon(Icons.notifications_none_outlined,
+                  color: DashboardTokens.text, size: 20),
             ),
-          const SizedBox(height: 14),
-          const Text('MY WALLET BALANCE',
-              style: TextStyle(color: Color(0xFFBFD8C9), fontSize: 11)),
-          const SizedBox(height: 3),
-          Text(
-            wallet == null ? '—' : _money(wallet.balance),
-            style: const TextStyle(
-              color: Colors.white, fontSize: 32, fontWeight: FontWeight.w700, letterSpacing: -1),
+            IconButton(
+              tooltip: 'Refresh',
+              onPressed: _busy ? null : _refresh,
+              icon: const Icon(Icons.refresh_rounded,
+                  color: DashboardTokens.text, size: 20),
+            ),
+            PopupMenuButton<String>(
+              onSelected: (action) => action == 'invite'
+                  ? _acceptStaffInvitation()
+                  : _signOut(),
+              itemBuilder: (_) => const [
+                PopupMenuItem(
+                  value: 'invite',
+                  child: Text('Accept staff invitation'),
+                ),
+                PopupMenuItem(value: 'signout', child: Text('Sign out')),
+              ],
+              child: const Icon(Icons.more_vert, color: DashboardTokens.text),
+            ),
+          ],
+        ),
+        const SizedBox(height: 18),
+        DashboardHero(
+          label: 'MY WALLET BALANCE',
+          amount: wallet == null ? '—' : _money(wallet.balance),
+          caption: wallet == null
+              ? 'No fund account yet'
+              : '${wallet.accountNumber ?? 'Account pending'} · ${wallet.bankName ?? ''}',
+          badge: wallet == null ||
+                  wallet.bankName?.toLowerCase().contains('demo') == true
+              ? 'DEMO MODE · NO REAL MONEY'
+              : null,
+          onSettings: () => showDialog<void>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Account settings'),
+              content: Text('${_account?.displayName ?? ''}\n${_account?.email ?? ''}'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Close'),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _signOut();
+                  },
+                  child: const Text('Sign out'),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 10),
-          Text(
-            wallet == null
-                ? 'No fund account yet'
-                : '${wallet.accountNumber ?? 'Account pending'} · ${wallet.bankName ?? ''}',
-            style: const TextStyle(color: Color(0xFFCFE3D7), fontSize: 12),
-          ),
-          const SizedBox(height: 18),
-          const Text('Quick Services',
-              style: TextStyle(
-                  color: Color(0xFFCFE3D7),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700)),
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _QuickService(
-                icon: Icons.add_rounded,
-                label: 'Fund',
-                onTap: wallet == null ? _provisionWallet : () => _startFunding(wallet),
-              ),
-              _QuickService(
-                icon: Icons.payments_outlined,
-                label: 'Pay rent',
-                onTap: wallet == null ? _provisionWallet : () => _payRentFromWallet(wallet),
-              ),
-              _QuickService(
-                icon: Icons.receipt_long_outlined,
-                label: 'Bills',
-                onTap: _openResidentBilling,
-              ),
-              _QuickService(
-                icon: Icons.miscellaneous_services_outlined,
-                label: 'Services',
-                onTap: () => setState(() => _selectedTab = 3),
-              ),
-            ],
-          ),
-        ],
-      ),
+          actions: [
+            DashboardHeroAction(
+              icon: Icons.add_rounded,
+              label: 'Add Money',
+              onTap: wallet == null ? _provisionWallet : () => _startFunding(wallet),
+            ),
+            DashboardHeroAction(
+              icon: Icons.payments_outlined,
+              label: 'Pay Bills',
+              onTap: _openResidentBilling,
+            ),
+            DashboardHeroAction(
+              icon: Icons.history_rounded,
+              label: 'History',
+              onTap: () => setState(() => _selectedTab = 3),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  String _greetingPeriod() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  }
+
+  void _openVisitorPasses() => setState(() => _showVisitorPasses = true);
+
+  void _openIncidents() => setState(() => _showIncidents = true);
+
+  Widget _referenceQuickServices() {
+    return DashboardQuickServices(
+      services: [
+        DashboardService(
+          icon: Icons.receipt_long_outlined,
+          label: 'Pay Levies',
+          onTap: _openResidentBilling,
+        ),
+        DashboardService(
+          icon: Icons.home_outlined,
+          label: 'House Rent',
+          onTap: () => setState(() => _selectedTab = 3),
+        ),
+        DashboardService(
+          icon: Icons.bolt_outlined,
+          label: 'Electricity',
+          onTap: () => setState(() => _selectedTab = 3),
+        ),
+        DashboardService(
+          icon: Icons.phone_android_outlined,
+          label: 'Airtime',
+          onTap: () => setState(() => _selectedTab = 3),
+        ),
+        DashboardService(
+          icon: Icons.qr_code_2_outlined,
+          label: 'Gate Pass',
+          onTap: _openVisitorPasses,
+        ),
+        DashboardService(
+          icon: Icons.water_drop_outlined,
+          label: 'Water',
+          onTap: () => setState(() => _selectedTab = 3),
+        ),
+        DashboardService(
+          icon: Icons.delete_outline,
+          label: 'Waste',
+          onTap: () => setState(() => _selectedTab = 3),
+        ),
+        DashboardService(
+          icon: Icons.build_outlined,
+          label: 'Maintenance',
+          onTap: () => setState(() => _selectedTab = 2),
+        ),
+        DashboardService(
+          icon: Icons.calendar_month_outlined,
+          label: 'Facilities',
+          onTap: _openFacilities,
+        ),
+        DashboardService(
+          icon: Icons.warning_amber_outlined,
+          label: 'Emergency',
+          onTap: _openIncidents,
+        ),
+        DashboardService(
+          icon: Icons.description_outlined,
+          label: 'Documents',
+          onTap: () => setState(() => _selectedTab = 3),
+        ),
+        DashboardService(
+          icon: Icons.apps_outlined,
+          label: 'More Services',
+          onTap: () => setState(() => _selectedTab = 3),
+        ),
+      ],
     );
   }
 
@@ -1290,48 +1356,10 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
         ),
       );
     }
-    return Scaffold(
-      appBar: AppBar(
-        title: const Row(
-          children: [
-            Icon(Icons.home_work_outlined, color: EstateColors.forest),
-            SizedBox(width: 9),
-            Text('Estate Management'),
-          ],
-        ),
-        actions: [
-          IconButton(
-            tooltip: 'Notifications',
-            onPressed: _busy
-                ? null
-                : () => Navigator.of(context).push<void>(
-                    MaterialPageRoute(
-                      builder: (_) => EstateNotificationsPage(
-                        repository: widget.repository,
-                      ),
-                    ),
-                  ),
-            icon: const Icon(Icons.notifications_outlined),
-          ),
-          IconButton(
-            tooltip: 'Refresh',
-            onPressed: _busy ? null : _refresh,
-            icon: const Icon(Icons.refresh_rounded),
-          ),
-          PopupMenuButton<String>(
-            onSelected: (action) => action == 'accept_invitation'
-                ? _acceptStaffInvitation()
-                : _signOut(),
-            itemBuilder: (_) => const [
-              PopupMenuItem(
-                value: 'accept_invitation',
-                child: Text('Accept staff invitation'),
-              ),
-              PopupMenuItem(value: 'signout', child: Text('Sign out')),
-            ],
-          ),
-        ],
-      ),
+    return Theme(
+      data: DashboardTokens.darkShell,
+      child: Scaffold(
+      backgroundColor: DashboardTokens.background,
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1020),
@@ -1649,16 +1677,11 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                   ),
               ],
               if (_selectedTab == 0) ...[
-                _ResidentHomeHero(
-                  residentName: _account!.displayName,
-                  estateName: _memberships.firstOrNull?.name,
-                  roles: _memberships.firstOrNull?.roles ?? const [],
-                  propertyLabel: _visitorProperties.firstOrNull?.label,
-                  canRequestAccess: _availableEstates.isNotEmpty,
-                  onRequestAccess: () => setState(() => _selectedTab = 1),
+                _referenceQuickServices(),
+                const SizedBox(height: 22),
+                DashboardSectionTitle(
+                  title: 'My estates',
                 ),
-                const SizedBox(height: 20),
-                _sectionTitle('My estates'),
                 if (_memberships.isEmpty)
                   const _MessageCard(
                     message: 'No active estate membership is linked to your account yet.',
@@ -1762,7 +1785,11 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                 const SizedBox(height: 18),
                 KeyedSubtree(
                   key: _billingSectionKey,
-                  child: _sectionTitle('Outstanding Payments'),
+                  child: DashboardSectionTitle(
+                    title: 'Outstanding Payments',
+                    actionLabel: 'View all',
+                    onAction: _openResidentBilling,
+                  ),
                 ),
                 if (_invoiceRecords.isEmpty)
                   const _MessageCard(
@@ -2246,6 +2273,9 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
         ),
       ),
       bottomNavigationBar: NavigationBar(
+        backgroundColor: DashboardTokens.background,
+        surfaceTintColor: Colors.transparent,
+        indicatorColor: DashboardTokens.green.withValues(alpha: .35),
         selectedIndex: _selectedTab,
         onDestinationSelected: (index) => setState(() => _selectedTab = index),
         destinations: const [
@@ -2270,6 +2300,7 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
             label: 'Services',
           ),
         ],
+      ),
       ),
     );
   }

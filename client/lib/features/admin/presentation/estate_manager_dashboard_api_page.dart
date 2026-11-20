@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/estate_theme.dart';
+import '../../../core/design/dashboard_design.dart';
 import '../../onboarding/data/estate_application_repository.dart';
 import '../../resident_access/presentation/resident_access_review_page.dart';
 import 'ownership_review_api_page.dart';
@@ -1543,60 +1544,124 @@ class _EstateManagerDashboardApiPageState
     );
   }
 
+  Widget _referenceHeader() {
+    final estate = _estate;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        DashboardGreeting(
+          period: _greetingPeriod(),
+          title: 'Welcome, ${_account?.displayName.split(' ').first ?? 'Manager'}',
+          subtitle: '${estate?.name ?? 'Estate management'} · Estate manager',
+          trailing: [
+            IconButton(
+              tooltip: 'Menu',
+              onPressed: () => Scaffold.of(context).openDrawer(),
+              icon: const Icon(Icons.menu, color: DashboardTokens.text, size: 21),
+            ),
+            IconButton(
+              tooltip: 'Notifications',
+              onPressed: _busy
+                  ? null
+                  : () => Navigator.of(context).push<void>(
+                      MaterialPageRoute(
+                        builder: (_) => EstateNotificationsPage(
+                          repository: widget.repository,
+                        ),
+                      ),
+                    ),
+              icon: const Icon(Icons.notifications_none_outlined,
+                  color: DashboardTokens.text, size: 20),
+            ),
+            IconButton(
+              tooltip: 'Refresh',
+              onPressed: _busy ? null : _refresh,
+              icon: const Icon(Icons.refresh_rounded,
+                  color: DashboardTokens.text, size: 20),
+            ),
+            PopupMenuButton<String>(
+              onSelected: (_) => _signOut(),
+              itemBuilder: (_) => const [
+                PopupMenuItem(value: 'signout', child: Text('Sign out')),
+              ],
+              child: const Icon(Icons.more_vert, color: DashboardTokens.text),
+            ),
+          ],
+        ),
+        const SizedBox(height: 18),
+        DashboardHero(
+          label: 'ESTATE COLLECTIONS',
+          amount: 'NGN ${_formatMoney(_treasury?.collections ?? '0')}',
+          caption: 'Outstanding invoices NGN ${_formatMoney(_treasury?.outstandingInvoices ?? '0')} · '
+              '${_treasury?.pendingSettlements ?? 0} pending settlements',
+          badge: 'FINANCIAL DEMO MODE · NO REAL MONEY',
+          cardIcon: Icons.account_balance_outlined,
+          onSettings: _openEstateSettings,
+          actions: [
+            DashboardHeroAction(
+              icon: Icons.receipt_long_outlined,
+              label: 'Record expense',
+              onTap: _openEstateExpenses,
+            ),
+            DashboardHeroAction(
+              icon: Icons.approval_outlined,
+              label: 'Approvals',
+              onTap: _openResidentAccessReview,
+            ),
+            DashboardHeroAction(
+              icon: Icons.autorenew_outlined,
+              label: 'Generate levies',
+              onTap: _generateRecurringLevies,
+            ),
+          ],
+        ),
+        const SizedBox(height: 22),
+        DashboardQuickServices(
+          services: [
+            DashboardService(icon: Icons.apartment_outlined, label: 'Properties', onTap: _openOwnershipReview),
+            DashboardService(icon: Icons.people_outline, label: 'Residents', onTap: _openResidentAccessReview),
+            DashboardService(icon: Icons.home_outlined, label: 'Tenancies', onTap: _openTenancyApprovals),
+            DashboardService(icon: Icons.receipt_long_outlined, label: 'Levies', onTap: _openEstateCharges),
+            DashboardService(icon: Icons.payments_outlined, label: 'Payouts', onTap: _requestPayout),
+            DashboardService(icon: Icons.account_balance_wallet_outlined, label: 'Expenses', onTap: _openEstateExpenses),
+            DashboardService(icon: Icons.map_outlined, label: 'Property map', onTap: _openRentSchedulePreview),
+            DashboardService(icon: Icons.storefront_outlined, label: 'Services', onTap: _openEstateFacilities),
+            DashboardService(icon: Icons.shield_outlined, label: 'Security', onTap: _openSecurityIncidents),
+            DashboardService(icon: Icons.campaign_outlined, label: 'Notices', onTap: _openEstateAnnouncements),
+            DashboardService(icon: Icons.badge_outlined, label: 'Staff', onTap: _openStaffInvitations),
+            DashboardService(icon: Icons.settings_outlined, label: 'Settings', onTap: _openEstateSettings),
+          ],
+        ),
+      ],
+    );
+  }
+
+  String _greetingPeriod() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  }
+
+  String _formatMoney(String value) {
+    final amount = double.tryParse(value) ?? 0;
+    return amount.toStringAsFixed(2).replaceAllMapped(
+      RegExp(r'\B(?=(\d{3})+(?!\d))'),
+      (_) => ',',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_restoring)
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     if (_account == null) return _signInView();
     final summary = _summary;
-    return Scaffold(
+    return Theme(
+      data: DashboardTokens.darkShell,
+      child: Scaffold(
+      backgroundColor: DashboardTokens.background,
       drawer: _buildMenuDrawer(),
-      appBar: AppBar(
-        title: const Row(
-          children: [
-            Icon(Icons.domain_outlined, color: EstateColors.forest),
-            SizedBox(width: 10),
-            Text('Estate manager'),
-          ],
-        ),
-        actions: [
-          IconButton(
-            tooltip: 'Notifications',
-            onPressed: _busy
-                ? null
-                : () => Navigator.of(context).push<void>(
-                    MaterialPageRoute(
-                      builder: (_) => EstateNotificationsPage(
-                        repository: widget.repository,
-                      ),
-                    ),
-                  ),
-            icon: const Icon(Icons.notifications_outlined),
-          ),
-          if (MediaQuery.sizeOf(context).width > 600)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Center(
-                child: Text(
-                  _account!.displayName,
-                  style: const TextStyle(color: EstateColors.muted),
-                ),
-              ),
-            ),
-          IconButton(
-            tooltip: 'Refresh dashboard',
-            onPressed: _busy ? null : _refresh,
-            icon: const Icon(Icons.refresh_rounded),
-          ),
-          PopupMenuButton<String>(
-            onSelected: (_) => _signOut(),
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'signout', child: Text('Sign out')),
-            ],
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1120),
@@ -1604,24 +1669,13 @@ class _EstateManagerDashboardApiPageState
             controller: _dashboardScrollController,
             padding: const EdgeInsets.fromLTRB(22, 20, 22, 34),
             children: [
-              const Text(
-                'Estate manager dashboard',
-                style: TextStyle(
-                  fontSize: 29,
-                  fontWeight: FontWeight.w700,
-                  color: EstateColors.ink,
-                  letterSpacing: -.4,
+              if (_error != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: _Notice(message: _error!, error: true),
                 ),
-              ),
-              const SizedBox(height: 5),
-              Text(
-                _estate == null
-                    ? 'Estate operations and resident activity.'
-                    : '${_estate!.name} â€¢ ${_estate!.location}',
-                style: TextStyle(color: EstateColors.muted),
-              ),
-              const SizedBox(height: 18),
-              if (_error != null) _Notice(message: _error!, error: true),
+              _referenceHeader(),
+              const SizedBox(height: 22),
               if (_estates.isEmpty)
                 Card(
                   child: Padding(
@@ -2551,6 +2605,7 @@ class _EstateManagerDashboardApiPageState
             ],
           ),
         ),
+      ),
       ),
     );
   }
