@@ -205,6 +205,47 @@ class RentScheduleRecord {
       );
 }
 
+class IdentityVerificationRecord {
+  const IdentityVerificationRecord({
+    required this.id,
+    required this.method,
+    required this.provider,
+    required this.level,
+    required this.status,
+    required this.consentAt,
+    required this.submittedAt,
+    this.providerReference,
+    this.demo = false,
+    this.decisionReason,
+    this.userName,
+  });
+  final String id;
+  final String method;
+  final String provider;
+  final String level;
+  final String status;
+  final String consentAt;
+  final String submittedAt;
+  final String? providerReference;
+  final bool demo;
+  final String? decisionReason;
+  final String? userName;
+
+  factory IdentityVerificationRecord.fromJson(Map<String, dynamic> json) => IdentityVerificationRecord(
+        id: json['id'] as String? ?? '',
+        method: json['method'] as String? ?? '',
+        provider: json['provider'] as String? ?? '',
+        level: json['level'] as String? ?? '',
+        status: json['status'] as String? ?? '',
+        consentAt: json['consentAt'] as String? ?? '',
+        submittedAt: json['submittedAt'] as String? ?? '',
+        providerReference: json['providerReference'] as String?,
+        demo: json['demo'] as bool? ?? false,
+        decisionReason: json['decisionReason'] as String?,
+        userName: json['userName'] as String?,
+      );
+}
+
 class PropertyLocationRecord {
   const PropertyLocationRecord({
     required this.id,
@@ -1989,6 +2030,22 @@ abstract interface class EstateApplicationApiRepository
     required String estateId,
     required String amount,
     required String idempotencyKey,
+  });
+  Future<List<IdentityVerificationRecord>> loadMyIdentityVerifications(String estateId);
+  Future<List<IdentityVerificationRecord>> loadEstateIdentityVerifications(String estateId);
+  Future<IdentityVerificationRecord> submitIdentityVerification({
+    required String estateId,
+    required String method,
+    required String provider,
+    required String level,
+    String? providerReference,
+    required bool consentGiven,
+  });
+  Future<IdentityVerificationRecord> decideIdentityVerification({
+    required String estateId,
+    required String verificationId,
+    required String decision,
+    String? reason,
   });
   Future<List<PropertyLocationRecord>> loadPropertyLocations(String estateId);
   Future<PropertyLocationRecord> capturePropertyLocation({
@@ -4177,6 +4234,74 @@ class EstateApplicationApiClient implements EstateApplicationApiRepository {
         body: {'estateId': estateId, 'amount': amount},
       ),
     );
+  }
+
+  List<IdentityVerificationRecord> _identityFrom(Map<String, dynamic> response) =>
+      (response['items'] as List? ?? const [])
+          .whereType<Map<String, dynamic>>()
+          .map(IdentityVerificationRecord.fromJson)
+          .toList(growable: false);
+
+  @override
+  Future<List<IdentityVerificationRecord>> loadMyIdentityVerifications(String estateId) async {
+    final access = await _requireAccessToken();
+    return _identityFrom(
+      await _json(_send('GET', '/estate/estates/$estateId/identity/verifications/mine', accessToken: access)),
+    );
+  }
+
+  @override
+  Future<List<IdentityVerificationRecord>> loadEstateIdentityVerifications(String estateId) async {
+    final access = await _requireAccessToken();
+    return _identityFrom(
+      await _json(_send('GET', '/estate/estates/$estateId/identity/verifications', accessToken: access)),
+    );
+  }
+
+  @override
+  Future<IdentityVerificationRecord> submitIdentityVerification({
+    required String estateId,
+    required String method,
+    required String provider,
+    required String level,
+    String? providerReference,
+    required bool consentGiven,
+  }) async {
+    final access = await _requireAccessToken();
+    final response = await _json(
+      _send(
+        'POST',
+        '/estate/estates/$estateId/identity/verifications',
+        accessToken: access,
+        body: {
+          'method': method,
+          'provider': provider,
+          'level': level,
+          'consentGiven': consentGiven,
+          if (providerReference != null) 'providerReference': providerReference,
+        },
+      ),
+    );
+    return IdentityVerificationRecord.fromJson(response);
+  }
+
+  @override
+  Future<IdentityVerificationRecord> decideIdentityVerification({
+    required String estateId,
+    required String verificationId,
+    required String decision,
+    String? reason,
+  }) async {
+    final access = await _requireAccessToken();
+    final response = await _json(
+      _send(
+        'POST',
+        '/estate/estates/$estateId/identity/verifications/$verificationId/decide',
+        accessToken: access,
+        body: {'decision': decision, if (reason != null) 'reason': reason},
+      ),
+    );
+    return IdentityVerificationRecord.fromJson(response);
   }
 
   @override

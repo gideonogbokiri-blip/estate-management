@@ -38,6 +38,7 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
   List<EstateWalletRecord> _wallets = const [];
   List<RentScheduleRecord> _rentSchedule = const [];
   List<HouseholdMemberRecord> _household = const [];
+  List<IdentityVerificationRecord> _identity = const [];
   List<ResidentMaintenanceRecord> _maintenanceRequests = const [];
   String? _selectedMaintenancePropertyId;
   String? _maintenanceEstateId;
@@ -195,6 +196,14 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
       _household = await widget.repository.loadMyHousehold();
     } catch (_) {
       _household = const [];
+    }
+    try {
+      final estateId = _memberships.firstOrNull?.id;
+      _identity = estateId == null
+          ? const []
+          : await widget.repository.loadMyIdentityVerifications(estateId);
+    } catch (_) {
+      _identity = const [];
     }
     final securityMembership = _memberships
         .where((estate) => estate.roles.contains('security_officer'))
@@ -676,6 +685,28 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
   String _money(dynamic value) {
     final amount = double.tryParse(value.toString()) ?? 0;
     return 'NGN ${amount.toStringAsFixed(2).replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (_) => ',')}';
+  }
+
+  Future<void> _submitDemoIdentity() async {
+    final estateId = _memberships.firstOrNull?.id;
+    if (estateId == null) return;
+    try {
+      await widget.repository.submitIdentityVerification(
+        estateId: estateId,
+        method: 'DEMO_DECLARATION',
+        provider: 'LANCON Demo',
+        level: 'BASIC',
+        consentGiven: true,
+      );
+      await _loadWorkspace();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Demo identity declaration submitted for review.')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_message(error))));
+    }
   }
 
   Future<void> _addHouseholdMember() async {
@@ -1335,6 +1366,35 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                           ),
                         ),
                       ),
+                const SizedBox(height: 18),
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Identity verification',
+                            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                        const SizedBox(height: 6),
+                        Text(
+                          _identity.isEmpty
+                              ? 'No verification submitted yet. Demo declarations are clearly labelled and are not provider-verified.'
+                              : 'Latest: ${_identity.first.status}${_identity.first.demo ? ' (demo declaration)' : ''} · ${_identity.first.provider}',
+                          style: const TextStyle(fontSize: 12, color: EstateColors.muted),
+                        ),
+                        const SizedBox(height: 10),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: OutlinedButton.icon(
+                            onPressed: _submitDemoIdentity,
+                            icon: const Icon(Icons.badge_outlined, size: 18),
+                            label: const Text('Submit demo declaration'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 18),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,

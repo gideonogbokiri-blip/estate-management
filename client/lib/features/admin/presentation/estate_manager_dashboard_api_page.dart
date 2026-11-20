@@ -44,6 +44,7 @@ class _EstateManagerDashboardApiPageState
   List<LandlordRentSummaryRecord> _landlordRent = const [];
   List<HouseholdMemberRecord> _household = const [];
   List<PropertyLocationRecord> _locations = const [];
+  List<IdentityVerificationRecord> _identity = const [];
   EstateMaintenanceQueue _maintenanceQueue = const EstateMaintenanceQueue(
     items: [],
     assignableStaff: [],
@@ -245,6 +246,7 @@ class _EstateManagerDashboardApiPageState
       widget.repository.loadLandlordRentSummary(estate.id),
       widget.repository.loadEstateHousehold(estate.id),
       widget.repository.loadPropertyLocations(estate.id),
+      widget.repository.loadEstateIdentityVerifications(estate.id),
     ]);
     _summary = result[0] as EstateManagerDashboardSummary;
     _maintenanceQueue = result[1] as EstateMaintenanceQueue;
@@ -259,6 +261,7 @@ class _EstateManagerDashboardApiPageState
     _landlordRent = result.length > 10 ? result[10] as List<LandlordRentSummaryRecord> : const [];
     _household = result.length > 11 ? result[11] as List<HouseholdMemberRecord> : const [];
     _locations = result.length > 12 ? result[12] as List<PropertyLocationRecord> : const [];
+    _identity = result.length > 13 ? result[13] as List<IdentityVerificationRecord> : const [];
     _selectedGateId = _estateGates.any((gate) => gate.id == _selectedGateId)
         ? _selectedGateId
         : (_estateGates.isEmpty ? null : _estateGates.first.id);
@@ -1122,6 +1125,29 @@ class _EstateManagerDashboardApiPageState
     }
   }
 
+  Future<void> _decideIdentity(IdentityVerificationRecord row, String decision) async {
+    final estate = _estate;
+    if (estate == null) return;
+    try {
+      await widget.repository.decideIdentityVerification(
+        estateId: estate.id,
+        verificationId: row.id,
+        decision: decision,
+        reason: decision == 'reject' ? 'Unable to confirm the submitted evidence.' : null,
+      );
+      await _loadSummary();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Identity verification $decision.')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not update verification: $error')),
+      );
+    }
+  }
+
   Future<void> _captureLocation(PropertyLocationRecord property) async {
     final estate = _estate;
     if (estate == null) return;
@@ -1676,6 +1702,56 @@ class _EstateManagerDashboardApiPageState
                       ),
                     ),
                   ],
+                  const SizedBox(height: 18),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(children: const [
+                            Icon(Icons.badge_outlined, color: EstateColors.forest),
+                            SizedBox(width: 9),
+                            Text('Identity verification',
+                                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                          ]),
+                          const SizedBox(height: 8),
+                          Text(
+                            '${_identity.where((row) => row.status == 'pending').length} pending review'
+                            '${_identity.any((row) => row.demo) ? ' · demo declarations included' : ''}',
+                            style: const TextStyle(color: EstateColors.muted, fontSize: 12),
+                          ),
+                          ..._identity
+                              .where((row) => row.status == 'pending')
+                              .take(5)
+                              .map(
+                                (row) => ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  title: Text('${row.userName ?? 'Resident'} · ${row.provider}',
+                                      style: const TextStyle(fontWeight: FontWeight.w600)),
+                                  subtitle: Text(
+                                    '${row.method}${row.demo ? ' · demo (not provider-verified)' : ''} · ${row.level}',
+                                    style: const TextStyle(fontSize: 11),
+                                  ),
+                                  trailing: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      TextButton(
+                                        onPressed: () => _decideIdentity(row, 'reject'),
+                                        child: const Text('Reject'),
+                                      ),
+                                      FilledButton(
+                                        onPressed: () => _decideIdentity(row, 'verify'),
+                                        child: const Text('Verify'),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                        ],
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 18),
                   Card(
                     child: Padding(
