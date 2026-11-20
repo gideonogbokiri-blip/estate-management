@@ -340,6 +340,13 @@ model EstateProperty {
   description          String?                     @db.VarChar(700)
   latitude             Decimal?                    @db.Decimal(9, 6)
   longitude            Decimal?                    @db.Decimal(9, 6)
+  locationAccuracyMeters        Decimal?            @map("location_accuracy_meters") @db.Decimal(10, 2)
+  locationCaptureMethod         String?             @map("location_capture_method") @db.VarChar(30)
+  locationCapturedAt            DateTime?           @map("location_captured_at") @db.Timestamptz(3)
+  locationVerificationStatus    String              @default("UNVERIFIED") @map("location_verification_status") @db.VarChar(20)
+  locationVerifiedById          String?             @map("location_verified_by_id") @db.Uuid
+  locationVerifiedAt            DateTime?           @map("location_verified_at") @db.Timestamptz(3)
+  locationCorrectionReason      String?             @map("location_correction_reason") @db.VarChar(500)
   archivedAt           DateTime?                   @map("archived_at") @db.Timestamptz(3)
   createdByUserId      String                      @map("created_by_user_id") @db.Uuid
   updatedByUserId      String?                     @map("updated_by_user_id") @db.Uuid

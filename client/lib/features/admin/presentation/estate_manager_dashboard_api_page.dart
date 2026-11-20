@@ -43,6 +43,7 @@ class _EstateManagerDashboardApiPageState
   List<RentScheduleRecord> _rentSchedule = const [];
   List<LandlordRentSummaryRecord> _landlordRent = const [];
   List<HouseholdMemberRecord> _household = const [];
+  List<PropertyLocationRecord> _locations = const [];
   EstateMaintenanceQueue _maintenanceQueue = const EstateMaintenanceQueue(
     items: [],
     assignableStaff: [],
@@ -243,6 +244,7 @@ class _EstateManagerDashboardApiPageState
       widget.repository.loadRentSchedule(estate.id),
       widget.repository.loadLandlordRentSummary(estate.id),
       widget.repository.loadEstateHousehold(estate.id),
+      widget.repository.loadPropertyLocations(estate.id),
     ]);
     _summary = result[0] as EstateManagerDashboardSummary;
     _maintenanceQueue = result[1] as EstateMaintenanceQueue;
@@ -256,6 +258,7 @@ class _EstateManagerDashboardApiPageState
     _rentSchedule = result.length > 9 ? result[9] as List<RentScheduleRecord> : const [];
     _landlordRent = result.length > 10 ? result[10] as List<LandlordRentSummaryRecord> : const [];
     _household = result.length > 11 ? result[11] as List<HouseholdMemberRecord> : const [];
+    _locations = result.length > 12 ? result[12] as List<PropertyLocationRecord> : const [];
     _selectedGateId = _estateGates.any((gate) => gate.id == _selectedGateId)
         ? _selectedGateId
         : (_estateGates.isEmpty ? null : _estateGates.first.id);
@@ -1119,6 +1122,87 @@ class _EstateManagerDashboardApiPageState
     }
   }
 
+  Future<void> _captureLocation(PropertyLocationRecord property) async {
+    final estate = _estate;
+    if (estate == null) return;
+    final latitude = TextEditingController(text: property.latitude ?? '');
+    final longitude = TextEditingController(text: property.longitude ?? '');
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Capture location for ${property.code}'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: latitude,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Latitude (-90 to 90)'),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: longitude,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Longitude (-180 to 180)'),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Coordinates are stored as pending until verified. Residents cannot see unverified pins.',
+              style: TextStyle(fontSize: 11, color: EstateColors.muted),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Save pin')),
+        ],
+      ),
+    );
+    if (saved != true) return;
+    try {
+      await widget.repository.capturePropertyLocation(
+        estateId: estate.id,
+        propertyId: property.id,
+        latitude: latitude.text.trim(),
+        longitude: longitude.text.trim(),
+        captureMethod: 'MAP_PIN',
+      );
+      await _loadSummary();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Property pin saved for verification.')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not save pin: $error')),
+      );
+    }
+  }
+
+  Future<void> _verifyLocation(PropertyLocationRecord property, String decision) async {
+    final estate = _estate;
+    if (estate == null) return;
+    try {
+      await widget.repository.verifyPropertyLocation(
+        estateId: estate.id,
+        propertyId: property.id,
+        decision: decision,
+        reason: decision == 'reject' ? 'Pin does not match the property.' : null,
+      );
+      await _loadSummary();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Property location $decision.')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not update location: $error')),
+      );
+    }
+  }
+
   Future<void> _decideHousehold(String memberId, String decision) async {
     final estate = _estate;
     if (estate == null) return;
@@ -1592,6 +1676,58 @@ class _EstateManagerDashboardApiPageState
                       ),
                     ),
                   ],
+                  const SizedBox(height: 18),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(children: const [
+                            Icon(Icons.place_outlined, color: EstateColors.forest),
+                            SizedBox(width: 9),
+                            Text('Property GPS & verification',
+                                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                          ]),
+                          const SizedBox(height: 8),
+                          Text(
+                            '${_locations.where((row) => row.verificationStatus == 'verified').length} verified · '
+                            '${_locations.where((row) => row.verificationStatus == 'pending_verification').length} pending',
+                            style: const TextStyle(color: EstateColors.muted, fontSize: 12),
+                          ),
+                          ..._locations.take(6).map(
+                                (row) => ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  leading: const Icon(Icons.location_on_outlined, size: 18),
+                                  title: Text('${row.code} · ${row.verificationStatus}',
+                                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                                  subtitle: Text(
+                                    row.latitude == null
+                                        ? 'No pin captured'
+                                        : '${row.latitude}, ${row.longitude}'
+                                            '${row.captureMethod != null ? ' · ${row.captureMethod}' : ''}',
+                                    style: const TextStyle(fontSize: 11),
+                                  ),
+                                  trailing: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      TextButton(
+                                        onPressed: () => _captureLocation(row),
+                                        child: const Text('Pin'),
+                                      ),
+                                      if (row.verificationStatus == 'pending_verification')
+                                        TextButton(
+                                          onPressed: () => _verifyLocation(row, 'verify'),
+                                          child: const Text('Verify'),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                        ],
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 18),
                   Card(
                     child: Padding(

@@ -83,6 +83,10 @@ Per product direction, Paystack is deferred to the final step. `FINANCIAL_DEMO_M
 
 Added a `HouseholdMember` model and connected API: residents submit household members for management review, managers approve/reject or add directly, and either party can end a membership with a recorded reason. Adult/children/restricted member types and relationship are captured with effective dates. Dependants and restricted members are prevented from receiving wallet/financial privileges in both add and decision paths. All mutations are membership-scoped, audited and concurrency-controlled. The resident home shows a Household section with an add form; the manager dashboard shows a pending-review card with approve/reject actions. Registration approval lifecycle was already connected and was not duplicated.
 
+## 6e. Phase 3 — property GPS capture and verification (20 November 2026)
+
+Added capture/verification metadata to `EstateProperty` (accuracy, capture method, captured time, verification status, verifier, correction reason) and connected routes for manager pin capture, manager verification/rejection, and list. Residents can only see coordinates once a pin is VERIFIED — unverified pins are never exposed to them. Registration-time user location remains separate and is not used as proof of residence. The map view still uses the illustrative schematic repository; connecting it to these verified coordinates is the remaining GPS UI gap.
+
 ## 7. External dependencies still required
 
 Paystack TEST/LIVE secret keys, approved merchant/DVA product confirmation, webhook registration, settlement/KYC/KYB and Nigerian regulatory/legal sign-off. Payout, withdrawal, transfers and third-party vending remain feature-flagged/inactive until these are confirmed.

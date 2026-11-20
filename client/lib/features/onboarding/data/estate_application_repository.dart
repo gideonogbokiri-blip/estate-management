@@ -205,6 +205,50 @@ class RentScheduleRecord {
       );
 }
 
+class PropertyLocationRecord {
+  const PropertyLocationRecord({
+    required this.id,
+    required this.code,
+    required this.propertyType,
+    required this.verificationStatus,
+    this.unitNumber,
+    this.latitude,
+    this.longitude,
+    this.accuracyMeters,
+    this.captureMethod,
+    this.capturedAt,
+    this.verifiedAt,
+    this.correctionReason,
+  });
+  final String id;
+  final String code;
+  final String propertyType;
+  final String verificationStatus;
+  final String? unitNumber;
+  final String? latitude;
+  final String? longitude;
+  final String? accuracyMeters;
+  final String? captureMethod;
+  final String? capturedAt;
+  final String? verifiedAt;
+  final String? correctionReason;
+
+  factory PropertyLocationRecord.fromJson(Map<String, dynamic> json) => PropertyLocationRecord(
+        id: json['id'] as String? ?? '',
+        code: json['code'] as String? ?? '',
+        propertyType: json['propertyType'] as String? ?? '',
+        verificationStatus: json['verificationStatus'] as String? ?? 'unverified',
+        unitNumber: json['unitNumber'] as String?,
+        latitude: json['latitude'] as String?,
+        longitude: json['longitude'] as String?,
+        accuracyMeters: json['accuracyMeters'] as String?,
+        captureMethod: json['captureMethod'] as String?,
+        capturedAt: json['capturedAt'] as String?,
+        verifiedAt: json['verifiedAt'] as String?,
+        correctionReason: json['correctionReason'] as String?,
+      );
+}
+
 class HouseholdMemberRecord {
   const HouseholdMemberRecord({
     required this.id,
@@ -1945,6 +1989,22 @@ abstract interface class EstateApplicationApiRepository
     required String estateId,
     required String amount,
     required String idempotencyKey,
+  });
+  Future<List<PropertyLocationRecord>> loadPropertyLocations(String estateId);
+  Future<PropertyLocationRecord> capturePropertyLocation({
+    required String estateId,
+    required String propertyId,
+    required String latitude,
+    required String longitude,
+    String? accuracyMeters,
+    required String captureMethod,
+    String? reason,
+  });
+  Future<PropertyLocationRecord> verifyPropertyLocation({
+    required String estateId,
+    required String propertyId,
+    required String decision,
+    String? reason,
   });
   Future<List<HouseholdMemberRecord>> loadMyHousehold();
   Future<List<HouseholdMemberRecord>> loadEstateHousehold(String estateId);
@@ -4117,6 +4177,65 @@ class EstateApplicationApiClient implements EstateApplicationApiRepository {
         body: {'estateId': estateId, 'amount': amount},
       ),
     );
+  }
+
+  @override
+  Future<List<PropertyLocationRecord>> loadPropertyLocations(String estateId) async {
+    final access = await _requireAccessToken();
+    final response = await _json(
+      _send('GET', '/estate/estates/$estateId/properties/locations', accessToken: access),
+    );
+    return (response['items'] as List? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .map(PropertyLocationRecord.fromJson)
+        .toList(growable: false);
+  }
+
+  @override
+  Future<PropertyLocationRecord> capturePropertyLocation({
+    required String estateId,
+    required String propertyId,
+    required String latitude,
+    required String longitude,
+    String? accuracyMeters,
+    required String captureMethod,
+    String? reason,
+  }) async {
+    final access = await _requireAccessToken();
+    final response = await _json(
+      _send(
+        'POST',
+        '/estate/estates/$estateId/properties/$propertyId/location',
+        accessToken: access,
+        body: {
+          'latitude': latitude,
+          'longitude': longitude,
+          'captureMethod': captureMethod,
+          if (accuracyMeters != null) 'accuracyMeters': accuracyMeters,
+          if (reason != null) 'reason': reason,
+        },
+      ),
+    );
+    return PropertyLocationRecord.fromJson(response);
+  }
+
+  @override
+  Future<PropertyLocationRecord> verifyPropertyLocation({
+    required String estateId,
+    required String propertyId,
+    required String decision,
+    String? reason,
+  }) async {
+    final access = await _requireAccessToken();
+    final response = await _json(
+      _send(
+        'POST',
+        '/estate/estates/$estateId/properties/$propertyId/location/verify',
+        accessToken: access,
+        body: {'decision': decision, if (reason != null) 'reason': reason},
+      ),
+    );
+    return PropertyLocationRecord.fromJson(response);
   }
 
   List<HouseholdMemberRecord> _householdFrom(Map<String, dynamic> response) =>
