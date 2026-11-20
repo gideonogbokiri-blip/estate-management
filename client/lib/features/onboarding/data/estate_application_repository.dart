@@ -113,6 +113,53 @@ class EstateTreasurySummary {
       );
 }
 
+class EstatePayoutRecord {
+  const EstatePayoutRecord({
+    required this.id,
+    required this.amount,
+    required this.currency,
+    required this.purpose,
+    required this.status,
+    required this.beneficiaryName,
+    required this.createdAt,
+  });
+  final String id;
+  final String amount;
+  final String currency;
+  final String purpose;
+  final String status;
+  final String beneficiaryName;
+  final String createdAt;
+
+  factory EstatePayoutRecord.fromJson(Map<String, dynamic> json) =>
+      EstatePayoutRecord(
+        id: json['id'] as String? ?? '',
+        amount: json['amount']?.toString() ?? '0',
+        currency: json['currency'] as String? ?? '',
+        purpose: json['purpose'] as String? ?? '',
+        status: json['status'] as String? ?? '',
+        beneficiaryName:
+            (json['beneficiary'] as Map<String, dynamic>?)?['displayName'] as String? ?? '',
+        createdAt: json['createdAt'] as String? ?? '',
+      );
+}
+
+class EstatePayoutBeneficiaryRecord {
+  const EstatePayoutBeneficiaryRecord({required this.id, required this.displayName, required this.bankName, required this.accountNumber});
+  final String id;
+  final String displayName;
+  final String bankName;
+  final String accountNumber;
+
+  factory EstatePayoutBeneficiaryRecord.fromJson(Map<String, dynamic> json) =>
+      EstatePayoutBeneficiaryRecord(
+        id: json['id'] as String? ?? '',
+        displayName: json['displayName'] as String? ?? '',
+        bankName: json['bankName'] as String? ?? '',
+        accountNumber: json['accountNumber'] as String? ?? '',
+      );
+}
+
 class EstateApplicationDraft {
   const EstateApplicationDraft({
     required this.reference,
@@ -1582,6 +1629,16 @@ abstract interface class EstateApplicationApiRepository
     required String code,
   });
   Future<EstateTreasurySummary> loadTreasurySummary(String estateId);
+  Future<List<EstatePayoutBeneficiaryRecord>> loadPayoutBeneficiaries(String estateId);
+  Future<List<EstatePayoutRecord>> loadPayouts(String estateId);
+  Future<void> createPayout({
+    required String estateId,
+    required String beneficiaryId,
+    required String amount,
+    required String purpose,
+    required String idempotencyKey,
+  });
+  Future<void> decidePayout({required String estateId, required String payoutId, required String decision, String? note});
   Future<EstateManagerDashboardSummary> loadManagerDashboard(String estateId);
   Future<Map<String, dynamic>> loadEstateSettings(String estateId);
   Future<Map<String, dynamic>> updateEstateSettings({
@@ -3054,6 +3111,72 @@ class EstateApplicationApiClient implements EstateApplicationApiRepository {
       ),
     );
     return EstateTreasurySummary.fromJson(response);
+  }
+
+  @override
+  Future<List<EstatePayoutBeneficiaryRecord>> loadPayoutBeneficiaries(
+    String estateId,
+  ) async {
+    final access = await _requireAccessToken();
+    final response = await _json(
+      _send('GET', '/estate/estates/$estateId/finance/beneficiaries',
+          accessToken: access),
+    );
+    return (response['items'] as List? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .map(EstatePayoutBeneficiaryRecord.fromJson)
+        .toList(growable: false);
+  }
+
+  @override
+  Future<List<EstatePayoutRecord>> loadPayouts(String estateId) async {
+    final access = await _requireAccessToken();
+    final response = await _json(
+      _send('GET', '/estate/estates/$estateId/finance/payouts', accessToken: access),
+    );
+    return (response['items'] as List? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .map(EstatePayoutRecord.fromJson)
+        .toList(growable: false);
+  }
+
+  @override
+  Future<void> createPayout({
+    required String estateId,
+    required String beneficiaryId,
+    required String amount,
+    required String purpose,
+    required String idempotencyKey,
+  }) async {
+    final access = await _requireAccessToken();
+    await _json(
+      _send(
+        'POST',
+        '/estate/estates/$estateId/finance/payouts',
+        accessToken: access,
+        additionalHeaders: {'Idempotency-Key': idempotencyKey},
+        body: {
+          'beneficiaryId': beneficiaryId,
+          'amount': amount,
+          'currency': 'NGN',
+          'purpose': purpose,
+          'fundCategory': 'estate_operations',
+        },
+      ),
+    );
+  }
+
+  @override
+  Future<void> decidePayout({required String estateId, required String payoutId, required String decision, String? note}) async {
+    final access = await _requireAccessToken();
+    await _json(
+      _send(
+        'POST',
+        '/estate/estates/$estateId/finance/payouts/$payoutId/decision',
+        accessToken: access,
+        body: {'decision': decision, if (note != null) 'note': note},
+      ),
+    );
   }
 
   @override

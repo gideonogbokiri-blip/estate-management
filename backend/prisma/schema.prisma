@@ -1698,6 +1698,89 @@ model EstateWalletTransaction {
   @@map("estate_wallet_transactions")
 }
 
+model EstatePayoutBeneficiary {
+  id             String    @id @default(uuid()) @db.Uuid
+  estateId       String    @map("estate_id") @db.Uuid
+  displayName    String    @map("display_name") @db.VarChar(160)
+  bankName       String    @map("bank_name") @db.VarChar(120)
+  accountNumber  String    @map("account_number") @db.VarChar(34)
+  accountReference String  @map("account_reference") @db.VarChar(120)
+  active         Boolean   @default(true)
+  verifiedAt     DateTime? @map("verified_at") @db.Timestamptz(3)
+  verifiedBy     String?   @map("verified_by") @db.Uuid
+  createdBy      String    @map("created_by") @db.Uuid
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  payouts        EstatePayoutRequest[]
+
+  @@index([estateId, active])
+  @@map("estate_payout_beneficiaries")
+}
+
+model EstatePayoutPolicy {
+  id                String   @id @default(uuid()) @db.Uuid
+  estateId          String   @unique @map("estate_id") @db.Uuid
+  threshold         Decimal  @db.Decimal(14, 2)
+  requiredApprovals Int      @map("required_approvals")
+  updatedBy         String   @map("updated_by") @db.Uuid
+  updatedAt         DateTime @default(now()) @map("updated_at") @db.Timestamptz(3)
+
+  @@map("estate_payout_policies")
+}
+
+model EstatePayoutRequest {
+  id              String   @id @default(uuid()) @db.Uuid
+  estateId        String   @map("estate_id") @db.Uuid
+  beneficiaryId   String   @map("beneficiary_id") @db.Uuid
+  amount          Decimal  @db.Decimal(14, 2)
+  currency        String   @db.VarChar(3)
+  purpose         String   @db.VarChar(500)
+  fundCategory    String   @default("estate_operations") @map("fund_category") @db.VarChar(60)
+  status          String   @db.VarChar(20)
+  initiatedBy     String   @map("initiated_by") @db.Uuid
+  idempotencyKeyHash String @map("idempotency_key_hash") @db.VarChar(64)
+  policySnapshot  Json     @map("policy_snapshot")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  beneficiary     EstatePayoutBeneficiary @relation(fields: [beneficiaryId], references: [id], onDelete: Restrict)
+  approvals       EstatePayoutApproval[]
+  execution       EstatePayoutExecution?
+
+  @@unique([estateId, initiatedBy, idempotencyKeyHash])
+  @@index([estateId, status, createdAt])
+  @@map("estate_payout_requests")
+}
+
+model EstatePayoutApproval {
+  id          String   @id @default(uuid()) @db.Uuid
+  payoutId    String   @map("payout_id") @db.Uuid
+  approverId  String   @map("approver_id") @db.Uuid
+  decision    String   @db.VarChar(10)
+  note        String?  @db.VarChar(500)
+  occurredAt  DateTime @default(now()) @map("occurred_at") @db.Timestamptz(3)
+
+  payout      EstatePayoutRequest @relation(fields: [payoutId], references: [id], onDelete: Restrict)
+
+  @@unique([payoutId, approverId])
+  @@map("estate_payout_approvals")
+}
+
+model EstatePayoutExecution {
+  id                String   @id @default(uuid()) @db.Uuid
+  payoutId          String   @map("payout_id") @db.Uuid
+  provider          String   @db.VarChar(30)
+  providerReference String?  @map("provider_reference") @db.VarChar(180)
+  status            String   @db.VarChar(20)
+  providerResponse  Json?    @map("provider_response")
+  executedBy        String   @map("executed_by") @db.Uuid
+  executedAt        DateTime @default(now()) @map("executed_at") @db.Timestamptz(3)
+
+  payout            EstatePayoutRequest @relation(fields: [payoutId], references: [id], onDelete: Restrict)
+
+  @@unique([payoutId])
+  @@map("estate_payout_executions")
+}
+
 model AuditEvent {
   id          String   @id @default(uuid()) @db.Uuid
   actorUserId String?  @map("actor_user_id") @db.Uuid

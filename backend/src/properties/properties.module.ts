@@ -44,10 +44,12 @@ import { EstateWalletService } from './wallets.service.js';
 import { LedgerService } from './ledger.service.js';
 import { EstateTreasuryController } from './treasury.controller.js';
 import { EstateTreasuryService } from './treasury.service.js';
+import { EstatePayoutController } from './payouts.controller.js';
+import { EstatePayoutService } from './payouts.service.js';
 
 @Module({
   imports: [AuthModule, PrivateDocumentsModule],
-  controllers: [EstatesController, PropertiesController, StructureController, ResidentRequestsController, OwnershipController, LandlordPortfolioController, LandlordEstatesController, TenanciesController, TenantAccessController, EstateDashboardController, MaintenanceController, LandlordMaintenanceController, VisitorPassesController, GateSecurityController, EstateChargesController, ResidentInvoicesController, EstateFacilitiesController, EstateAnnouncementsController, ResidentAnnouncementsController, SecurityIncidentsController, EstateExpensesController, EstateBudgetsController, EstateNotificationsController, StaffInvitationsController, EstateSettingsController, EstateWalletsController, PaystackWebhookController, EstateTreasuryController],
-  providers: [PropertiesService, OwnershipService, TenanciesService, TenantAccessService, EstateDashboardService, MaintenanceService, VisitorPassesService, GateSecurityService, EstateChargesService, EstateFacilitiesService, EstateAnnouncementsService, SecurityIncidentsService, EstateExpensesService, EstateBudgetsService, EstateNotificationsService, StaffInvitationsService, EstateSettingsService, EstateWalletService, LedgerService, EstateTreasuryService],
+  controllers: [EstatesController, PropertiesController, StructureController, ResidentRequestsController, OwnershipController, LandlordPortfolioController, LandlordEstatesController, TenanciesController, TenantAccessController, EstateDashboardController, MaintenanceController, LandlordMaintenanceController, VisitorPassesController, GateSecurityController, EstateChargesController, ResidentInvoicesController, EstateFacilitiesController, EstateAnnouncementsController, ResidentAnnouncementsController, SecurityIncidentsController, EstateExpensesController, EstateBudgetsController, EstateNotificationsController, StaffInvitationsController, EstateSettingsController, EstateWalletsController, PaystackWebhookController, EstateTreasuryController, EstatePayoutController],
+  providers: [PropertiesService, OwnershipService, TenanciesService, TenantAccessService, EstateDashboardService, MaintenanceService, VisitorPassesService, GateSecurityService, EstateChargesService, EstateFacilitiesService, EstateAnnouncementsService, SecurityIncidentsService, EstateExpensesService, EstateBudgetsService, EstateNotificationsService, StaffInvitationsService, EstateSettingsService, EstateWalletService, LedgerService, EstateTreasuryService, EstatePayoutService],
 })
 export class PropertiesModule {}

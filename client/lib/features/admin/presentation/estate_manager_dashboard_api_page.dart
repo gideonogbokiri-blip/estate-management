@@ -38,6 +38,8 @@ class _EstateManagerDashboardApiPageState
   ManagedEstateChoice? _estate;
   EstateManagerDashboardSummary? _summary;
   EstateTreasurySummary? _treasury;
+  List<EstatePayoutBeneficiaryRecord> _beneficiaries = const [];
+  List<EstatePayoutRecord> _payouts = const [];
   EstateMaintenanceQueue _maintenanceQueue = const EstateMaintenanceQueue(
     items: [],
     assignableStaff: [],
@@ -233,6 +235,8 @@ class _EstateManagerDashboardApiPageState
       widget.repository.loadEstateStructure(estate.id),
       widget.repository.loadEstateFacilityBookings(estate.id),
       widget.repository.loadTreasurySummary(estate.id),
+      widget.repository.loadPayoutBeneficiaries(estate.id),
+      widget.repository.loadPayouts(estate.id),
     ]);
     _summary = result[0] as EstateManagerDashboardSummary;
     _maintenanceQueue = result[1] as EstateMaintenanceQueue;
@@ -241,6 +245,8 @@ class _EstateManagerDashboardApiPageState
     _estateStructure = result[4] as List<EstateStructureRecord>;
     _facilityBookings = result[5] as List<EstateFacilityBookingRecord>;
     _treasury = result.length > 6 ? result[6] as EstateTreasurySummary? : null;
+    _beneficiaries = result.length > 7 ? result[7] as List<EstatePayoutBeneficiaryRecord> : const [];
+    _payouts = result.length > 8 ? result[8] as List<EstatePayoutRecord> : const [];
     _selectedGateId = _estateGates.any((gate) => gate.id == _selectedGateId)
         ? _selectedGateId
         : (_estateGates.isEmpty ? null : _estateGates.first.id);
@@ -1082,6 +1088,115 @@ class _EstateManagerDashboardApiPageState
     );
   }
 
+  Future<void> _requestPayout() async {
+    final estate = _estate;
+    if (estate == null) return;
+    if (_beneficiaries.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No verified beneficiary is configured for this estate.'),
+        ),
+      );
+      return;
+    }
+    EstatePayoutBeneficiaryRecord? beneficiary;
+    final amount = TextEditingController();
+    final purpose = TextEditingController();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Request a payout'),
+        content: SizedBox(
+          width: 420,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DropdownButtonFormField<EstatePayoutBeneficiaryRecord>(
+                initialValue: _beneficiaries.firstOrNull,
+                decoration: const InputDecoration(labelText: 'Beneficiary'),
+                items: _beneficiaries
+                    .map((item) => DropdownMenuItem(
+                          value: item,
+                          child: Text('${item.displayName} · ${item.accountNumber}'),
+                        ))
+                    .toList(),
+                onChanged: (value) => beneficiary = value,
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: amount,
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(labelText: 'Amount (NGN)'),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: purpose,
+                decoration: const InputDecoration(labelText: 'Purpose'),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Submit request'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    final selected = beneficiary ?? _beneficiaries.first;
+    final value = amount.text.trim();
+    if (!RegExp(r'^[0-9]+(\.[0-9]{1,2})?$').hasMatch(value) ||
+        purpose.text.trim().length < 5) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter a valid amount and purpose.')),
+      );
+      return;
+    }
+    try {
+      await widget.repository.createPayout(
+        estateId: estate.id,
+        beneficiaryId: selected.id,
+        amount: value,
+        purpose: purpose.text.trim(),
+        idempotencyKey: 'payout-${DateTime.now().microsecondsSinceEpoch}',
+      );
+      await _loadSummary();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Payout request submitted for approval.')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Payout request failed: $error')),
+      );
+    }
+  }
+
+  Future<void> _decidePayout(EstatePayoutRecord payout, String decision) async {
+    final estate = _estate;
+    if (estate == null) return;
+    try {
+      await widget.repository.decidePayout(
+        estateId: estate.id,
+        payoutId: payout.id,
+        decision: decision,
+      );
+      await _loadSummary();
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not update payout: $error')),
+      );
+    }
+  }
+
   Drawer _buildMenuDrawer() {
     final estate = _estate;
     Widget item(IconData icon, String label, VoidCallback? onTap) => ListTile(
@@ -1422,6 +1537,50 @@ class _EstateManagerDashboardApiPageState
                               _TreasuryFigure(label: 'Pending settlements', value: '${_treasury!.pendingSettlements}'),
                               _TreasuryFigure(label: 'Reconciliation exceptions', value: '${_treasury!.reconciliationExceptions}'),
                             ]),
+                            const SizedBox(height: 12),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: OutlinedButton.icon(
+                                onPressed: _requestPayout,
+                                icon: const Icon(Icons.send_outlined),
+                                label: const Text('Request payout'),
+                              ),
+                            ),
+                            if (_payouts.isNotEmpty) ...[
+                              const SizedBox(height: 10),
+                              const Text('Payout requests',
+                                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                              ..._payouts.take(5).map(
+                                    (payout) => ListTile(
+                                      contentPadding: EdgeInsets.zero,
+                                      title: Text(
+                                        '${payout.currency} ${payout.amount} · ${payout.status}',
+                                        style: const TextStyle(fontWeight: FontWeight.w600),
+                                      ),
+                                      subtitle: Text(
+                                        '${payout.beneficiaryName} · ${payout.purpose}',
+                                        style: const TextStyle(fontSize: 11),
+                                      ),
+                                      trailing: payout.status == 'pending_approval'
+                                          ? Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                IconButton(
+                                                  tooltip: 'Approve',
+                                                  onPressed: () => _decidePayout(payout, 'approve'),
+                                                  icon: const Icon(Icons.check_circle_outline, color: EstateColors.forest),
+                                                ),
+                                                IconButton(
+                                                  tooltip: 'Reject',
+                                                  onPressed: () => _decidePayout(payout, 'reject'),
+                                                  icon: const Icon(Icons.cancel_outlined, color: EstateColors.red),
+                                                ),
+                                              ],
+                                            )
+                                          : null,
+                                    ),
+                                  ),
+                            ],
                           ],
                         ),
                       ),

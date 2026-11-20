@@ -70,7 +70,8 @@ Phase 1 will be considered complete when:
 
 - Added a read-only estate treasury summary endpoint backed by the ledger, wallet transactions, invoice settlements, expense requests, funding intents and quarantined provider events: `GET /api/v1/estate/estates/:estateId/treasury/summary`.
 - Authorization is limited to active estate administrator, manager and finance-manager memberships. The manager dashboard now renders an Estate treasury card with collections, wallet balances, outstanding invoices, pending settlements and reconciliation exceptions.
-- Rent schedule generation, landlord payable ledger and payout approvals remain outstanding.
+- Payout controls added: verified beneficiaries, estate payout policy with threshold-based approvals, self-approval prevention, cleared-funds checks, idempotent initiation, separate approve/reject decisions and provider execution behind `PAYSTACK_SECRET_KEY`. The manager dashboard can request and decide payouts.
+- Rent schedule generation and the landlord payable ledger remain outstanding.
 
 ## 7. External dependencies still required
 
