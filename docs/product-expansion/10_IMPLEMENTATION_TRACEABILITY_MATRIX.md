@@ -32,6 +32,10 @@ Date: 20 November 2026. Status legend: **LIVE** = deployed and verified; **DEMO*
 
 All three role dashboards now use `client/lib/core/design/dashboard_design.dart`: dark canvas, greeting header, a deep-green hero card with three white actions, a 12-tile Quick Services grid and sectioned lists. The reference image is retained at `docs/product-expansion/reference-resident-dashboard.jpg`.
 
+## Browser cache fix (20 November 2026)
+
+The API client now sends `Cache-Control: no-store` and the backend sets the same header on `/api/v1` responses (both local bootstrap and Vercel wrapper). Without this, repeated browser loads received `304 Not Modified` with an empty body, which the client treated as an error and left dashboards stuck on the loading indicator. Verified against live dashboard reloads.
+
 ## Dated decisions
 
 - 20 Nov 2026 — Paystack deferred to final rollout step; `FINANCIAL_DEMO_MODE=true` remains hosted.

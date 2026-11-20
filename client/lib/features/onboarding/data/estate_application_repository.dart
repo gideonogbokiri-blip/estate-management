@@ -2443,7 +2443,12 @@ class EstateApplicationApiClient implements EstateApplicationApiRepository {
     String? accessToken,
     Map<String, String>? additionalHeaders,
   }) async {
-    final headers = <String, String>{'Accept': 'application/json'};
+    // Server responses are stateful; a browser revalidation can return 304 with
+    // no body, which is not a valid API response for the client.
+    final headers = <String, String>{
+      'Accept': 'application/json',
+      'Cache-Control': 'no-store',
+    };
     if (body != null) headers['Content-Type'] = 'application/json';
     if (accessToken != null) {
       headers['Authorization'] = 'Bearer $accessToken';

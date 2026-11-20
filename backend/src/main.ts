@@ -28,6 +28,10 @@ async function bootstrap(): Promise<void> {
   });
 
   app.use(helmet());
+  app.use('/api/v1', (_request: express.Request, response: express.Response, next: express.NextFunction) => {
+    response.setHeader('Cache-Control', 'no-store');
+    next();
+  });
   app.use((request: { method?: string; originalUrl?: string }, response: { statusCode: number; on: (event: string, listener: () => void) => void }, next: () => void) => {
     const started = Date.now();
     response.on('finish', () => {
