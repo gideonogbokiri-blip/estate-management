@@ -156,7 +156,7 @@ export class EstateWalletService {
       throw new BadRequestException('An active fund account is required.');
     }
     const invoice = await this.prisma.estateInvoiceDraft.findFirst({
-      where: { id: invoiceId, estateId, payerUserId: userId, status: 'ISSUED' },
+      where: { id: invoiceId, estateId, payerUserId: userId, status: { in: ['ISSUED', 'PARTIALLY_PAID'] } },
       select: { id: true, currency: true, total: true, invoiceNumber: true },
     });
     if (!invoice) throw new NotFoundException('Issued invoice not found for this account.');
