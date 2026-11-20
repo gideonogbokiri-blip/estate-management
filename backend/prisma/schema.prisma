@@ -1781,6 +1781,52 @@ model EstatePayoutExecution {
   @@map("estate_payout_executions")
 }
 
+model RentSchedule {
+  id             String   @id @default(uuid()) @db.Uuid
+  estateId       String   @map("estate_id") @db.Uuid
+  tenancyId      String   @map("tenancy_id") @db.Uuid
+  tenantUserId   String   @map("tenant_user_id") @db.Uuid
+  payeeUserId    String   @map("payee_user_id") @db.Uuid
+  propertyId     String   @map("property_id") @db.Uuid
+  amount         Decimal  @db.Decimal(12, 2)
+  currency       String   @db.VarChar(3)
+  frequency      String   @db.VarChar(12)
+  periodStart    DateTime @map("period_start") @db.Date
+  periodEnd      DateTime @map("period_end") @db.Date
+  dueDate        DateTime @map("due_date") @db.Date
+  status         String   @db.VarChar(20)
+  idempotencyKey String   @map("idempotency_key") @db.VarChar(180)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  payments       RentPayment[]
+
+  @@unique([idempotencyKey])
+  @@index([estateId, dueDate])
+  @@index([tenantUserId, dueDate])
+  @@index([payeeUserId, dueDate])
+  @@map("rent_schedules")
+}
+
+model RentPayment {
+  id               String   @id @default(uuid()) @db.Uuid
+  scheduleId       String   @map("schedule_id") @db.Uuid
+  estateId         String   @map("estate_id") @db.Uuid
+  amount           Decimal  @db.Decimal(12, 2)
+  currency         String   @db.VarChar(3)
+  paidBy           String   @map("paid_by") @db.Uuid
+  paymentReference String   @map("payment_reference") @db.VarChar(180)
+  receiptNumber    String   @unique @map("receipt_number") @db.VarChar(40)
+  receivedAt       DateTime @map("received_at") @db.Timestamptz(3)
+  sourceType       String   @default("wallet") @map("source_type") @db.VarChar(30)
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  schedule         RentSchedule @relation(fields: [scheduleId], references: [id], onDelete: Restrict)
+
+  @@unique([paymentReference])
+  @@index([scheduleId, receivedAt])
+  @@map("rent_payments")
+}
+
 model AuditEvent {
   id          String   @id @default(uuid()) @db.Uuid
   actorUserId String?  @map("actor_user_id") @db.Uuid

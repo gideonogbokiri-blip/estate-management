@@ -160,6 +160,77 @@ class EstatePayoutBeneficiaryRecord {
       );
 }
 
+class RentScheduleRecord {
+  const RentScheduleRecord({
+    required this.id,
+    required this.amount,
+    required this.balance,
+    required this.paid,
+    required this.currency,
+    required this.dueDate,
+    required this.periodStart,
+    required this.periodEnd,
+    required this.status,
+    required this.isOverdue,
+    required this.tenancyId,
+    this.receipts = const [],
+  });
+  final String id;
+  final String amount;
+  final String balance;
+  final String paid;
+  final String currency;
+  final String dueDate;
+  final String periodStart;
+  final String periodEnd;
+  final String status;
+  final bool isOverdue;
+  final String tenancyId;
+  final List<dynamic> receipts;
+
+  factory RentScheduleRecord.fromJson(Map<String, dynamic> json) =>
+      RentScheduleRecord(
+        id: json['id'] as String? ?? '',
+        amount: json['amount']?.toString() ?? '0',
+        balance: json['balance']?.toString() ?? '0',
+        paid: json['paid']?.toString() ?? '0',
+        currency: json['currency'] as String? ?? '',
+        dueDate: json['dueDate'] as String? ?? '',
+        periodStart: json['periodStart'] as String? ?? '',
+        periodEnd: json['periodEnd'] as String? ?? '',
+        status: json['status'] as String? ?? '',
+        isOverdue: json['isOverdue'] as bool? ?? false,
+        tenancyId: json['tenancyId'] as String? ?? '',
+        receipts: json['receipts'] as List? ?? const [],
+      );
+}
+
+class LandlordRentSummaryRecord {
+  const LandlordRentSummaryRecord({
+    required this.payeeUserId,
+    required this.payeeName,
+    required this.entitlement,
+    required this.collected,
+    required this.outstanding,
+    this.currency = 'NGN',
+  });
+  final String payeeUserId;
+  final String payeeName;
+  final String entitlement;
+  final String collected;
+  final String outstanding;
+  final String currency;
+
+  factory LandlordRentSummaryRecord.fromJson(Map<String, dynamic> json) =>
+      LandlordRentSummaryRecord(
+        payeeUserId: json['payeeUserId'] as String? ?? '',
+        payeeName: json['payeeName'] as String? ?? '',
+        entitlement: json['entitlement']?.toString() ?? '0',
+        collected: json['collected']?.toString() ?? '0',
+        outstanding: json['outstanding']?.toString() ?? '0',
+      );
+}
+
 class EstateApplicationDraft {
   const EstateApplicationDraft({
     required this.reference,
@@ -1825,6 +1896,10 @@ abstract interface class EstateApplicationApiRepository
     required String amount,
     required String idempotencyKey,
   });
+  Future<Map<String, dynamic>> generateRentSchedule(String estateId, {String? from, int months = 3});
+  Future<List<RentScheduleRecord>> loadRentSchedule(String estateId);
+  Future<List<LandlordRentSummaryRecord>> loadLandlordRentSummary(String estateId);
+  Future<Map<String, dynamic>> payRentSchedule({required String scheduleId, required String amount});
   Future<Map<String, dynamic>> creditDemoWallet(String intentId);
   Future<Map<String, dynamic>> payRentFromWallet({
     required String estateId,
@@ -3962,6 +4037,59 @@ class EstateApplicationApiClient implements EstateApplicationApiRepository {
         accessToken: access,
         additionalHeaders: {'Idempotency-Key': idempotencyKey},
         body: {'estateId': estateId, 'amount': amount},
+      ),
+    );
+  }
+
+  @override
+  Future<Map<String, dynamic>> generateRentSchedule(String estateId, {String? from, int months = 3}) async {
+    final access = await _requireAccessToken();
+    return _json(
+      _send(
+        'POST',
+        '/estate/estates/$estateId/rent/generate',
+        accessToken: access,
+        body: {
+          if (from != null) 'from': from,
+          'months': months,
+        },
+      ),
+    );
+  }
+
+  @override
+  Future<List<RentScheduleRecord>> loadRentSchedule(String estateId) async {
+    final access = await _requireAccessToken();
+    final response = await _json(
+      _send('GET', '/estate/estates/$estateId/rent/schedule', accessToken: access),
+    );
+    return (response['items'] as List? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .map(RentScheduleRecord.fromJson)
+        .toList(growable: false);
+  }
+
+  @override
+  Future<List<LandlordRentSummaryRecord>> loadLandlordRentSummary(String estateId) async {
+    final access = await _requireAccessToken();
+    final response = await _json(
+      _send('GET', '/estate/estates/$estateId/rent/landlord-summary', accessToken: access),
+    );
+    return (response['items'] as List? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .map(LandlordRentSummaryRecord.fromJson)
+        .toList(growable: false);
+  }
+
+  @override
+  Future<Map<String, dynamic>> payRentSchedule({required String scheduleId, required String amount}) async {
+    final access = await _requireAccessToken();
+    return _json(
+      _send(
+        'POST',
+        '/estate/wallets/pay-rent-schedule',
+        accessToken: access,
+        body: {'scheduleId': scheduleId, 'amount': amount},
       ),
     );
   }

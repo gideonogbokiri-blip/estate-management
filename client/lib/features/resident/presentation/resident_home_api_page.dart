@@ -36,6 +36,7 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
   bool _announcementLoadFailed = false;
   List<Map<String, dynamic>> _invoiceRecords = const [];
   List<EstateWalletRecord> _wallets = const [];
+  List<RentScheduleRecord> _rentSchedule = const [];
   List<ResidentMaintenanceRecord> _maintenanceRequests = const [];
   String? _selectedMaintenancePropertyId;
   String? _maintenanceEstateId;
@@ -180,6 +181,14 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
       _wallets = await widget.repository.loadMyWallets();
     } catch (_) {
       _wallets = const [];
+    }
+    try {
+      final estateId = _memberships.firstOrNull?.id;
+      _rentSchedule = estateId == null
+          ? const []
+          : await widget.repository.loadRentSchedule(estateId);
+    } catch (_) {
+      _rentSchedule = const [];
     }
     final securityMembership = _memberships
         .where((estate) => estate.roles.contains('security_officer'))
@@ -661,6 +670,25 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
   String _money(dynamic value) {
     final amount = double.tryParse(value.toString()) ?? 0;
     return 'NGN ${amount.toStringAsFixed(2).replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (_) => ',')}';
+  }
+
+  Future<void> _payRentSchedule(RentScheduleRecord row) async {
+    try {
+      await widget.repository.payRentSchedule(
+        scheduleId: row.id,
+        amount: row.balance,
+      );
+      await _loadWorkspace();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Rent paid from your fund account.')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_message(error))),
+      );
+    }
   }
 
   Future<void> _startFunding(EstateWalletRecord wallet) async {
@@ -1177,6 +1205,39 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
               const SizedBox(height: 18),
               if (_selectedTab == 3) ...[
                 _moneyCard(),
+                const SizedBox(height: 18),
+                _sectionTitle('House rent'),
+                if (_rentSchedule.isEmpty)
+                  const Card(
+                    child: Padding(
+                      padding: EdgeInsets.all(20),
+                      child: Text('No rent installments scheduled yet.'),
+                    ),
+                  )
+                else
+                  ..._rentSchedule.take(6).map(
+                        (row) => Card(
+                          child: ListTile(
+                            title: Text(
+                              '${row.currency} ${row.amount} · ${row.status}',
+                              style: const TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                            subtitle: Text(
+                              '${row.periodStart} – ${row.periodEnd} · due ${row.dueDate}'
+                              '${row.isOverdue ? ' · overdue' : ''}',
+                              style: const TextStyle(fontSize: 11),
+                            ),
+                            trailing: row.balance == '0'
+                                ? const Icon(Icons.check_circle, color: EstateColors.forest)
+                                : TextButton(
+                                    onPressed: _wallets.firstOrNull == null
+                                        ? null
+                                        : () => _payRentSchedule(row),
+                                    child: const Text('Pay'),
+                                  ),
+                          ),
+                        ),
+                      ),
                 const SizedBox(height: 18),
               ],
               if (_selectedTab == 3) ...[

@@ -40,6 +40,8 @@ class _EstateManagerDashboardApiPageState
   EstateTreasurySummary? _treasury;
   List<EstatePayoutBeneficiaryRecord> _beneficiaries = const [];
   List<EstatePayoutRecord> _payouts = const [];
+  List<RentScheduleRecord> _rentSchedule = const [];
+  List<LandlordRentSummaryRecord> _landlordRent = const [];
   EstateMaintenanceQueue _maintenanceQueue = const EstateMaintenanceQueue(
     items: [],
     assignableStaff: [],
@@ -237,6 +239,8 @@ class _EstateManagerDashboardApiPageState
       widget.repository.loadTreasurySummary(estate.id),
       widget.repository.loadPayoutBeneficiaries(estate.id),
       widget.repository.loadPayouts(estate.id),
+      widget.repository.loadRentSchedule(estate.id),
+      widget.repository.loadLandlordRentSummary(estate.id),
     ]);
     _summary = result[0] as EstateManagerDashboardSummary;
     _maintenanceQueue = result[1] as EstateMaintenanceQueue;
@@ -247,6 +251,8 @@ class _EstateManagerDashboardApiPageState
     _treasury = result.length > 6 ? result[6] as EstateTreasurySummary? : null;
     _beneficiaries = result.length > 7 ? result[7] as List<EstatePayoutBeneficiaryRecord> : const [];
     _payouts = result.length > 8 ? result[8] as List<EstatePayoutRecord> : const [];
+    _rentSchedule = result.length > 9 ? result[9] as List<RentScheduleRecord> : const [];
+    _landlordRent = result.length > 10 ? result[10] as List<LandlordRentSummaryRecord> : const [];
     _selectedGateId = _estateGates.any((gate) => gate.id == _selectedGateId)
         ? _selectedGateId
         : (_estateGates.isEmpty ? null : _estateGates.first.id);
@@ -1088,6 +1094,28 @@ class _EstateManagerDashboardApiPageState
     );
   }
 
+  Future<void> _generateRentSchedule() async {
+    final estate = _estate;
+    if (estate == null) return;
+    try {
+      final result = await widget.repository.generateRentSchedule(estate.id);
+      await _loadSummary();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Rent schedule: ${result['created']} added, ${result['skipped']} already present.',
+          ),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not generate rent schedule: $error')),
+      );
+    }
+  }
+
   Future<void> _requestPayout() async {
     final estate = _estate;
     if (estate == null) return;
@@ -1515,6 +1543,52 @@ class _EstateManagerDashboardApiPageState
                       ),
                     ),
                   ],
+                  const SizedBox(height: 18),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(children: const [
+                            Icon(Icons.calendar_month_outlined, color: EstateColors.forest),
+                            SizedBox(width: 9),
+                            Text('Rent schedule & landlord entitlement',
+                                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                          ]),
+                          const SizedBox(height: 8),
+                          Text(
+                            '${_rentSchedule.length} scheduled installments · '
+                            '${_rentSchedule.where((row) => row.isOverdue).length} overdue',
+                            style: const TextStyle(color: EstateColors.muted, fontSize: 12),
+                          ),
+                          const SizedBox(height: 10),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: OutlinedButton.icon(
+                              onPressed: _generateRentSchedule,
+                              icon: const Icon(Icons.autorenew_outlined),
+                              label: const Text('Generate next 3 months'),
+                            ),
+                          ),
+                          if (_landlordRent.isNotEmpty) ...[
+                            const SizedBox(height: 10),
+                            ..._landlordRent.take(4).map(
+                                  (row) => ListTile(
+                                    contentPadding: EdgeInsets.zero,
+                                    title: Text(row.payeeName,
+                                        style: const TextStyle(fontWeight: FontWeight.w600)),
+                                    subtitle: Text(
+                                      'Collected ${row.currency} ${row.collected} · Outstanding ${row.currency} ${row.outstanding}',
+                                      style: const TextStyle(fontSize: 11),
+                                    ),
+                                  ),
+                                ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 18),
                   if (_treasury != null)
                     Card(

@@ -23,6 +23,7 @@
     "seed:walkthrough-accounts": "node dist/src/cli/seed-walkthrough-accounts.js",
     "seed:landlord-demo": "node dist/src/cli/seed-landlord-demo.js",
     "seed:approver-demo": "node dist/src/cli/seed-approver-demo.js",
+    "seed:rent-demo": "node dist/src/cli/seed-rent-demo.js",
     "notifications:deliver": "node dist/src/cli/deliver-notifications.js",
     "accounts:issue-code": "node dist/src/cli/issue-recovery-code.js"
   },

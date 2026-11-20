@@ -83,4 +83,8 @@ export class LedgerService {
   invoiceReceivable(invoiceId: string) {
     return `INVOICE_RECEIVABLE:${invoiceId}`;
   }
+
+  landlordPayable(payeeUserId: string) {
+    return `LANDLORD_PAYABLE:${payeeUserId}`;
+  }
 }

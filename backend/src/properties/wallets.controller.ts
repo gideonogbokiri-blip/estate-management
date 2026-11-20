@@ -32,6 +32,12 @@ export class EstateWalletsController {
     return this.wallets.demoCredit(request.actor.userId, body.intentId);
   }
 
+  @Post('pay-rent-schedule')
+  payRentSchedule(@Req() request: AuthenticatedRequest,
+    @Body() body: { scheduleId: string; amount: string }) {
+    return this.wallets.payRentSchedule(request.actor.userId, body.scheduleId, body.amount);
+  }
+
   @Post('pay-rent')
   payRent(@Req() request: AuthenticatedRequest, @Body() body: PayWalletRentDto) {
     return this.wallets.payRent(request.actor.userId, body.estateId, body.invoiceId, body.amount);

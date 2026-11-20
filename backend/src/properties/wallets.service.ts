@@ -263,6 +263,72 @@ export class EstateWalletService {
     return { ...intent, providerReference: reference, replayed: false, accountNumber: wallet.accountNumber, bankName: wallet.bankName, accountName: wallet.accountName };
   }
 
+  async payRentSchedule(userId: string, scheduleId: string, amountText: string) {
+    const amount = new Prisma.Decimal(amountText);
+    if (amount.lte(0)) throw new BadRequestException('Amount must be positive.');
+    const schedule = await this.prisma.rentSchedule.findFirst({
+      where: { id: scheduleId, tenantUserId: userId, status: { in: ['scheduled', 'partially_paid'] } },
+    });
+    if (!schedule) throw new NotFoundException('Rent schedule not found for this account.');
+    if (amount.gt(schedule.amount)) throw new BadRequestException('Amount exceeds the scheduled rent.');
+    const wallet = await this.prisma.estateWallet.findUnique({
+      where: { estateId_userId_currency: { estateId: schedule.estateId, userId, currency: schedule.currency } },
+      select: { id: true, status: true },
+    });
+    if (!wallet || wallet.status !== 'active') throw new BadRequestException('An active fund account is required.');
+
+    return this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM estate_wallets WHERE id = ${wallet.id} FOR UPDATE`;
+      const sums = await tx.estateWalletTransaction.groupBy({
+        by: ['type'], where: { walletId: wallet.id, status: 'posted' }, _sum: { amount: true },
+      });
+      const credits = sums.find((row) => row.type === 'credit')?._sum?.amount ?? new Prisma.Decimal(0);
+      const debits = sums.find((row) => row.type === 'debit')?._sum?.amount ?? new Prisma.Decimal(0);
+      if (credits.sub(debits).lt(amount)) throw new BadRequestException('Insufficient fund account balance.');
+
+      const paid = await tx.rentPayment.aggregate({ where: { scheduleId }, _sum: { amount: true } });
+      if (amount.gt(schedule.amount.sub(paid._sum.amount ?? new Prisma.Decimal(0)))) {
+        throw new BadRequestException('Amount exceeds the outstanding rent.');
+      }
+      const now = new Date();
+      const reference = `RENT-WALLET-${schedule.id}-${now.getTime()}`;
+      const journalId = await this.ledger.post(tx, {
+        estateId: schedule.estateId,
+        reference: `JRN-${reference}`,
+        sourceType: 'rent_wallet_payment',
+        sourceId: schedule.id,
+        description: `Rent payment for tenancy ${schedule.tenancyId}`,
+        currency: schedule.currency,
+        debitAccount: this.ledger.walletAccount(wallet.id),
+        creditAccount: this.ledger.landlordPayable(schedule.payeeUserId),
+        amount,
+        occurredAt: now,
+      });
+      await tx.estateWalletTransaction.create({ data: {
+        walletId: wallet.id, estateId: schedule.estateId, type: 'debit', amount,
+        currency: schedule.currency, reference,
+        description: `Rent payment for schedule ${schedule.id}`,
+        sourceType: 'rent_payment', sourceId: schedule.id, status: 'posted', journalId,
+      } });
+      const receiptNumber = `RCP-${randomUUID().replace(/-/g, '').slice(0, 16).toUpperCase()}`;
+      await tx.rentPayment.create({ data: {
+        scheduleId, estateId: schedule.estateId, amount, currency: schedule.currency,
+        paidBy: userId, paymentReference: reference, receiptNumber, receivedAt: now,
+        sourceType: 'wallet',
+      } });
+      const totalPaid = (paid._sum.amount ?? new Prisma.Decimal(0)).add(amount);
+      await tx.rentSchedule.update({ where: { id: scheduleId }, data: {
+        status: totalPaid.gte(schedule.amount) ? 'paid' : 'partially_paid',
+      } });
+      await tx.auditEvent.create({ data: {
+        actorUserId: userId, scope: 'estate', estateId: schedule.estateId,
+        action: 'rent.wallet_payment', targetType: 'rent_schedule', targetId: scheduleId,
+        outcome: 'success', occurredAt: now, metadata: { amount: amount.toString(), journalId },
+      } });
+      return { paid: true, reference, receiptNumber, amount: amount.toString(), journalId };
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+  }
+
   async demoCredit(userId: string, intentId: string) {
     if (!this.demoMode()) {
       throw new BadRequestException('Financial demo mode is disabled.');
