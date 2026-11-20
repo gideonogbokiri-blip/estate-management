@@ -159,12 +159,18 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
   }
 
   Future<void> _loadWorkspace() async {
-    final result = await Future.wait([
-      widget.repository.loadMyEstates(),
-      widget.repository.loadAvailableEstates(),
-      widget.repository.loadMyJoinRequestHistory(),
-      widget.repository.loadMyTenancies(),
-    ]);
+    List<dynamic> result;
+    try {
+      result = await Future.wait([
+        widget.repository.loadMyEstates(),
+        widget.repository.loadAvailableEstates(),
+        widget.repository.loadMyJoinRequestHistory(),
+        widget.repository.loadMyTenancies(),
+      ]);
+    } catch (_) {
+      result = [const <ManagedEstateChoice>[], const <ManagedEstateChoice>[],
+        const <ResidentJoinRequestStatusEntry>[], const <TenantTenancyRecord>[]];
+    }
     _memberships = result[0] as List<ManagedEstateChoice>;
     _availableEstates = result[1] as List<ManagedEstateChoice>;
     _requests = result[2] as List<ResidentJoinRequestStatusEntry>;
@@ -220,7 +226,11 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
         .firstOrNull;
     if (securityMembership != null) {
       _securityEstateId = securityMembership.id;
-      _myGates = await widget.repository.loadMyGates(securityMembership.id);
+      try {
+        _myGates = await widget.repository.loadMyGates(securityMembership.id);
+      } catch (_) {
+        _myGates = const [];
+      }
     } else {
       _securityEstateId = null;
       _myGates = const [];
@@ -260,7 +270,11 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
       _selectedMaintenancePropertyId = _visitorProperties.firstOrNull?.id;
     }
     _estateId ??= _availableEstates.firstOrNull?.id;
-    await _loadProperties();
+    try {
+      await _loadProperties();
+    } catch (_) {
+      _properties = const [];
+    }
     await _loadMaintenanceRequests();
   }
 

@@ -2456,7 +2456,9 @@ class EstateApplicationApiClient implements EstateApplicationApiRepository {
     final request = http.Request(method, _uri(path))..headers.addAll(headers);
     if (additionalHeaders != null) request.headers.addAll(additionalHeaders);
     if (body != null) request.body = jsonEncode(body);
-    return http.Response.fromStream(await _client.send(request));
+    return http.Response.fromStream(
+      await _client.send(request).timeout(const Duration(seconds: 20)),
+    );
   }
 
   Future<Map<String, dynamic>> _json(

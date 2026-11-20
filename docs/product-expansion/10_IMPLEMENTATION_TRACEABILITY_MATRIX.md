@@ -34,7 +34,7 @@ All three role dashboards now use `client/lib/core/design/dashboard_design.dart`
 
 ## Browser cache fix (20 November 2026)
 
-The API client sends `Cache-Control: no-store`; the backend disables Express ETag generation and sets `Cache-Control: no-store` on `/api/v1` responses (both local bootstrap and Vercel wrapper). Without this, repeated browser loads could receive `304 Not Modified` with an empty body, which the client treated as an error and left dashboards stuck on the loading indicator. Query parameters are deliberately not used for cache busting because strict DTO validation rejects unknown query keys.
+The API client sends `Cache-Control: no-store`; the backend disables Express ETag generation and sets `Cache-Control: no-store` on `/api/v1` responses (both local bootstrap and Vercel wrapper). Without this, repeated browser loads could receive `304 Not Modified` with an empty body, which the client treated as an error and left dashboards stuck on the loading indicator. Query parameters are deliberately not used for cache busting because strict DTO validation rejects unknown query keys. API reads also have a 20-second timeout, and the resident workspace loader guards each optional data group so one failed or cancelled request cannot leave the dashboard on its loading indicator.
 
 ## Dated decisions
 
