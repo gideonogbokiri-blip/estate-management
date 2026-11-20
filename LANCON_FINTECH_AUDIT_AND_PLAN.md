@@ -87,7 +87,7 @@ Added a `HouseholdMember` model and connected API: residents submit household me
 
 Added capture/verification metadata to `EstateProperty` (accuracy, capture method, captured time, verification status, verifier, correction reason) and connected routes for manager pin capture, manager verification/rejection, and list. Residents can only see coordinates once a pin is VERIFIED — unverified pins are never exposed to them. Registration-time user location remains separate and is not used as proof of residence. The map view still uses the illustrative schematic repository; connecting it to these verified coordinates is the remaining GPS UI gap.
 
-## 6f. Phase 3 — consent-based identity verification (20 November 2026)
+## 6f. Phase 3 COMPLETE — consent-based identity verification (20 November 2026)
 
 Added `IdentityVerification` records with explicit consent capture, method (demo declaration / provider token / document review), level, provider reference, status lifecycle and audited manager decisions. The spec's preference for provider tokens over stored biometrics is followed — no identity documents or biometric templates are persisted. Demo declarations are clearly labelled (`DEMO-…`, `demo: true`) and must not be treated as provider-verified. Real provider integration (and any document upload, which would require Vercel Blob) remains intentionally deferred. Residents submit and view their own records; managers review and decide.
 
