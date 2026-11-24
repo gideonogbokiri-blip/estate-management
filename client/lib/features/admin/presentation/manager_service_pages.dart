@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../core/config/report_download.dart';
 import '../../../core/design/dashboard_design.dart';
 import '../../../core/design/service_page_scaffold.dart';
-import '../../onboarding/data/estate_application_repository.dart';
+import '../../../core/navigation/app_navigation.dart';
+import '../../../data/api.dart';
 
 class ManagerServiceContext {
   const ManagerServiceContext({required this.repository, required this.estateId, required this.estateName});
@@ -12,8 +13,8 @@ class ManagerServiceContext {
   final String estateName;
 }
 
-Future<T?> openManagerPage<T>(BuildContext context, Widget page) =>
-    Navigator.of(context).push<T>(MaterialPageRoute<T>(builder: (_) => page));
+Future<T?> openManagerPage<T extends Object?>(BuildContext context, Widget page) =>
+    AppNavigation.push<T>(context, page);
 
 // ---------------------------------------------------------------------------
 // Payouts
@@ -74,7 +75,7 @@ class _ManagerPayoutsPageState extends State<ManagerPayoutsPage> {
                   initialValue: beneficiary,
                   decoration: const InputDecoration(labelText: 'Beneficiary'),
                   items: _beneficiaries
-                      .map((item) => DropdownMenuItem(value: item, child: Text('${item.displayName} · ${item.bankName}')))
+                      .map((item) => DropdownMenuItem(value: item, child: Text('${item.displayName} Â· ${item.bankName}')))
                       .toList(),
                   onChanged: (value) => setState(() => beneficiary = value ?? _beneficiaries.first),
                 ),
@@ -115,7 +116,7 @@ class _ManagerPayoutsPageState extends State<ManagerPayoutsPage> {
   Widget build(BuildContext context) {
     return ServicePageScaffold(
       title: 'Payouts',
-      description: '${widget.serviceContext.estateName} · Estate disbursements and approvals.',
+      description: '${widget.serviceContext.estateName} Â· Estate disbursements and approvals.',
       icon: Icons.payments_outlined,
       onRefresh: _load,
       actions: [
@@ -132,7 +133,7 @@ class _ManagerPayoutsPageState extends State<ManagerPayoutsPage> {
                         (payout) => Card(
                           child: ListTile(
                             leading: const Icon(Icons.payments_outlined, color: DashboardTokens.greenLeaf),
-                            title: Text('${payout.currency} ${payout.amount} · ${payout.status}',
+                            title: Text('${payout.currency} ${payout.amount} Â· ${payout.status}',
                                 style: const TextStyle(fontWeight: FontWeight.w700)),
                             subtitle: Text(payout.purpose, style: const TextStyle(fontSize: 11)),
                           ),
@@ -238,7 +239,7 @@ class _ManagerPropertyMapPageState extends State<ManagerPropertyMapPage> {
   Widget build(BuildContext context) {
     return ServicePageScaffold(
       title: 'Property map',
-      description: '${widget.serviceContext.estateName} · GPS capture and verification.',
+      description: '${widget.serviceContext.estateName} Â· GPS capture and verification.',
       icon: Icons.map_outlined,
       onRefresh: _load,
       child: _loading
@@ -250,12 +251,12 @@ class _ManagerPropertyMapPageState extends State<ManagerPropertyMapPage> {
                     (location) => Card(
                       child: ListTile(
                         leading: const Icon(Icons.location_on_outlined, color: DashboardTokens.greenLeaf),
-                        title: Text('${location.code} · ${location.verificationStatus}',
+                        title: Text('${location.code} Â· ${location.verificationStatus}',
                             style: const TextStyle(fontWeight: FontWeight.w700)),
                         subtitle: Text(
                           location.latitude == null
                               ? 'No pin captured'
-                              : '${location.latitude}, ${location.longitude} · ${location.captureMethod ?? ''}',
+                              : '${location.latitude}, ${location.longitude} Â· ${location.captureMethod ?? ''}',
                           style: const TextStyle(fontSize: 11),
                         ),
                         trailing: Row(
@@ -329,7 +330,7 @@ class _ManagerReportsPageState extends State<ManagerReportsPage> {
 
     return ServicePageScaffold(
       title: 'Reports',
-      description: '${widget.serviceContext.estateName} · Financial and operational summary.',
+      description: '${widget.serviceContext.estateName} Â· Financial and operational summary.',
       icon: Icons.summarize_outlined,
       onRefresh: _load,
       child: _loading
@@ -400,3 +401,4 @@ class _ReportMetric extends StatelessWidget {
         ),
       );
 }
+

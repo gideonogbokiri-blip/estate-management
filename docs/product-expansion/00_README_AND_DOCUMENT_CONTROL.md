@@ -43,6 +43,7 @@ Shared implementation: `client/lib/core/design/dashboard_design.dart`.
 - `08_TREASURY_APPROVALS_AND_RECONCILIATION.md` — treasury, payouts, statements.
 - `09_SECURITY_PRIVACY_AND_COMPLIANCE.md` — controls and compliance gates.
 - `10_IMPLEMENTATION_TRACEABILITY_MATRIX.md` — requirement → code → test → release status.
+- `11_CLIENT_ARCHITECTURE.md` — Flutter layout, layering rules and migration status.
 
 ## Change control
 

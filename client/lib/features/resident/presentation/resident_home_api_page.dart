@@ -1,11 +1,11 @@
-import 'dart:math' as math;
+﻿import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/estate_theme.dart';
 import '../../../core/design/dashboard_design.dart';
 import '../../services/presentation/resident_service_pages.dart';
-import '../../onboarding/data/estate_application_repository.dart';
+import '../../../data/api.dart';
 import '../data/resident_estate_repository.dart';
 import 'resident_visitor_passes_page.dart';
 import 'gate_security_page.dart';
@@ -142,7 +142,7 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
     final paymentSummary = payments
         .map(
           (payment) =>
-              'Verified ${payment['currency'] ?? invoice['currency'] ?? 'NGN'} ${payment['amount'] ?? '0.00'} · receipt ${payment['receiptNumber'] ?? ''}',
+              'Verified ${payment['currency'] ?? invoice['currency'] ?? 'NGN'} ${payment['amount'] ?? '0.00'} Â· receipt ${payment['receiptNumber'] ?? ''}',
         )
         .join('\n');
     if (invoice['status'] == 'paid' || invoice['status'] == 'partially_paid') {
@@ -156,7 +156,7 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
     }
     if (settlement.isEmpty)
       return 'Settlement instructions are unavailable. Contact your estate office.';
-    return 'Transfer to ${settlement['bankName'] ?? ''} · ${settlement['accountName'] ?? ''} · ${settlement['accountNumber'] ?? ''}\nReference: ${settlement['paymentReference'] ?? invoice['invoiceNumber'] ?? ''}';
+    return 'Transfer to ${settlement['bankName'] ?? ''} Â· ${settlement['accountName'] ?? ''} Â· ${settlement['accountNumber'] ?? ''}\nReference: ${settlement['paymentReference'] ?? invoice['invoiceNumber'] ?? ''}';
   }
 
   Future<void> _loadWorkspace() async {
@@ -974,14 +974,14 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
     final property = _properties.firstOrNull;
     final propertyLabel = property == null
         ? 'Property'
-        : '${property.code}${property.unitNumber != null ? ' · ${property.unitNumber}' : ''}';
+        : '${property.code}${property.unitNumber != null ? ' Â· ${property.unitNumber}' : ''}';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         DashboardGreeting(
           period: _greetingPeriod(),
           title: 'Welcome, ${_account?.displayName.split(' ').last ?? 'Resident'}',
-          subtitle: '$estateName · $propertyLabel',
+          subtitle: '$estateName Â· $propertyLabel',
           trailing: [
             IconButton(
               tooltip: 'Notifications',
@@ -1021,13 +1021,13 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
         const SizedBox(height: 18),
         DashboardHero(
           label: 'MY WALLET BALANCE',
-          amount: wallet == null ? '—' : _money(wallet.balance),
+          amount: wallet == null ? 'â€”' : _money(wallet.balance),
           caption: wallet == null
               ? 'No fund account yet'
-              : '${wallet.accountNumber ?? 'Account pending'} · ${wallet.bankName ?? ''}',
+              : '${wallet.accountNumber ?? 'Account pending'} Â· ${wallet.bankName ?? ''}',
           badge: wallet == null ||
                   wallet.bankName?.toLowerCase().contains('demo') == true
-              ? 'DEMO MODE · NO REAL MONEY'
+              ? 'DEMO MODE Â· NO REAL MONEY'
               : null,
           onSettings: () => showDialog<void>(
             context: context,
@@ -1179,7 +1179,7 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                           letterSpacing: 1.4),
                     ),
                     Text(
-                      '${wallet.bankName ?? 'Bank'} · ${wallet.accountName ?? ''}',
+                      '${wallet.bankName ?? 'Bank'} Â· ${wallet.accountName ?? ''}',
                       style: const TextStyle(color: Color(0xFFCFE3D7), fontSize: 11),
                     ),
                   ],
@@ -1230,7 +1230,7 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                         ),
                         title: Text(tx.description),
                         subtitle: Text(
-                          '${tx.reference} · ${_formatDate(tx.createdAt)}',
+                          '${tx.reference} Â· ${_formatDate(tx.createdAt)}',
                           style: const TextStyle(fontSize: 10),
                         ),
                         trailing: Text(ngn(tx.amount),
@@ -1381,12 +1381,12 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                         (row) => Card(
                           child: ListTile(
                             title: Text(
-                              '${row.currency} ${row.amount} · ${row.status}',
+                              '${row.currency} ${row.amount} Â· ${row.status}',
                               style: const TextStyle(fontWeight: FontWeight.w700),
                             ),
                             subtitle: Text(
-                              '${row.periodStart} – ${row.periodEnd} · due ${row.dueDate}'
-                              '${row.isOverdue ? ' · overdue' : ''}',
+                              '${row.periodStart} â€“ ${row.periodEnd} Â· due ${row.dueDate}'
+                              '${row.isOverdue ? ' Â· overdue' : ''}',
                               style: const TextStyle(fontSize: 11),
                             ),
                             trailing: row.balance == '0'
@@ -1413,7 +1413,7 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                         Text(
                           _identity.isEmpty
                               ? 'No verification submitted yet. Demo declarations are clearly labelled and are not provider-verified.'
-                              : 'Latest: ${_identity.first.status}${_identity.first.demo ? ' (demo declaration)' : ''} · ${_identity.first.provider}',
+                              : 'Latest: ${_identity.first.status}${_identity.first.demo ? ' (demo declaration)' : ''} Â· ${_identity.first.provider}',
                           style: const TextStyle(fontSize: 12, color: EstateColors.muted),
                         ),
                         const SizedBox(height: 10),
@@ -1465,8 +1465,8 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                             title: Text(row.fullName,
                                 style: const TextStyle(fontWeight: FontWeight.w700)),
                             subtitle: Text(
-                              '${row.relationship.toLowerCase()} · ${row.propertyCode} · ${row.status}'
-                              '${row.financialAccess ? ' · wallet access' : ''}',
+                              '${row.relationship.toLowerCase()} Â· ${row.propertyCode} Â· ${row.status}'
+                              '${row.financialAccess ? ' Â· wallet access' : ''}',
                               style: const TextStyle(fontSize: 11),
                             ),
                           ),
@@ -1500,8 +1500,8 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                             title: Text(row.name,
                                 style: const TextStyle(fontWeight: FontWeight.w700)),
                             subtitle: Text(
-                              '${row.currency} ${row.amount} · ${row.provider}'
-                              '${row.demo ? ' · demo service' : ''}',
+                              '${row.currency} ${row.amount} Â· ${row.provider}'
+                              '${row.demo ? ' Â· demo service' : ''}',
                               style: const TextStyle(fontSize: 11),
                             ),
                             trailing: TextButton(
@@ -1596,7 +1596,7 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                         style: TextStyle(fontWeight: FontWeight.w700),
                       ),
                       subtitle: Text(
-                        '${_myGates.length} assigned gates · visitor check-in and checkout',
+                        '${_myGates.length} assigned gates Â· visitor check-in and checkout',
                       ),
                       trailing: const Icon(Icons.chevron_right_rounded),
                       onTap: () => setState(() => _showGateSecurity = true),
@@ -1671,7 +1671,7 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                           style: const TextStyle(fontWeight: FontWeight.w700),
                         ),
                         subtitle: Text(
-                          estate.roles.map(_roleLabel).join(' · '),
+                          estate.roles.map(_roleLabel).join(' Â· '),
                         ),
                       ),
                     ),
@@ -1724,7 +1724,7 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                           ),
                         ),
                         subtitle: Text(
-                          '${announcement.estateName} • ${_announcementDate(announcement.publishedAt ?? announcement.createdAt)}',
+                          '${announcement.estateName} â€¢ ${_announcementDate(announcement.publishedAt ?? announcement.createdAt)}',
                         ),
                         trailing: announcement.read
                             ? const Icon(
@@ -1782,7 +1782,7 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                           style: const TextStyle(fontWeight: FontWeight.w700),
                         ),
                         subtitle: Text(
-                          '${invoice['estateName'] ?? ''} · ${invoice['propertyCode'] ?? ''} · Due ${invoice['dueDate'] ?? ''}\n${_invoiceSettlementSummary(invoice)}',
+                          '${invoice['estateName'] ?? ''} Â· ${invoice['propertyCode'] ?? ''} Â· Due ${invoice['dueDate'] ?? ''}\n${_invoiceSettlementSummary(invoice)}',
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -1920,7 +1920,7 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                             if (request.relationship != null)
                               _roleLabel(request.relationship!),
                             request.decisionReason,
-                          ].whereType<String>().join(' · '),
+                          ].whereType<String>().join(' Â· '),
                         ),
                         trailing: Text(_roleLabel(request.status)),
                       ),
@@ -1946,11 +1946,11 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                           ),
                         ),
                         title: Text(
-                          '${record.propertyCode} · ${record.estateName}',
+                          '${record.propertyCode} Â· ${record.estateName}',
                           style: const TextStyle(fontWeight: FontWeight.w700),
                         ),
                         subtitle: Text(
-                          '${record.currency} ${record.amount} / ${record.frequency} · ${record.landlordName}\nThis is agreed rent, not a payment balance.',
+                          '${record.currency} ${record.amount} / ${record.frequency} Â· ${record.landlordName}\nThis is agreed rent, not a payment balance.',
                         ),
                         isThreeLine: true,
                       ),
@@ -1991,7 +1991,7 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                       style: TextStyle(fontWeight: FontWeight.w700),
                     ),
                     subtitle: Text(
-                      '${_myGates.length} assigned gates · visitor check-in and checkout',
+                      '${_myGates.length} assigned gates Â· visitor check-in and checkout',
                     ),
                     trailing: const Icon(Icons.chevron_right_rounded),
                     onTap: () => setState(() => _showGateSecurity = true),
@@ -2218,11 +2218,11 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                         ),
                       ),
                       title: Text(
-                        '${request.reference} · ${_roleLabel(request.status)}',
+                        '${request.reference} Â· ${_roleLabel(request.status)}',
                         style: const TextStyle(fontWeight: FontWeight.w700),
                       ),
                       subtitle: Text(
-                        '${request.propertyLabel} · ${_roleLabel(request.category)} · ${request.description}\n${request.residentVisibleUpdates.isEmpty ? 'No team updates yet.' : request.residentVisibleUpdates.last.body}',
+                        '${request.propertyLabel} Â· ${_roleLabel(request.category)} Â· ${request.description}\n${request.residentVisibleUpdates.isEmpty ? 'No team updates yet.' : request.residentVisibleUpdates.last.body}',
                         maxLines: 4,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -2437,182 +2437,6 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
   };
 }
 
-class _ResidentHomeHero extends StatelessWidget {
-  const _ResidentHomeHero({
-    required this.residentName,
-    required this.estateName,
-    required this.roles,
-    required this.propertyLabel,
-    required this.canRequestAccess,
-    required this.onRequestAccess,
-  });
-
-  final String residentName;
-  final String? estateName;
-  final List<String> roles;
-  final String? propertyLabel;
-  final bool canRequestAccess;
-  final VoidCallback onRequestAccess;
-
-  @override
-  Widget build(BuildContext context) {
-    final connected = estateName != null;
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
-      child: DecoratedBox(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [EstateColors.forest, EstateColors.forestDeep],
-          ),
-        ),
-        child: Stack(
-          children: [
-            Positioned(
-              right: -30,
-              top: -48,
-              child: Container(
-                width: 190,
-                height: 190,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: .06),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(22),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'WELCOME, ${residentName.toUpperCase()}',
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: .78),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1.1,
-                          ),
-                        ),
-                        const SizedBox(height: 9),
-                        Text(
-                          connected ? estateName! : 'Your community, connected',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 22,
-                            height: 1.2,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 7),
-                        Text(
-                          connected
-                              ? propertyLabel ??
-                                    'Estate access is active for your account.'
-                              : 'Request access to your estate to see property services and community updates.',
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: .86),
-                            height: 1.45,
-                          ),
-                        ),
-                        if (connected && roles.isNotEmpty) ...[
-                          const SizedBox(height: 14),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 11,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: .12),
-                              borderRadius: BorderRadius.circular(30),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: .18),
-                              ),
-                            ),
-                            child: Text(
-                              roles
-                                  .map((role) => role.replaceAll('_', ' '))
-                                  .join(' · '),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
-                        if (!connected && canRequestAccess) ...[
-                          const SizedBox(height: 15),
-                          FilledButton.tonalIcon(
-                            onPressed: onRequestAccess,
-                            icon: const Icon(Icons.arrow_forward_rounded),
-                            label: const Text('Request estate access'),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Container(
-                    width: 54,
-                    height: 54,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: .12),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      connected
-                          ? Icons.apartment_rounded
-                          : Icons.home_work_outlined,
-                      color: Colors.white,
-                      size: 27,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _QuickService extends StatelessWidget {
-  const _QuickService({required this.icon, required this.label, required this.onTap});
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-  @override
-  Widget build(BuildContext context) => InkWell(
-    onTap: onTap,
-    borderRadius: BorderRadius.circular(14),
-    child: SizedBox(
-      width: 68,
-      child: Column(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: .16),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Colors.white24),
-            ),
-            child: Icon(icon, color: Colors.white, size: 21),
-          ),
-          const SizedBox(height: 6),
-          Text(label,
-              style: const TextStyle(color: Color(0xFFDCECE3), fontSize: 11)),
-        ],
-      ),
-    ),
-  );
-}
 
 class _MoneyFigure extends StatelessWidget {
   const _MoneyFigure({required this.label, required this.value, required this.color});
@@ -2759,3 +2583,4 @@ class _ResidentVisitorApiAdapter implements ResidentVisitorPassRepository {
     visitId: visitId,
   );
 }
+

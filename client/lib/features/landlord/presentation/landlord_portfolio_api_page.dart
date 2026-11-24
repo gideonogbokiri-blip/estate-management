@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../core/theme/estate_theme.dart';
 import '../../../core/design/dashboard_design.dart';
 import 'landlord_service_pages.dart';
-import '../../onboarding/data/estate_application_repository.dart';
+import '../../../data/api.dart';
 
 class LandlordPortfolioApiPage extends StatefulWidget {
   const LandlordPortfolioApiPage({super.key, required this.repository});
@@ -141,7 +141,7 @@ class _LandlordPortfolioApiPageState extends State<LandlordPortfolioApiPage> {
         DashboardGreeting(
           period: _greetingPeriod(),
           title: 'Welcome, ${_account?.displayName.split(' ').first ?? 'Landlord'}',
-          subtitle: '${_estate?.name ?? 'Your estate'} · ${_portfolio.length} verified propert${_portfolio.length == 1 ? 'y' : 'ies'}',
+          subtitle: '${_estate?.name ?? 'Your estate'} Â· ${_portfolio.length} verified propert${_portfolio.length == 1 ? 'y' : 'ies'}',
           trailing: [
             IconButton(
               tooltip: 'Refresh',
@@ -162,13 +162,13 @@ class _LandlordPortfolioApiPageState extends State<LandlordPortfolioApiPage> {
         DashboardHero(
           label: 'RENT ENTITLEMENT',
           amount: entitlement == null
-              ? 'NGN —'
+              ? 'NGN â€”'
               : 'NGN ${_formatMoney(entitlement.entitlement)}',
           caption: entitlement == null
               ? 'No rent schedule has been generated yet'
-              : 'Collected NGN ${_formatMoney(entitlement.collected)} · '
+              : 'Collected NGN ${_formatMoney(entitlement.collected)} Â· '
                   'Outstanding NGN ${_formatMoney(entitlement.outstanding)}',
-          badge: 'DEMO MODE · NO REAL MONEY',
+          badge: 'DEMO MODE Â· NO REAL MONEY',
           cardIcon: Icons.home_outlined,
           actions: [
             DashboardHeroAction(
@@ -373,7 +373,7 @@ class _LandlordPortfolioApiPageState extends State<LandlordPortfolioApiPage> {
       TextFormField(controller: _password, obscureText: true, decoration: const InputDecoration(labelText: 'Password', prefixIcon: Icon(Icons.lock_outline_rounded)), validator: (value) => value == null || value.isEmpty ? 'Enter your password.' : null),
       if (_error != null) ...[const SizedBox(height: 12), Text(_error!, style: const TextStyle(color: EstateColors.red))],
       const SizedBox(height: 18),
-      FilledButton(onPressed: _busy ? null : _signIn, child: Text(_busy ? 'Signing in…' : 'Sign in')),
+      FilledButton(onPressed: _busy ? null : _signIn, child: Text(_busy ? 'Signing inâ€¦' : 'Sign in')),
     ])))))))),
   ]));
 }
@@ -388,7 +388,7 @@ class _PropertyCard extends StatelessWidget {
     return Card(margin: const EdgeInsets.only(bottom: 10), child: ListTile(
     contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
     leading: const CircleAvatar(backgroundColor: DashboardTokens.surfaceRaised, child: Icon(Icons.home_work_outlined, color: DashboardTokens.greenLeaf)),
-    title: Text('${record.propertyCode} · ${record.propertyType}', style: const TextStyle(fontWeight: FontWeight.w700)),
+    title: Text('${record.propertyCode} Â· ${record.propertyType}', style: const TextStyle(fontWeight: FontWeight.w700)),
     subtitle: Padding(padding: const EdgeInsets.only(top: 5), child: Text([
       if (record.unitNumber != null) record.unitNumber!,
       if (record.address != null) record.address!,
@@ -396,7 +396,7 @@ class _PropertyCard extends StatelessWidget {
       record.occupancyCount == 0 ? 'No current occupants recorded' : '${record.occupancyCount} current occupant${record.occupancyCount == 1 ? '' : 's'}',
       if (tenancy != null) 'Tenant: ${tenancy['tenantDisplayName'] ?? 'Current tenant'}',
       if (rent != null) 'Agreed rent: ${rent['currency']} ${rent['amount']} / ${rent['frequency']}',
-    ].join(' · '))),
+    ].join(' Â· '))),
     trailing: const Icon(Icons.chevron_right_rounded, color: EstateColors.muted),
     ));
   }
@@ -423,7 +423,7 @@ class _LandlordMaintenanceCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(record.propertyLabel, style: const TextStyle(fontWeight: FontWeight.w700)),
           const SizedBox(height: 4),
-          Text('${record.category} · ${record.priority} · ${_dateLabel(record.submittedAt)}', style: const TextStyle(color: EstateColors.muted, fontSize: 12)),
+          Text('${record.category} Â· ${record.priority} Â· ${_dateLabel(record.submittedAt)}', style: const TextStyle(color: EstateColors.muted, fontSize: 12)),
           const SizedBox(height: 9),
           Text(record.description, style: const TextStyle(height: 1.45)),
           if (record.residentVisibleUpdates.isNotEmpty) ...[
@@ -432,7 +432,7 @@ class _LandlordMaintenanceCard extends StatelessWidget {
             const SizedBox(height: 5),
             ...record.residentVisibleUpdates.map((update) => Padding(
               padding: const EdgeInsets.only(top: 5),
-              child: Text('${_dateLabel(update.occurredAt)} · ${update.body}', style: const TextStyle(color: EstateColors.muted, height: 1.4, fontSize: 12)),
+              child: Text('${_dateLabel(update.occurredAt)} Â· ${update.body}', style: const TextStyle(color: EstateColors.muted, height: 1.4, fontSize: 12)),
             )),
           ],
         ],
@@ -470,3 +470,4 @@ class _ErrorCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Card(color: const Color(0xFFFFF0EE), child: Padding(padding: const EdgeInsets.all(14), child: Text(message, style: const TextStyle(color: EstateColors.red))));
 }
+

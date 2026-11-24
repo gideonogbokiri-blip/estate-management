@@ -1,8 +1,10 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../core/design/dashboard_design.dart';
 import '../../../core/design/service_page_scaffold.dart';
-import '../../onboarding/data/estate_application_repository.dart';
+import '../../../core/navigation/app_navigation.dart';
+import '../../../core/utils/formatters.dart';
+import '../../../data/api.dart';
 
 class LandlordServiceContext {
   const LandlordServiceContext({
@@ -42,11 +44,6 @@ class LandlordService {
   final LandlordRowLoader loader;
 }
 
-String _money(dynamic value) {
-  final amount = double.tryParse(value.toString()) ?? 0;
-  return amount.toStringAsFixed(2);
-}
-
 List<LandlordService> landlordServices() => [
       LandlordService(
         id: 'portfolio',
@@ -56,8 +53,8 @@ List<LandlordService> landlordServices() => [
         loader: (c) async {
           final rows = await c.repository.loadLandlordPortfolio(c.estateId);
           return rows.map((row) => LandlordRow(
-                title: '${row.propertyCode} · ${row.propertyType}',
-                subtitle: '${row.ownershipShare}% ownership · ${row.occupancyCount} occupant(s)',
+                title: '${row.propertyCode} Â· ${row.propertyType}',
+                subtitle: '${row.ownershipShare}% ownership Â· ${row.occupancyCount} occupant(s)',
                 trailing: row.unitNumber ?? '',
                 icon: Icons.home_work_outlined,
               )).toList();
@@ -71,7 +68,7 @@ List<LandlordService> landlordServices() => [
         loader: (c) async {
           final rows = await c.repository.loadLandlordPortfolio(c.estateId);
           return rows.map((row) => LandlordRow(
-                title: '${row.propertyCode} · ${row.occupancyCount == 0 ? 'Vacant' : 'Occupied'}',
+                title: '${row.propertyCode} Â· ${row.occupancyCount == 0 ? 'Vacant' : 'Occupied'}',
                 subtitle: row.occupancyCount == 0
                     ? 'No current occupants recorded'
                     : '${row.occupancyCount} current occupant(s)',
@@ -90,7 +87,7 @@ List<LandlordService> landlordServices() => [
             final tenancy = row.currentTenancy!;
             final rent = tenancy['rent'] as Map<String, dynamic>?;
             return LandlordRow(
-              title: '${row.propertyCode} · ${tenancy['tenantDisplayName'] ?? 'Tenant'}',
+              title: '${row.propertyCode} Â· ${tenancy['tenantDisplayName'] ?? 'Tenant'}',
               subtitle: rent == null
                   ? 'Agreed rent not available'
                   : 'Agreed ${rent['currency']} ${rent['amount']} / ${rent['frequency']}',
@@ -107,8 +104,8 @@ List<LandlordService> landlordServices() => [
         loader: (c) async {
           final rows = await c.repository.loadRentSchedule(c.estateId);
           return rows.map((row) => LandlordRow(
-                title: '${row.currency} ${row.amount} · ${row.status}',
-                subtitle: '${row.periodStart} – ${row.periodEnd} · due ${row.dueDate}',
+                title: '${row.currency} ${row.amount} Â· ${row.status}',
+                subtitle: '${row.periodStart} â€“ ${row.periodEnd} Â· due ${row.dueDate}',
                 trailing: row.balance,
                 icon: Icons.calendar_month_outlined,
               )).toList();
@@ -123,7 +120,7 @@ List<LandlordService> landlordServices() => [
           final rows = await c.repository.loadRentSchedule(c.estateId);
           return rows.where((row) => row.balance != '0' && double.tryParse(row.balance) != 0).map((row) => LandlordRow(
                 title: '${row.currency} ${row.balance} outstanding',
-                subtitle: 'Due ${row.dueDate}${row.isOverdue ? ' · overdue' : ''}',
+                subtitle: 'Due ${row.dueDate}${row.isOverdue ? ' Â· overdue' : ''}',
                 icon: Icons.warning_amber_outlined,
               )).toList();
         },
@@ -139,7 +136,7 @@ List<LandlordService> landlordServices() => [
           return receipts.map((receipt) {
             final map = receipt as Map<String, dynamic>;
             return LandlordRow(
-              title: '${map['receipt'] ?? 'Receipt'} · ${map['amount'] ?? ''}',
+              title: '${map['receipt'] ?? 'Receipt'} Â· ${map['amount'] ?? ''}',
               subtitle: 'Reference ${map['reference'] ?? ''}',
               icon: Icons.receipt_long_outlined,
             );
@@ -155,9 +152,9 @@ List<LandlordService> landlordServices() => [
           final rows = await c.repository.loadLandlordRentSummary(c.estateId);
           return rows.map((row) => LandlordRow(
                 title: row.payeeName,
-                subtitle: 'Entitlement ${row.currency} ${_money(row.entitlement)} · '
-                    'Collected ${row.currency} ${_money(row.collected)}',
-                trailing: '${row.currency} ${_money(row.outstanding)} due',
+                subtitle: 'Entitlement ${AppFormat.money(row.entitlement)} Â· '
+                    'Collected ${AppFormat.money(row.collected)}',
+                trailing: '${AppFormat.money(row.outstanding)} due',
                 icon: Icons.description_outlined,
               )).toList();
         },
@@ -171,7 +168,7 @@ List<LandlordService> landlordServices() => [
           final rows = await c.repository.loadMyLandlordPropertyMaintenance();
           return rows.map((row) => LandlordRow(
                 title: row.reference,
-                subtitle: '${row.propertyLabel} · ${row.category} · ${row.status}',
+                subtitle: '${row.propertyLabel} Â· ${row.category} Â· ${row.status}',
                 icon: Icons.handyman_outlined,
               )).toList();
         },
@@ -217,7 +214,7 @@ List<LandlordService> landlordServices() => [
           final rows = await c.repository.loadSecurityIncidents(c.estateId);
           return rows.map((row) => LandlordRow(
                 title: row.reference,
-                subtitle: '${row.category} · ${row.status}',
+                subtitle: '${row.category} Â· ${row.status}',
                 icon: Icons.health_and_safety_outlined,
               )).toList();
         },
@@ -243,8 +240,8 @@ Future<List<LandlordRow>> _moreLoader(LandlordServiceContext context) async =>
         )
         .toList();
 
-Future<T?> openLandlordPage<T>(BuildContext context, Widget page) =>
-    Navigator.of(context).push<T>(MaterialPageRoute<T>(builder: (_) => page));
+Future<T?> openLandlordPage<T extends Object?>(BuildContext context, Widget page) =>
+    AppNavigation.push<T>(context, page);
 
 class LandlordServicePage extends StatefulWidget {
   const LandlordServicePage({
@@ -286,7 +283,7 @@ class _LandlordServicePageState extends State<LandlordServicePage> {
   Widget build(BuildContext context) {
     return ServicePageScaffold(
       title: widget.service.label,
-      description: '${widget.serviceContext.estateName} · ${widget.service.description}',
+      description: '${widget.serviceContext.estateName} Â· ${widget.service.description}',
       icon: widget.service.icon,
       onRefresh: _load,
       child: _loading
@@ -322,7 +319,7 @@ class LandlordMoreServicesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return ServicePageScaffold(
       title: 'More Services',
-      description: '${serviceContext.estateName} · Every landlord service in one place.',
+      description: '${serviceContext.estateName} Â· Every landlord service in one place.',
       icon: Icons.apps_outlined,
       child: DashboardQuickServices(
         services: landlordServices()
@@ -341,3 +338,6 @@ class LandlordMoreServicesPage extends StatelessWidget {
     );
   }
 }
+
+
+

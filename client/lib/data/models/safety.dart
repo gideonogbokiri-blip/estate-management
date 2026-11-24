@@ -1,0 +1,3 @@
+﻿// Domain model barrel — re-exports keep imports stable while models are migrated.
+export '../../features/onboarding/data/estate_application_repository.dart' show EstateSecurityIncidentRecord, EstateSecurityIncidentEvidenceRecord, EstateSecurityIncidentHistoryRecord;
+
