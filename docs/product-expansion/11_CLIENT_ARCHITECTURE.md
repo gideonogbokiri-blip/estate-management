@@ -53,6 +53,7 @@ To make the banking UI understandable to a non-technical resident or landlord:
 - Replaced back-office jargon in labels: "Estate Collections" → "Money Collected For The Estate", "Rent Entitlement" → "Rent You Should Receive", "Arrears" → "Unpaid Rent", "Generate Levies" → "Send Bills", "Tenancies" → "Tenants & Leases", "Occupancy" → "Who Lives There".
 - Added an **"In plain English"** card to every service page explaining what the service does.
 - Added a helper line under the wallet balance explaining that it is money for estate bills and rent, and is demo money.
+- Rebuilt the wallet "Recent activity" card after reviewing a real screenshot: removed the duplicate balance/account block and the incorrect Paystack sentence, replaced raw UUID references with plain-English labels ("Rent payment", "Paid for a service", "Money added (demo)"), and made credits/debits visually distinct with +/− amounts.
 
 ## Backend shape
 

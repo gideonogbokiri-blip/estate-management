@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/estate_theme.dart';
 import '../../../core/design/dashboard_design.dart';
 import '../../services/presentation/resident_service_pages.dart';
+import '../../../core/design/service_page_scaffold.dart';
+import '../../../core/utils/formatters.dart';
 import '../../../data/api.dart';
 import '../data/resident_estate_repository.dart';
 import 'resident_visitor_passes_page.dart';
@@ -1107,19 +1109,28 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
 
   Widget _moneyCard() {
     final wallet = _wallets.firstOrNull;
-    var outstanding = 0.0;
-    var verified = 0.0;
-    for (final invoice in _invoiceRecords) {
-      outstanding += double.tryParse(invoice['balance']?.toString() ?? '0') ?? 0;
-      for (final payment in invoice['verifiedPayments'] as List? ?? const []) {
-        if (payment is Map && payment['status'] == 'verified') {
-          verified += double.tryParse(payment['amount']?.toString() ?? '0') ?? 0;
-        }
+
+    String ngn(dynamic value) => AppFormat.money(value);
+
+    String friendlyTitle(String raw) {
+      final text = raw.toLowerCase();
+      if (text.contains('demo funding') || text.contains('demo_funding')) {
+        return 'Money added (demo)';
       }
+      if (text.contains('service') || text.contains('airtime')) {
+        return 'Paid for a service';
+      }
+      if (text.contains('rent')) return 'Rent payment';
+      if (text.contains('invoice') || text.contains('levy')) return 'Bill payment';
+      return 'Wallet activity';
     }
-    String ngn(dynamic value) {
-      final amount = double.tryParse(value.toString()) ?? 0;
-      return 'NGN ${amount.toStringAsFixed(2).replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (_) => ',')}';
+
+    String friendlyDetail(String raw) {
+      final text = raw.toLowerCase();
+      if (text.contains('schedule')) return 'Paid a rent installment';
+      if (text.contains('invoice') || text.contains('inv-')) return 'Paid an estate bill';
+      if (text.contains('service')) return 'Bought from the services catalogue';
+      return 'Account activity';
     }
 
     return Card(
@@ -1128,137 +1139,66 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: const [
-                Icon(Icons.account_balance_wallet_outlined, color: EstateColors.forest),
+            const Row(
+              children: [
+                Icon(Icons.history_rounded, color: DashboardTokens.greenLeaf),
                 SizedBox(width: 9),
-                Text('My fund account',
-                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                Text('Your money history',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                        color: DashboardTokens.text)),
               ],
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             const Text(
-              'Account numbers are issued by Paystack. Transfers are credited only after provider verification.',
-              style: TextStyle(color: EstateColors.muted, fontSize: 11),
+              'Every naira in and out of your account. Green arrows show money '
+              'added; amber arrows show money spent.',
+              style: TextStyle(
+                color: DashboardTokens.mutedStrong, fontSize: 12, height: 1.4),
             ),
             const SizedBox(height: 14),
             if (wallet == null)
               OutlinedButton.icon(
                 onPressed: _provisionWallet,
                 icon: const Icon(Icons.add_card_outlined),
-                label: const Text('Activate fund account'),
+                label: const Text('Create a fund account'),
               )
-            else ...[
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(14),
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF0D3B30), Color(0xFF176B4B)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Available balance',
-                        style: TextStyle(color: Color(0xFFCFE3D7), fontSize: 11)),
-                    const SizedBox(height: 4),
-                    Text(ngn(wallet.balance),
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 26,
-                            fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 14),
-                    Text(
-                      wallet.accountNumber ?? 'Account pending',
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 1.4),
-                    ),
-                    Text(
-                      '${wallet.bankName ?? 'Bank'} · ${wallet.accountName ?? ''}',
-                      style: const TextStyle(color: Color(0xFFCFE3D7), fontSize: 11),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 10,
-                runSpacing: 8,
-                children: [
-                  FilledButton.icon(
-                    onPressed: () => _startFunding(wallet),
-                    icon: const Icon(Icons.qr_code_2_outlined),
-                    label: const Text('Fund account'),
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: () => _payRentFromWallet(wallet),
-                    icon: const Icon(Icons.payments_outlined),
-                    label: const Text('Pay rent'),
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: _openResidentBilling,
-                    icon: const Icon(Icons.receipt_long_outlined),
-                    label: const Text('Invoices'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              const Text('Recent activity',
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
-              if (wallet.transactions.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.only(top: 6),
-                  child: Text('No wallet transactions yet.',
-                      style: TextStyle(color: EstateColors.muted, fontSize: 12)),
-                )
-              else
-                ...wallet.transactions.take(4).map(
-                      (tx) => ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: Icon(
-                          tx.type == 'credit'
-                              ? Icons.arrow_downward_rounded
-                              : Icons.arrow_upward_rounded,
+            else if (wallet.transactions.isEmpty)
+              const ServiceStateMessage(
+                message: 'No money has moved in or out of your account yet.',
+              )
+            else
+              ...wallet.transactions.take(6).map(
+                    (tx) => ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(
+                        tx.type == 'credit'
+                            ? Icons.arrow_downward_rounded
+                            : Icons.arrow_upward_rounded,
+                        color: tx.type == 'credit'
+                            ? DashboardTokens.greenLeaf
+                            : DashboardTokens.amber,
+                      ),
+                      title: Text(
+                        friendlyTitle(tx.description),
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      subtitle: Text(
+                        '${friendlyDetail(tx.description)} · ${_formatDate(tx.createdAt)}',
+                        style: const TextStyle(fontSize: 11),
+                      ),
+                      trailing: Text(
+                        '${tx.type == 'credit' ? '+' : '-'}${ngn(tx.amount)}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
                           color: tx.type == 'credit'
-                              ? EstateColors.forest
-                              : const Color(0xFF8A5B13),
+                              ? DashboardTokens.greenLeaf
+                              : DashboardTokens.amber,
                         ),
-                        title: Text(tx.description),
-                        subtitle: Text(
-                          '${tx.reference} · ${_formatDate(tx.createdAt)}',
-                          style: const TextStyle(fontSize: 10),
-                        ),
-                        trailing: Text(ngn(tx.amount),
-                            style: const TextStyle(fontWeight: FontWeight.w700)),
                       ),
                     ),
-            ],
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: _MoneyFigure(
-                    label: 'Outstanding',
-                    value: ngn(outstanding),
-                    color: const Color(0xFF8A5B13),
                   ),
-                ),
-                Expanded(
-                  child: _MoneyFigure(
-                    label: 'Verified receipts',
-                    value: ngn(verified),
-                    color: EstateColors.forest,
-                  ),
-                ),
-              ],
-            ),
           ],
         ),
       ),
