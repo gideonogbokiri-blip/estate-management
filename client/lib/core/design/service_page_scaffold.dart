@@ -54,9 +54,9 @@ class ServicePageScaffold extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
                 children: [
                   DashboardGreeting(
-                    period: 'LANCON SERVICE',
+                    period: 'YOUR ESTATE SERVICE',
                     title: title,
-                    subtitle: description,
+                    subtitle: 'What this page helps you do',
                   ),
                   const SizedBox(height: 16),
                   Card(

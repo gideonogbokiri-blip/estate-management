@@ -6,8 +6,7 @@ import '../../../core/design/service_page_scaffold.dart';
 import '../../../core/navigation/app_navigation.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/api.dart';
-import '../../resident/presentation/resident_facilities_api_page.dart';
-import '../../resident/presentation/resident_incidents_api_page.dart';
+import 'community_service_pages.dart';
 
 /// Everything a service page needs, passed explicitly instead of reached for
 /// through global/inherited state.
@@ -688,37 +687,9 @@ class _MaintenancePageState extends State<MaintenancePage> {
 }
 
 // ---------------------------------------------------------------------------
-// Facilities / Emergency / Documents / More
+// Facilities / Emergency are in community_service_pages.dart (dark themed).
+// Documents / More
 // ---------------------------------------------------------------------------
-
-class FacilitiesServicePage extends StatelessWidget {
-  const FacilitiesServicePage({super.key, required this.serviceContext});
-  final ServicePageContext serviceContext;
-
-  @override
-  Widget build(BuildContext context) {
-    return ResidentFacilitiesApiPage(
-      repository: serviceContext.repository,
-      estateId: serviceContext.estateId,
-      estateName: serviceContext.estateName,
-      properties: serviceContext.properties,
-    );
-  }
-}
-
-class EmergencyPage extends StatelessWidget {
-  const EmergencyPage({super.key, required this.serviceContext});
-  final ServicePageContext serviceContext;
-
-  @override
-  Widget build(BuildContext context) {
-    return ResidentIncidentsApiPage(
-      repository: serviceContext.repository,
-      estates: serviceContext.estates,
-      onBack: () => Navigator.of(context).pop(),
-    );
-  }
-}
 
 class DocumentsPage extends StatefulWidget {
   const DocumentsPage({super.key, required this.context});
