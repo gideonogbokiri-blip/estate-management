@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/estate_theme.dart';
 import '../../../core/design/dashboard_design.dart';
+import '../../services/presentation/resident_service_pages.dart';
 import '../../onboarding/data/estate_application_repository.dart';
 import '../data/resident_estate_repository.dart';
 import 'resident_visitor_passes_page.dart';
@@ -1077,74 +1078,28 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
     return 'Good evening';
   }
 
-  void _openVisitorPasses() => setState(() => _showVisitorPasses = true);
-
-  void _openIncidents() => setState(() => _showIncidents = true);
+  ServicePageContext _serviceContext() => ServicePageContext(
+        repository: widget.repository,
+        estateId: _memberships.firstOrNull?.id ?? _estateId ?? '',
+        estateName: _memberships.firstOrNull?.name ?? 'Your estate',
+        properties: _properties
+            .map((property) => (id: property.id, label: property.code))
+            .toList(growable: false),
+        estates: _memberships,
+      );
 
   Widget _referenceQuickServices() {
+    final serviceContext = _serviceContext();
     return DashboardQuickServices(
-      services: [
-        DashboardService(
-          icon: Icons.receipt_long_outlined,
-          label: 'Pay Levies',
-          onTap: _openResidentBilling,
-        ),
-        DashboardService(
-          icon: Icons.home_outlined,
-          label: 'House Rent',
-          onTap: () => setState(() => _selectedTab = 3),
-        ),
-        DashboardService(
-          icon: Icons.bolt_outlined,
-          label: 'Electricity',
-          onTap: () => setState(() => _selectedTab = 3),
-        ),
-        DashboardService(
-          icon: Icons.phone_android_outlined,
-          label: 'Airtime',
-          onTap: () => setState(() => _selectedTab = 3),
-        ),
-        DashboardService(
-          icon: Icons.qr_code_2_outlined,
-          label: 'Gate Pass',
-          onTap: _openVisitorPasses,
-        ),
-        DashboardService(
-          icon: Icons.water_drop_outlined,
-          label: 'Water',
-          onTap: () => setState(() => _selectedTab = 3),
-        ),
-        DashboardService(
-          icon: Icons.delete_outline,
-          label: 'Waste',
-          onTap: () => setState(() => _selectedTab = 3),
-        ),
-        DashboardService(
-          icon: Icons.build_outlined,
-          label: 'Maintenance',
-          onTap: () => setState(() => _selectedTab = 2),
-        ),
-        DashboardService(
-          icon: Icons.calendar_month_outlined,
-          label: 'Facilities',
-          onTap: _openFacilities,
-        ),
-        DashboardService(
-          icon: Icons.warning_amber_outlined,
-          label: 'Emergency',
-          onTap: _openIncidents,
-        ),
-        DashboardService(
-          icon: Icons.description_outlined,
-          label: 'Documents',
-          onTap: () => setState(() => _selectedTab = 3),
-        ),
-        DashboardService(
-          icon: Icons.apps_outlined,
-          label: 'More Services',
-          onTap: () => setState(() => _selectedTab = 3),
-        ),
-      ],
+      services: residentServices()
+          .map(
+            (service) => DashboardService(
+              icon: service.icon,
+              label: service.label,
+              onTap: () => openServicePage(context, service.open(serviceContext)),
+            ),
+          )
+          .toList(growable: false),
     );
   }
 

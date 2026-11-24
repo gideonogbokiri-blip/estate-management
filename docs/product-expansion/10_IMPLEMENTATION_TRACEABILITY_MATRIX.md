@@ -33,6 +33,17 @@ Date: 20 November 2026. Status legend: **LIVE** = deployed and verified; **DEMO*
 
 All three role dashboards now use `client/lib/core/design/dashboard_design.dart`: dark canvas, greeting header, a deep-green hero card with three white actions, a 12-tile Quick Services grid and sectioned lists. The reference image is retained at `docs/product-expansion/reference-resident-dashboard.jpg`.
 
+## Dedicated service pages (24 November 2026)
+
+Every Quick Services tile now opens a real page instead of scrolling to a section or showing a SnackBar:
+
+- `client/lib/core/design/service_page_scaffold.dart` — shared dark page shell and state message.
+- `client/lib/features/services/presentation/resident_service_pages.dart` — one registry (`residentServices()`) and dedicated pages for all 12 resident services (Pay Levies, House Rent, Electricity, Airtime, Gate Pass, Water, Waste, Maintenance, Facilities, Emergency, Documents, More Services). Utility services are API-backed via the services catalogue and demo ordering.
+- `client/lib/features/landlord/presentation/landlord_service_pages.dart` — registry and dedicated pages for all 12 landlord services, each loading real portfolio/rent/maintenance/notice/incident data where the API permits.
+- `client/lib/features/admin/presentation/manager_service_pages.dart` — dedicated Payouts, Property map and Reports pages replacing the previous dialog/scroll stubs.
+
+The resident, manager and landlord dashboards now build their grids from these registries, so a service is defined once and navigated consistently.
+
 ## Browser cache fix (20 November 2026)
 
 The API client sends `Cache-Control: no-store`; the backend disables Express ETag generation and sets `Cache-Control: no-store` on `/api/v1` responses (both local bootstrap and Vercel wrapper). Without this, repeated browser loads could receive `304 Not Modified` with an empty body, which the client treated as an error and left dashboards stuck on the loading indicator. Query parameters are deliberately not used for cache busting because strict DTO validation rejects unknown query keys. API reads also have a 20-second timeout, and the resident workspace loader guards each optional data group so one failed or cancelled request cannot leave the dashboard on its loading indicator.

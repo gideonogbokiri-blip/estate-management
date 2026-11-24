@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/estate_theme.dart';
 import '../../../core/design/dashboard_design.dart';
 import '../../../core/config/report_download.dart';
+import 'manager_service_pages.dart';
 import '../../onboarding/data/estate_application_repository.dart';
 import '../../resident_access/presentation/resident_access_review_page.dart';
 import 'ownership_review_api_page.dart';
@@ -1550,6 +1551,15 @@ class _EstateManagerDashboardApiPageState
     );
   }
 
+  ManagerServiceContext _managerServiceContext() => ManagerServiceContext(
+        repository: widget.repository,
+        estateId: _estate?.id ?? '',
+        estateName: _estate?.name ?? 'Your estate',
+      );
+
+  Future<void> _openManagerPage(Widget page) =>
+      Navigator.of(context).push<void>(MaterialPageRoute<void>(builder: (_) => page));
+
   Future<void> _exportReport(String type) async {
     final estate = _estate;
     if (estate == null) return;
@@ -1652,9 +1662,25 @@ class _EstateManagerDashboardApiPageState
             DashboardService(icon: Icons.people_outline, label: 'Residents', onTap: _openResidentAccessReview),
             DashboardService(icon: Icons.home_outlined, label: 'Tenancies', onTap: _openTenancyApprovals),
             DashboardService(icon: Icons.receipt_long_outlined, label: 'Levies', onTap: _openEstateCharges),
-            DashboardService(icon: Icons.payments_outlined, label: 'Payouts', onTap: _requestPayout),
+            DashboardService(
+              icon: Icons.payments_outlined,
+              label: 'Payouts',
+              onTap: () => _openManagerPage(
+                ManagerPayoutsPage(
+                  serviceContext: _managerServiceContext(),
+                ),
+              ),
+            ),
             DashboardService(icon: Icons.account_balance_wallet_outlined, label: 'Expenses', onTap: _openEstateExpenses),
-            DashboardService(icon: Icons.map_outlined, label: 'Property map', onTap: _openRentSchedulePreview),
+            DashboardService(
+              icon: Icons.map_outlined,
+              label: 'Property map',
+              onTap: () => _openManagerPage(
+                ManagerPropertyMapPage(
+                  serviceContext: _managerServiceContext(),
+                ),
+              ),
+            ),
             DashboardService(icon: Icons.storefront_outlined, label: 'Services', onTap: _openEstateFacilities),
             DashboardService(icon: Icons.shield_outlined, label: 'Security', onTap: _openSecurityIncidents),
             DashboardService(icon: Icons.campaign_outlined, label: 'Notices', onTap: _openEstateAnnouncements),

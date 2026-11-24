@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/estate_theme.dart';
 import '../../../core/design/dashboard_design.dart';
+import 'landlord_service_pages.dart';
 import '../../onboarding/data/estate_application_repository.dart';
 
 class LandlordPortfolioApiPage extends StatefulWidget {
@@ -100,21 +101,35 @@ class _LandlordPortfolioApiPageState extends State<LandlordPortfolioApiPage> {
 
   String _message(Object error) => error is EstateApiException ? error.message : 'The estate service could not load this portfolio.';
 
-  void _scrollTo(GlobalKey key) {
-    final context = key.currentContext;
-    if (context != null) {
-      Scrollable.ensureVisible(
-        context,
-        duration: const Duration(milliseconds: 350),
-        curve: Curves.easeOut,
+  LandlordServiceContext _landlordServiceContext() => LandlordServiceContext(
+        repository: widget.repository,
+        estateId: _estate?.id ?? '',
+        estateName: _estate?.name ?? 'Your estate',
       );
-    }
+
+  List<DashboardService> _landlordServiceTiles() {
+    final serviceContext = _landlordServiceContext();
+    return landlordServices().map((service) {
+      return DashboardService(
+        icon: service.icon,
+        label: service.label,
+        onTap: () {
+          final page = service.id == 'more'
+              ? LandlordMoreServicesPage(serviceContext: serviceContext)
+              : LandlordServicePage(service: service, serviceContext: serviceContext);
+          openLandlordPage(context, page);
+        },
+      );
+    }).toList(growable: false);
   }
 
-  void _showPending(String label) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$label is prepared by estate management and will appear here when available.')),
-    );
+  void _openLandlordService(String id) {
+    final serviceContext = _landlordServiceContext();
+    final service = landlordServices().firstWhere((item) => item.id == id);
+    final page = service.id == 'more'
+        ? LandlordMoreServicesPage(serviceContext: serviceContext)
+        : LandlordServicePage(service: service, serviceContext: serviceContext);
+    openLandlordPage(context, page);
   }
 
   Widget _referenceHeader() {
@@ -159,36 +174,23 @@ class _LandlordPortfolioApiPageState extends State<LandlordPortfolioApiPage> {
             DashboardHeroAction(
               icon: Icons.calendar_month_outlined,
               label: 'Rent schedule',
-              onTap: () => _scrollTo(_propertiesKey),
+              onTap: () => _openLandlordService('rent-schedule'),
             ),
             DashboardHeroAction(
               icon: Icons.receipt_long_outlined,
               label: 'Receipts',
-              onTap: () => _showPending('Rent receipts'),
+              onTap: () => _openLandlordService('receipts'),
             ),
             DashboardHeroAction(
               icon: Icons.description_outlined,
               label: 'Statements',
-              onTap: () => _showPending('Settlement statements'),
+              onTap: () => _openLandlordService('statements'),
             ),
           ],
         ),
         const SizedBox(height: 22),
         DashboardQuickServices(
-          services: [
-            DashboardService(icon: Icons.apartment_outlined, label: 'Portfolio', onTap: () => _scrollTo(_propertiesKey)),
-            DashboardService(icon: Icons.people_outline, label: 'Occupancy', onTap: () => _scrollTo(_propertiesKey)),
-            DashboardService(icon: Icons.home_outlined, label: 'Tenancies', onTap: () => _scrollTo(_propertiesKey)),
-            DashboardService(icon: Icons.calendar_month_outlined, label: 'Rent schedule', onTap: () => _scrollTo(_propertiesKey)),
-            DashboardService(icon: Icons.warning_amber_outlined, label: 'Arrears', onTap: () => _scrollTo(_propertiesKey)),
-            DashboardService(icon: Icons.receipt_long_outlined, label: 'Receipts', onTap: () => _showPending('Rent receipts')),
-            DashboardService(icon: Icons.description_outlined, label: 'Statements', onTap: () => _showPending('Settlement statements')),
-            DashboardService(icon: Icons.handyman_outlined, label: 'Maintenance', onTap: () => _scrollTo(_maintenanceKey)),
-            DashboardService(icon: Icons.folder_outlined, label: 'Documents', onTap: () => _showPending('Property documents')),
-            DashboardService(icon: Icons.notifications_none_outlined, label: 'Notices', onTap: () => _showPending('Estate notices')),
-            DashboardService(icon: Icons.health_and_safety_outlined, label: 'Safety', onTap: () => _showPending('Safety reports')),
-            DashboardService(icon: Icons.more_horiz, label: 'More', onTap: () => _showPending('Additional landlord services')),
-          ],
+          services: _landlordServiceTiles(),
         ),
         const SizedBox(height: 24),
         Row(
