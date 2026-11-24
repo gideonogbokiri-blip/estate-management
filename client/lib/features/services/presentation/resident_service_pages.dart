@@ -48,84 +48,84 @@ List<ResidentService> residentServices() => [
       ResidentService(
         id: 'levies',
         label: 'Pay Levies',
-        description: 'Estate charges and invoices issued for your property.',
+        description: 'Pay the bills your estate has billed you for, and see what you still owe.',
         icon: Icons.receipt_long_outlined,
         open: (c) => PayLeviesPage(context: c),
       ),
       ResidentService(
         id: 'rent',
         label: 'House Rent',
-        description: 'Rent installments generated from your approved tenancy.',
+        description: 'See and pay the rent installments for the home you rent.',
         icon: Icons.home_outlined,
         open: (c) => HouseRentPage(context: c),
       ),
       ResidentService(
         id: 'electricity',
         label: 'Electricity',
-        description: 'Electricity and common-area power services enabled by your estate.',
+        description: 'Buy electricity or pay for shared power using your estate wallet.',
         icon: Icons.bolt_outlined,
         open: (c) => ElectricityPage(serviceContext: c),
       ),
       ResidentService(
         id: 'airtime',
         label: 'Airtime',
-        description: 'Buy airtime from your estate wallet.',
+        description: 'Buy phone airtime and see your past purchases.',
         icon: Icons.phone_android_outlined,
         open: (c) => AirtimePage(serviceContext: c),
       ),
       ResidentService(
         id: 'gate-pass',
         label: 'Gate Pass',
-        description: 'Invite visitors and manage their gate passes.',
+        description: 'Invite a visitor and see the passes that let them through the gate.',
         icon: Icons.qr_code_2_outlined,
         open: (c) => GatePassPage(context: c),
       ),
       ResidentService(
         id: 'water',
         label: 'Water',
-        description: 'Water services enabled by your estate.',
+        description: 'Pay for water and view your water orders.',
         icon: Icons.water_drop_outlined,
         open: (c) => WaterPage(serviceContext: c),
       ),
       ResidentService(
         id: 'waste',
         label: 'Waste',
-        description: 'Waste collection services enabled by your estate.',
+        description: 'Pay for waste collection and view your orders.',
         icon: Icons.delete_outline,
         open: (c) => WastePage(serviceContext: c),
       ),
       ResidentService(
         id: 'maintenance',
         label: 'Maintenance',
-        description: 'Report and track repairs for your property.',
+        description: 'Tell us something is broken and follow the repair status.',
         icon: Icons.build_outlined,
         open: (c) => MaintenancePage(context: c),
       ),
       ResidentService(
         id: 'facilities',
         label: 'Facilities',
-        description: 'Browse shared facilities and request bookings.',
+        description: 'See shared spaces you can book and request a time.',
         icon: Icons.calendar_month_outlined,
         open: (c) => FacilitiesServicePage(serviceContext: c),
       ),
       ResidentService(
         id: 'emergency',
         label: 'Emergency',
-        description: 'Report safety concerns to estate staff.',
+        description: 'Tell estate staff about an emergency or safety problem.',
         icon: Icons.warning_amber_outlined,
         open: (c) => EmergencyPage(serviceContext: c),
       ),
       ResidentService(
         id: 'documents',
         label: 'Documents',
-        description: 'Your application documents and receipts.',
+        description: 'Find and download the documents and receipts for your account.',
         icon: Icons.description_outlined,
         open: (c) => DocumentsPage(context: c),
       ),
       ResidentService(
         id: 'more',
         label: 'More Services',
-        description: 'Every service available to you in one place.',
+        description: 'All the services you can use, listed in one place.',
         icon: Icons.apps_outlined,
         open: (c) => MoreServicesPage(serviceContext: c),
       ),
@@ -174,7 +174,7 @@ class _PayLeviesPageState extends State<PayLeviesPage> {
     final service = residentServices().firstWhere((item) => item.id == 'levies');
     return ServicePageScaffold(
       title: service.label,
-      description: '${widget.context.estateName} Â· ${service.description}',
+      description: '${widget.context.estateName} · ${service.description}',
       icon: service.icon,
       onRefresh: _load,
       child: _loading
@@ -195,7 +195,7 @@ class _PayLeviesPageState extends State<PayLeviesPage> {
                                 style: const TextStyle(fontWeight: FontWeight.w700),
                               ),
                               subtitle: Text(
-                                '${invoice['propertyCode'] ?? ''} Â· due ${invoice['dueDate'] ?? 'â€”'} Â· ${invoice['status'] ?? ''}',
+                                '${invoice['propertyCode'] ?? ''} · due ${invoice['dueDate'] ?? '—'} · ${invoice['status'] ?? ''}',
                                 style: const TextStyle(fontSize: 11),
                               ),
                               trailing: Text(
@@ -262,7 +262,7 @@ class _HouseRentPageState extends State<HouseRentPage> {
     final service = residentServices().firstWhere((item) => item.id == 'rent');
     return ServicePageScaffold(
       title: service.label,
-      description: '${widget.context.estateName} Â· ${service.description}',
+      description: '${widget.context.estateName} · ${service.description}',
       icon: service.icon,
       onRefresh: _load,
       child: _loading
@@ -276,11 +276,11 @@ class _HouseRentPageState extends State<HouseRentPage> {
                         (row) => Card(
                           child: ListTile(
                             leading: const Icon(Icons.home_outlined, color: DashboardTokens.greenLeaf),
-                            title: Text('${row.currency} ${row.amount} Â· ${row.status}',
+                            title: Text('${row.currency} ${row.amount} · ${row.status}',
                                 style: const TextStyle(fontWeight: FontWeight.w700)),
                             subtitle: Text(
-                              '${row.periodStart} â€“ ${row.periodEnd} Â· due ${row.dueDate}'
-                              '${row.isOverdue ? ' Â· overdue' : ''}',
+                              '${row.periodStart} – ${row.periodEnd} · due ${row.dueDate}'
+                              '${row.isOverdue ? ' · overdue' : ''}',
                               style: const TextStyle(fontSize: 11),
                             ),
                             trailing: row.balance == '0'
@@ -396,7 +396,7 @@ class _UtilityServicePageState extends State<UtilityServicePage> {
         SnackBar(
           content: Text(
             result.demo
-                ? 'Demo order fulfilled Â· ${result.fulfilmentCode ?? 'voucher'}'
+                ? 'Demo order fulfilled · ${result.fulfilmentCode ?? 'voucher'}'
                 : 'Service ordered successfully.',
           ),
         ),
@@ -418,7 +418,7 @@ class _UtilityServicePageState extends State<UtilityServicePage> {
     }).toList();
     return ServicePageScaffold(
       title: service.label,
-      description: '${widget.context.estateName} Â· ${service.description}',
+      description: '${widget.context.estateName} · ${service.description}',
       icon: service.icon,
       onRefresh: _load,
       child: _loading
@@ -444,7 +444,7 @@ class _UtilityServicePageState extends State<UtilityServicePage> {
                             ),
                             title: Text(item.name, style: const TextStyle(fontWeight: FontWeight.w700)),
                             subtitle: Text(
-                              '${item.currency} ${item.amount} Â· ${item.provider}${item.demo ? ' Â· demo service' : ''}',
+                              '${item.currency} ${item.amount} · ${item.provider}${item.demo ? ' · demo service' : ''}',
                               style: const TextStyle(fontSize: 11),
                             ),
                             trailing: FilledButton(
@@ -462,10 +462,10 @@ class _UtilityServicePageState extends State<UtilityServicePage> {
                       ...relevantOrders.take(8).map(
                             (order) => Card(
                               child: ListTile(
-                                title: Text('${order.currency} ${order.amount} Â· ${order.status}',
+                                title: Text('${order.currency} ${order.amount} · ${order.status}',
                                     style: const TextStyle(fontWeight: FontWeight.w600)),
                                 subtitle: Text(
-                                  '${order.provider}${order.demo ? ' Â· demo' : ''} Â· ${order.fulfilmentCode ?? ''}',
+                                  '${order.provider}${order.demo ? ' · demo' : ''} · ${order.fulfilmentCode ?? ''}',
                                   style: const TextStyle(fontSize: 11),
                                 ),
                               ),
@@ -516,7 +516,7 @@ class _GatePassPageState extends State<GatePassPage> {
     final service = residentServices().firstWhere((item) => item.id == 'gate-pass');
     return ServicePageScaffold(
       title: service.label,
-      description: '${widget.context.estateName} Â· ${service.description}',
+      description: '${widget.context.estateName} · ${service.description}',
       icon: service.icon,
       onRefresh: _load,
       child: _loading
@@ -532,7 +532,7 @@ class _GatePassPageState extends State<GatePassPage> {
                             leading: const Icon(Icons.qr_code_2_outlined, color: DashboardTokens.greenLeaf),
                             title: Text(pass.visitorName, style: const TextStyle(fontWeight: FontWeight.w700)),
                             subtitle: Text(
-                              '${pass.propertyLabel} Â· ${pass.validFrom} â€“ ${pass.validUntil} Â· ${pass.status}',
+                              '${pass.propertyLabel} · ${pass.validFrom} – ${pass.validUntil} · ${pass.status}',
                               style: const TextStyle(fontSize: 11),
                             ),
                           ),
@@ -613,7 +613,7 @@ class _MaintenancePageState extends State<MaintenancePage> {
     final service = residentServices().firstWhere((item) => item.id == 'maintenance');
     return ServicePageScaffold(
       title: service.label,
-      description: '${widget.context.estateName} Â· ${service.description}',
+      description: '${widget.context.estateName} · ${service.description}',
       icon: service.icon,
       onRefresh: _load,
       child: Column(
@@ -674,7 +674,7 @@ class _MaintenancePageState extends State<MaintenancePage> {
                   leading: const Icon(Icons.build_outlined, color: DashboardTokens.greenLeaf),
                   title: Text(request.category, style: const TextStyle(fontWeight: FontWeight.w700)),
                   subtitle: Text(
-                    '${request.description} Â· ${request.status}',
+                    '${request.description} · ${request.status}',
                     maxLines: 2,
                     style: const TextStyle(fontSize: 11),
                   ),
@@ -767,7 +767,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
     final service = residentServices().firstWhere((item) => item.id == 'documents');
     return ServicePageScaffold(
       title: service.label,
-      description: '${widget.context.estateName} Â· ${service.description}',
+      description: '${widget.context.estateName} · ${service.description}',
       icon: service.icon,
       onRefresh: _load,
       child: _loading
@@ -782,7 +782,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
                           child: ListTile(
                             leading: const Icon(Icons.description_outlined, color: DashboardTokens.greenLeaf),
                             title: Text(document.displayName, style: const TextStyle(fontWeight: FontWeight.w700)),
-                            subtitle: Text('${document.category} Â· ${document.status}',
+                            subtitle: Text('${document.category} · ${document.status}',
                                 style: const TextStyle(fontSize: 11)),
                             trailing: IconButton(
                               tooltip: 'Download',
@@ -806,7 +806,7 @@ class MoreServicesPage extends StatelessWidget {
     final services = residentServices().where((item) => item.id != 'more').toList();
     return ServicePageScaffold(
       title: 'More Services',
-      description: '${serviceContext.estateName} Â· Every service available to you.',
+      description: '${serviceContext.estateName} · Every service available to you.',
       icon: Icons.apps_outlined,
       child: DashboardQuickServices(
         services: services
@@ -822,5 +822,7 @@ class MoreServicesPage extends StatelessWidget {
     );
   }
 }
+
+
 
 

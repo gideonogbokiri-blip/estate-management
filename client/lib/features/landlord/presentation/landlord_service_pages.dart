@@ -47,14 +47,14 @@ class LandlordService {
 List<LandlordService> landlordServices() => [
       LandlordService(
         id: 'portfolio',
-        label: 'Portfolio',
-        description: 'Properties with a verified ownership interest.',
+        label: 'My properties',
+        description: 'The properties the estate has confirmed you own.',
         icon: Icons.apartment_outlined,
         loader: (c) async {
           final rows = await c.repository.loadLandlordPortfolio(c.estateId);
           return rows.map((row) => LandlordRow(
-                title: '${row.propertyCode} Â· ${row.propertyType}',
-                subtitle: '${row.ownershipShare}% ownership Â· ${row.occupancyCount} occupant(s)',
+                title: '${row.propertyCode} · ${row.propertyType}',
+                subtitle: '${row.ownershipShare}% ownership · ${row.occupancyCount} occupant(s)',
                 trailing: row.unitNumber ?? '',
                 icon: Icons.home_work_outlined,
               )).toList();
@@ -62,13 +62,13 @@ List<LandlordService> landlordServices() => [
       ),
       LandlordService(
         id: 'occupancy',
-        label: 'Occupancy',
-        description: 'Current occupancy across your verified properties.',
+        label: 'Who lives there',
+        description: 'See which of your properties are occupied right now.',
         icon: Icons.people_outline,
         loader: (c) async {
           final rows = await c.repository.loadLandlordPortfolio(c.estateId);
           return rows.map((row) => LandlordRow(
-                title: '${row.propertyCode} Â· ${row.occupancyCount == 0 ? 'Vacant' : 'Occupied'}',
+                title: '${row.propertyCode} · ${row.occupancyCount == 0 ? 'Vacant' : 'Occupied'}',
                 subtitle: row.occupancyCount == 0
                     ? 'No current occupants recorded'
                     : '${row.occupancyCount} current occupant(s)',
@@ -78,8 +78,8 @@ List<LandlordService> landlordServices() => [
       ),
       LandlordService(
         id: 'tenancies',
-        label: 'Tenancies',
-        description: 'Approved tenancies and agreed rent for your properties.',
+        label: 'Tenants & leases',
+        description: 'Your tenants, their lease terms, and the rent you agreed.',
         icon: Icons.home_outlined,
         loader: (c) async {
           final rows = await c.repository.loadLandlordPortfolio(c.estateId);
@@ -87,7 +87,7 @@ List<LandlordService> landlordServices() => [
             final tenancy = row.currentTenancy!;
             final rent = tenancy['rent'] as Map<String, dynamic>?;
             return LandlordRow(
-              title: '${row.propertyCode} Â· ${tenancy['tenantDisplayName'] ?? 'Tenant'}',
+              title: '${row.propertyCode} · ${tenancy['tenantDisplayName'] ?? 'Tenant'}',
               subtitle: rent == null
                   ? 'Agreed rent not available'
                   : 'Agreed ${rent['currency']} ${rent['amount']} / ${rent['frequency']}',
@@ -98,14 +98,14 @@ List<LandlordService> landlordServices() => [
       ),
       LandlordService(
         id: 'rent-schedule',
-        label: 'Rent schedule',
-        description: 'Installments generated from approved tenancies.',
+        label: 'Rent dates',
+        description: 'The dates rent is due and how much is expected.',
         icon: Icons.calendar_month_outlined,
         loader: (c) async {
           final rows = await c.repository.loadRentSchedule(c.estateId);
           return rows.map((row) => LandlordRow(
-                title: '${row.currency} ${row.amount} Â· ${row.status}',
-                subtitle: '${row.periodStart} â€“ ${row.periodEnd} Â· due ${row.dueDate}',
+                title: '${row.currency} ${row.amount} · ${row.status}',
+                subtitle: '${row.periodStart} – ${row.periodEnd} · due ${row.dueDate}',
                 trailing: row.balance,
                 icon: Icons.calendar_month_outlined,
               )).toList();
@@ -113,22 +113,22 @@ List<LandlordService> landlordServices() => [
       ),
       LandlordService(
         id: 'arrears',
-        label: 'Arrears',
-        description: 'Rent installments with an outstanding balance.',
+        label: 'Unpaid rent',
+        description: 'Rent that is still unpaid, including anything overdue.',
         icon: Icons.warning_amber_outlined,
         loader: (c) async {
           final rows = await c.repository.loadRentSchedule(c.estateId);
           return rows.where((row) => row.balance != '0' && double.tryParse(row.balance) != 0).map((row) => LandlordRow(
                 title: '${row.currency} ${row.balance} outstanding',
-                subtitle: 'Due ${row.dueDate}${row.isOverdue ? ' Â· overdue' : ''}',
+                subtitle: 'Due ${row.dueDate}${row.isOverdue ? ' · overdue' : ''}',
                 icon: Icons.warning_amber_outlined,
               )).toList();
         },
       ),
       LandlordService(
         id: 'receipts',
-        label: 'Receipts',
-        description: 'Receipts recorded against rent installments.',
+        label: 'Payment receipts',
+        description: 'Proof of rent that has already been collected.',
         icon: Icons.receipt_long_outlined,
         loader: (c) async {
           final rows = await c.repository.loadRentSchedule(c.estateId);
@@ -136,7 +136,7 @@ List<LandlordService> landlordServices() => [
           return receipts.map((receipt) {
             final map = receipt as Map<String, dynamic>;
             return LandlordRow(
-              title: '${map['receipt'] ?? 'Receipt'} Â· ${map['amount'] ?? ''}',
+              title: '${map['receipt'] ?? 'Receipt'} · ${map['amount'] ?? ''}',
               subtitle: 'Reference ${map['reference'] ?? ''}',
               icon: Icons.receipt_long_outlined,
             );
@@ -145,15 +145,15 @@ List<LandlordService> landlordServices() => [
       ),
       LandlordService(
         id: 'statements',
-        label: 'Statements',
-        description: 'Entitlement, collections and outstanding rent.',
+        label: 'Rent statement',
+        description: 'A simple summary of rent owed, collected and still due.',
         icon: Icons.description_outlined,
         loader: (c) async {
           final rows = await c.repository.loadLandlordRentSummary(c.estateId);
           return rows.map((row) => LandlordRow(
                 title: row.payeeName,
-                subtitle: 'Entitlement ${AppFormat.money(row.entitlement)} Â· '
-                    'Collected ${AppFormat.money(row.collected)}',
+                subtitle: 'You should receive ${AppFormat.money(row.entitlement)} · '
+                    'Already collected ${AppFormat.money(row.collected)}',
                 trailing: '${AppFormat.money(row.outstanding)} due',
                 icon: Icons.description_outlined,
               )).toList();
@@ -161,14 +161,14 @@ List<LandlordService> landlordServices() => [
       ),
       LandlordService(
         id: 'maintenance',
-        label: 'Maintenance',
-        description: 'Resident repairs for your verified properties.',
+        label: 'Repairs',
+        description: 'Repair requests from residents in your properties.',
         icon: Icons.handyman_outlined,
         loader: (c) async {
           final rows = await c.repository.loadMyLandlordPropertyMaintenance();
           return rows.map((row) => LandlordRow(
                 title: row.reference,
-                subtitle: '${row.propertyLabel} Â· ${row.category} Â· ${row.status}',
+                subtitle: '${row.propertyLabel} · ${row.category} · ${row.status}',
                 icon: Icons.handyman_outlined,
               )).toList();
         },
@@ -176,7 +176,7 @@ List<LandlordService> landlordServices() => [
       LandlordService(
         id: 'documents',
         label: 'Documents',
-        description: 'Property and tenancy documents.',
+        description: 'Where to find or request your property papers.',
         icon: Icons.folder_outlined,
         loader: (c) async => [
               const LandlordRow(
@@ -193,8 +193,8 @@ List<LandlordService> landlordServices() => [
       ),
       LandlordService(
         id: 'notices',
-        label: 'Notices',
-        description: 'Estate announcements relevant to owners.',
+        label: 'Estate notices',
+        description: 'News and notices from your estate.',
         icon: Icons.campaign_outlined,
         loader: (c) async {
           final rows = await c.repository.loadEstateAnnouncements(c.estateId);
@@ -207,14 +207,14 @@ List<LandlordService> landlordServices() => [
       ),
       LandlordService(
         id: 'safety',
-        label: 'Safety',
-        description: 'Safety and incident reports for your properties.',
+        label: 'Safety reports',
+        description: 'Reports about safety issues in your properties.',
         icon: Icons.health_and_safety_outlined,
         loader: (c) async {
           final rows = await c.repository.loadSecurityIncidents(c.estateId);
           return rows.map((row) => LandlordRow(
                 title: row.reference,
-                subtitle: '${row.category} Â· ${row.status}',
+                subtitle: '${row.category} · ${row.status}',
                 icon: Icons.health_and_safety_outlined,
               )).toList();
         },
@@ -283,7 +283,7 @@ class _LandlordServicePageState extends State<LandlordServicePage> {
   Widget build(BuildContext context) {
     return ServicePageScaffold(
       title: widget.service.label,
-      description: '${widget.serviceContext.estateName} Â· ${widget.service.description}',
+      description: '${widget.serviceContext.estateName} · ${widget.service.description}',
       icon: widget.service.icon,
       onRefresh: _load,
       child: _loading
@@ -319,7 +319,7 @@ class LandlordMoreServicesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return ServicePageScaffold(
       title: 'More Services',
-      description: '${serviceContext.estateName} Â· Every landlord service in one place.',
+      description: '${serviceContext.estateName} · Every landlord service in one place.',
       icon: Icons.apps_outlined,
       child: DashboardQuickServices(
         services: landlordServices()
@@ -338,6 +338,8 @@ class LandlordMoreServicesPage extends StatelessWidget {
     );
   }
 }
+
+
 
 
 

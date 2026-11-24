@@ -891,7 +891,7 @@ class _EstateManagerDashboardApiPageState
                             (gate) => DropdownMenuItem(
                               value: gate.id,
                               child: Text(
-                                '${gate.code} Â· ${gate.name}',
+                                '${gate.code} · ${gate.name}',
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
@@ -1108,7 +1108,7 @@ class _EstateManagerDashboardApiPageState
                   }, color: EstateColors.forest),
                   title: Text(node.name),
                   subtitle: Text(
-                    '${node.type} Â· ${node.code ?? 'No code'} Â· ${node.linkedPropertyCount} properties${node.parentNames.isEmpty ? '' : ' Â· under ${node.parentNames.join(', ')}'}',
+                    '${node.type} · ${node.code ?? 'No code'} · ${node.linkedPropertyCount} properties${node.parentNames.isEmpty ? '' : ' · under ${node.parentNames.join(', ')}'}',
                   ),
                   trailing: IconButton(
                     tooltip: 'Archive structure node',
@@ -1630,17 +1630,17 @@ class _EstateManagerDashboardApiPageState
         ),
         const SizedBox(height: 18),
         DashboardHero(
-          label: 'ESTATE COLLECTIONS',
+          label: 'MONEY COLLECTED FOR THE ESTATE',
           amount: 'NGN ${_formatMoney(_treasury?.collections ?? '0')}',
           caption: 'Outstanding invoices NGN ${_formatMoney(_treasury?.outstandingInvoices ?? '0')} · '
               '${_treasury?.pendingSettlements ?? 0} pending settlements',
-          badge: 'FINANCIAL DEMO MODE · NO REAL MONEY',
+          badge: 'DEMO MODE · NO REAL MONEY',
           cardIcon: Icons.account_balance_outlined,
           onSettings: _openEstateSettings,
           actions: [
             DashboardHeroAction(
               icon: Icons.receipt_long_outlined,
-              label: 'Record expense',
+              label: 'Record spending',
               onTap: _openEstateExpenses,
             ),
             DashboardHeroAction(
@@ -1650,7 +1650,7 @@ class _EstateManagerDashboardApiPageState
             ),
             DashboardHeroAction(
               icon: Icons.autorenew_outlined,
-              label: 'Generate levies',
+              label: 'Send bills',
               onTap: _generateRecurringLevies,
             ),
           ],
@@ -1800,7 +1800,7 @@ class _EstateManagerDashboardApiPageState
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        'Live estate data â€¢ refreshed ${_formatDate(summary.asOf)}',
+                        'Live estate data • refreshed ${_formatDate(summary.asOf)}',
                         style: const TextStyle(
                           color: EstateColors.muted,
                           fontSize: 12,
@@ -2391,7 +2391,7 @@ class _EstateManagerDashboardApiPageState
                             title: 'Facilities and bookings',
                             description: _facilityBookings.isEmpty
                                 ? 'Configure shared spaces and review resident booking requests.'
-                                : '$_pendingFacilityBookings booking requests pending Â· $_confirmedFacilityBookings confirmed.',
+                                : '$_pendingFacilityBookings booking requests pending · $_confirmedFacilityBookings confirmed.',
                             onTap: _busy ? null : _openEstateFacilities,
                           ),
                         ],
@@ -2598,7 +2598,7 @@ class _EstateManagerDashboardApiPageState
                           child: Text(
                             _maintenanceQueue.total == 0
                                 ? 'No matching requests.'
-                                : 'Showing ${(_maintenanceQueue.page - 1) * _maintenanceQueue.pageSize + 1}â€“${(_maintenanceQueue.page - 1) * _maintenanceQueue.pageSize + _maintenanceQueue.items.length} of ${_maintenanceQueue.total} matching requests.',
+                                : 'Showing ${(_maintenanceQueue.page - 1) * _maintenanceQueue.pageSize + 1}–${(_maintenanceQueue.page - 1) * _maintenanceQueue.pageSize + _maintenanceQueue.items.length} of ${_maintenanceQueue.total} matching requests.',
                             style: const TextStyle(
                               color: EstateColors.muted,
                               fontSize: 12,
@@ -2840,7 +2840,7 @@ class _EstateManagerDashboardApiPageState
                             const SizedBox(height: 18),
                             FilledButton(
                               onPressed: _busy ? null : _signIn,
-                              child: Text(_busy ? 'Signing inâ€¦' : 'Sign in'),
+                              child: Text(_busy ? 'Signing in…' : 'Sign in'),
                             ),
                           ],
                         ),
@@ -3051,7 +3051,7 @@ class _IssuedInvoicesCard extends StatelessWidget {
                   style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
                 subtitle: Text(
-                  '${item.count} ${item.count == 1 ? 'invoice' : 'invoices'} Â· issued, no verified payment recorded',
+                  '${item.count} ${item.count == 1 ? 'invoice' : 'invoices'} · issued, no verified payment recorded',
                 ),
                 dense: true,
               ),
@@ -3264,12 +3264,12 @@ class _MaintenanceRequestCard extends StatelessWidget {
             ),
             const SizedBox(height: 7),
             Text(
-              '${request.propertyLabel} Â· ${_label(request.category)} Â· $dateLabel',
+              '${request.propertyLabel} · ${_label(request.category)} · $dateLabel',
               style: const TextStyle(fontSize: 12, color: EstateColors.muted),
             ),
             const SizedBox(height: 5),
             Text(
-              'Reported by ${request.requesterDisplayName}${request.assigneeDisplayName == null ? '' : ' Â· Assigned to ${request.assigneeDisplayName}'}',
+              'Reported by ${request.requesterDisplayName}${request.assigneeDisplayName == null ? '' : ' · Assigned to ${request.assigneeDisplayName}'}',
               style: const TextStyle(fontSize: 12, color: EstateColors.muted),
             ),
             const SizedBox(height: 10),
@@ -3441,7 +3441,7 @@ class _MaintenanceReviewDialogState extends State<_MaintenanceReviewDialog> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              '${widget.request.propertyLabel} Â· ${widget.request.requesterDisplayName}',
+              '${widget.request.propertyLabel} · ${widget.request.requesterDisplayName}',
               style: const TextStyle(color: EstateColors.muted, fontSize: 12),
             ),
             const SizedBox(height: 14),
@@ -3579,4 +3579,6 @@ class _ReportMetric extends StatelessWidget {
         ),
       );
 }
+
+
 

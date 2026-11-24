@@ -10,8 +10,8 @@ class DashboardTokens {
   static const surfaceRaised = Color(0xFF161E1A);
   static const line = Color(0xFF25332C);
   static const text = Color(0xFFFFFFFF);
-  static const muted = Color(0xFF9BB2A5);
-  static const mutedStrong = Color(0xFFC7D8CE);
+  static const muted = Color(0xFFB9CBC1);
+  static const mutedStrong = Color(0xFFE2EDE6);
   static const greenDeep = Color(0xFF0A2F27);
   static const greenMid = Color(0xFF0D3B30);
   static const green = Color(0xFF176B4B);
@@ -131,6 +131,7 @@ class DashboardHero extends StatelessWidget {
     this.caption,
     this.badge,
     this.onSettings,
+    this.helper,
     this.cardIcon = Icons.account_balance_wallet_outlined,
   });
 
@@ -140,6 +141,7 @@ class DashboardHero extends StatelessWidget {
   final String? caption;
   final String? badge;
   final VoidCallback? onSettings;
+  final String? helper;
   final IconData cardIcon;
 
   @override
@@ -212,6 +214,17 @@ class DashboardHero extends StatelessWidget {
               style: const TextStyle(
                 color: DashboardTokens.mutedStrong,
                 fontSize: 11,
+              ),
+            ),
+          ],
+          if (helper != null) ...[
+            const SizedBox(height: 10),
+            Text(
+              helper!,
+              style: const TextStyle(
+                color: DashboardTokens.mutedStrong,
+                fontSize: 11,
+                height: 1.35,
               ),
             ),
           ],

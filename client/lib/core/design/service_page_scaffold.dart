@@ -58,6 +58,45 @@ class ServicePageScaffold extends StatelessWidget {
                     title: title,
                     subtitle: description,
                   ),
+                  const SizedBox(height: 16),
+                  Card(
+                    color: DashboardTokens.surfaceRaised,
+                    child: Padding(
+                      padding: const EdgeInsets.all(14),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.info_outline,
+                              color: DashboardTokens.greenLeaf, size: 19),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'In plain English',
+                                  style: TextStyle(
+                                    color: DashboardTokens.text,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                const SizedBox(height: 3),
+                                Text(
+                                  description,
+                                  style: const TextStyle(
+                                    color: DashboardTokens.mutedStrong,
+                                    fontSize: 13,
+                                    height: 1.4,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 20),
                   child,
                 ],

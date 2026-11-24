@@ -142,7 +142,7 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
     final paymentSummary = payments
         .map(
           (payment) =>
-              'Verified ${payment['currency'] ?? invoice['currency'] ?? 'NGN'} ${payment['amount'] ?? '0.00'} Â· receipt ${payment['receiptNumber'] ?? ''}',
+              'Verified ${payment['currency'] ?? invoice['currency'] ?? 'NGN'} ${payment['amount'] ?? '0.00'} · receipt ${payment['receiptNumber'] ?? ''}',
         )
         .join('\n');
     if (invoice['status'] == 'paid' || invoice['status'] == 'partially_paid') {
@@ -156,7 +156,7 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
     }
     if (settlement.isEmpty)
       return 'Settlement instructions are unavailable. Contact your estate office.';
-    return 'Transfer to ${settlement['bankName'] ?? ''} Â· ${settlement['accountName'] ?? ''} Â· ${settlement['accountNumber'] ?? ''}\nReference: ${settlement['paymentReference'] ?? invoice['invoiceNumber'] ?? ''}';
+    return 'Transfer to ${settlement['bankName'] ?? ''} · ${settlement['accountName'] ?? ''} · ${settlement['accountNumber'] ?? ''}\nReference: ${settlement['paymentReference'] ?? invoice['invoiceNumber'] ?? ''}';
   }
 
   Future<void> _loadWorkspace() async {
@@ -974,14 +974,14 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
     final property = _properties.firstOrNull;
     final propertyLabel = property == null
         ? 'Property'
-        : '${property.code}${property.unitNumber != null ? ' Â· ${property.unitNumber}' : ''}';
+        : '${property.code}${property.unitNumber != null ? ' · ${property.unitNumber}' : ''}';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         DashboardGreeting(
           period: _greetingPeriod(),
           title: 'Welcome, ${_account?.displayName.split(' ').last ?? 'Resident'}',
-          subtitle: '$estateName Â· $propertyLabel',
+          subtitle: '$estateName · $propertyLabel',
           trailing: [
             IconButton(
               tooltip: 'Notifications',
@@ -1021,13 +1021,15 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
         const SizedBox(height: 18),
         DashboardHero(
           label: 'MY WALLET BALANCE',
-          amount: wallet == null ? 'â€”' : _money(wallet.balance),
+          amount: wallet == null ? '—' : _money(wallet.balance),
           caption: wallet == null
               ? 'No fund account yet'
-              : '${wallet.accountNumber ?? 'Account pending'} Â· ${wallet.bankName ?? ''}',
+              : '${wallet.accountNumber ?? 'Account pending'} · ${wallet.bankName ?? ''}',
+          helper: 'This is the money you can use to pay estate bills and rent. '
+              'In demo mode it is not real money.',
           badge: wallet == null ||
                   wallet.bankName?.toLowerCase().contains('demo') == true
-              ? 'DEMO MODE Â· NO REAL MONEY'
+              ? 'DEMO MODE · NO REAL MONEY'
               : null,
           onSettings: () => showDialog<void>(
             context: context,
@@ -1179,7 +1181,7 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                           letterSpacing: 1.4),
                     ),
                     Text(
-                      '${wallet.bankName ?? 'Bank'} Â· ${wallet.accountName ?? ''}',
+                      '${wallet.bankName ?? 'Bank'} · ${wallet.accountName ?? ''}',
                       style: const TextStyle(color: Color(0xFFCFE3D7), fontSize: 11),
                     ),
                   ],
@@ -1230,7 +1232,7 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                         ),
                         title: Text(tx.description),
                         subtitle: Text(
-                          '${tx.reference} Â· ${_formatDate(tx.createdAt)}',
+                          '${tx.reference} · ${_formatDate(tx.createdAt)}',
                           style: const TextStyle(fontSize: 10),
                         ),
                         trailing: Text(ngn(tx.amount),
@@ -1381,12 +1383,12 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                         (row) => Card(
                           child: ListTile(
                             title: Text(
-                              '${row.currency} ${row.amount} Â· ${row.status}',
+                              '${row.currency} ${row.amount} · ${row.status}',
                               style: const TextStyle(fontWeight: FontWeight.w700),
                             ),
                             subtitle: Text(
-                              '${row.periodStart} â€“ ${row.periodEnd} Â· due ${row.dueDate}'
-                              '${row.isOverdue ? ' Â· overdue' : ''}',
+                              '${row.periodStart} – ${row.periodEnd} · due ${row.dueDate}'
+                              '${row.isOverdue ? ' · overdue' : ''}',
                               style: const TextStyle(fontSize: 11),
                             ),
                             trailing: row.balance == '0'
@@ -1413,7 +1415,7 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                         Text(
                           _identity.isEmpty
                               ? 'No verification submitted yet. Demo declarations are clearly labelled and are not provider-verified.'
-                              : 'Latest: ${_identity.first.status}${_identity.first.demo ? ' (demo declaration)' : ''} Â· ${_identity.first.provider}',
+                              : 'Latest: ${_identity.first.status}${_identity.first.demo ? ' (demo declaration)' : ''} · ${_identity.first.provider}',
                           style: const TextStyle(fontSize: 12, color: EstateColors.muted),
                         ),
                         const SizedBox(height: 10),
@@ -1465,8 +1467,8 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                             title: Text(row.fullName,
                                 style: const TextStyle(fontWeight: FontWeight.w700)),
                             subtitle: Text(
-                              '${row.relationship.toLowerCase()} Â· ${row.propertyCode} Â· ${row.status}'
-                              '${row.financialAccess ? ' Â· wallet access' : ''}',
+                              '${row.relationship.toLowerCase()} · ${row.propertyCode} · ${row.status}'
+                              '${row.financialAccess ? ' · wallet access' : ''}',
                               style: const TextStyle(fontSize: 11),
                             ),
                           ),
@@ -1500,8 +1502,8 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                             title: Text(row.name,
                                 style: const TextStyle(fontWeight: FontWeight.w700)),
                             subtitle: Text(
-                              '${row.currency} ${row.amount} Â· ${row.provider}'
-                              '${row.demo ? ' Â· demo service' : ''}',
+                              '${row.currency} ${row.amount} · ${row.provider}'
+                              '${row.demo ? ' · demo service' : ''}',
                               style: const TextStyle(fontSize: 11),
                             ),
                             trailing: TextButton(
@@ -1596,7 +1598,7 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                         style: TextStyle(fontWeight: FontWeight.w700),
                       ),
                       subtitle: Text(
-                        '${_myGates.length} assigned gates Â· visitor check-in and checkout',
+                        '${_myGates.length} assigned gates · visitor check-in and checkout',
                       ),
                       trailing: const Icon(Icons.chevron_right_rounded),
                       onTap: () => setState(() => _showGateSecurity = true),
@@ -1671,7 +1673,7 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                           style: const TextStyle(fontWeight: FontWeight.w700),
                         ),
                         subtitle: Text(
-                          estate.roles.map(_roleLabel).join(' Â· '),
+                          estate.roles.map(_roleLabel).join(' · '),
                         ),
                       ),
                     ),
@@ -1724,7 +1726,7 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                           ),
                         ),
                         subtitle: Text(
-                          '${announcement.estateName} â€¢ ${_announcementDate(announcement.publishedAt ?? announcement.createdAt)}',
+                          '${announcement.estateName} • ${_announcementDate(announcement.publishedAt ?? announcement.createdAt)}',
                         ),
                         trailing: announcement.read
                             ? const Icon(
@@ -1782,7 +1784,7 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                           style: const TextStyle(fontWeight: FontWeight.w700),
                         ),
                         subtitle: Text(
-                          '${invoice['estateName'] ?? ''} Â· ${invoice['propertyCode'] ?? ''} Â· Due ${invoice['dueDate'] ?? ''}\n${_invoiceSettlementSummary(invoice)}',
+                          '${invoice['estateName'] ?? ''} · ${invoice['propertyCode'] ?? ''} · Due ${invoice['dueDate'] ?? ''}\n${_invoiceSettlementSummary(invoice)}',
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -1920,7 +1922,7 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                             if (request.relationship != null)
                               _roleLabel(request.relationship!),
                             request.decisionReason,
-                          ].whereType<String>().join(' Â· '),
+                          ].whereType<String>().join(' · '),
                         ),
                         trailing: Text(_roleLabel(request.status)),
                       ),
@@ -1946,11 +1948,11 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                           ),
                         ),
                         title: Text(
-                          '${record.propertyCode} Â· ${record.estateName}',
+                          '${record.propertyCode} · ${record.estateName}',
                           style: const TextStyle(fontWeight: FontWeight.w700),
                         ),
                         subtitle: Text(
-                          '${record.currency} ${record.amount} / ${record.frequency} Â· ${record.landlordName}\nThis is agreed rent, not a payment balance.',
+                          '${record.currency} ${record.amount} / ${record.frequency} · ${record.landlordName}\nThis is agreed rent, not a payment balance.',
                         ),
                         isThreeLine: true,
                       ),
@@ -1991,7 +1993,7 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                       style: TextStyle(fontWeight: FontWeight.w700),
                     ),
                     subtitle: Text(
-                      '${_myGates.length} assigned gates Â· visitor check-in and checkout',
+                      '${_myGates.length} assigned gates · visitor check-in and checkout',
                     ),
                     trailing: const Icon(Icons.chevron_right_rounded),
                     onTap: () => setState(() => _showGateSecurity = true),
@@ -2218,11 +2220,11 @@ class _ResidentHomeApiPageState extends State<ResidentHomeApiPage> {
                         ),
                       ),
                       title: Text(
-                        '${request.reference} Â· ${_roleLabel(request.status)}',
+                        '${request.reference} · ${_roleLabel(request.status)}',
                         style: const TextStyle(fontWeight: FontWeight.w700),
                       ),
                       subtitle: Text(
-                        '${request.propertyLabel} Â· ${_roleLabel(request.category)} Â· ${request.description}\n${request.residentVisibleUpdates.isEmpty ? 'No team updates yet.' : request.residentVisibleUpdates.last.body}',
+                        '${request.propertyLabel} · ${_roleLabel(request.category)} · ${request.description}\n${request.residentVisibleUpdates.isEmpty ? 'No team updates yet.' : request.residentVisibleUpdates.last.body}',
                         maxLines: 4,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -2583,4 +2585,5 @@ class _ResidentVisitorApiAdapter implements ResidentVisitorPassRepository {
     visitId: visitId,
   );
 }
+
 

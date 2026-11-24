@@ -45,6 +45,15 @@ client/lib/
 
 These remaining items are refactors with no API or behaviour change and are tracked in `10_IMPLEMENTATION_TRACEABILITY_MATRIX.md`.
 
+## Plain-language pass (24 November 2026)
+
+To make the banking UI understandable to a non-technical resident or landlord:
+
+- Removed corrupted UTF-8 characters (`Â·`, `â€“`, `â€”`, `â€¦`, `â€¢`) from every Dart file; garbled separators are now proper `·`, `–`, `—`, `…`, `•`.
+- Replaced back-office jargon in labels: "Estate Collections" → "Money Collected For The Estate", "Rent Entitlement" → "Rent You Should Receive", "Arrears" → "Unpaid Rent", "Generate Levies" → "Send Bills", "Tenancies" → "Tenants & Leases", "Occupancy" → "Who Lives There".
+- Added an **"In plain English"** card to every service page explaining what the service does.
+- Added a helper line under the wallet balance explaining that it is money for estate bills and rent, and is demo money.
+
 ## Backend shape
 
 The NestJS backend is already module-oriented (`auth`, `properties`, `platform-applications`, `private-documents`, `notifications`, `health`). The `properties` module is the largest and still contains wallet, ledger, billing, rent, treasury, identity, property, services and access concerns together. Its next refactor is to split those into feature modules behind a shared `common/` layer (guards, pagination, idempotency, audit helpers) while keeping every existing route path unchanged for backward compatibility. No provider/legal behaviour changes are part of that refactor.
