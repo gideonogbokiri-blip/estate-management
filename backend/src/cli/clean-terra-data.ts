@@ -94,6 +94,15 @@ async function main() {
       data: { fulfilmentCode: null },
     });
 
+    await prisma.estatePayoutBeneficiary.updateMany({
+      where: { estateId: estate.id, displayName: { contains: 'Demo' } },
+      data: { displayName: 'Terra Crest Vendor' },
+    });
+    await prisma.estatePayoutRequest.updateMany({
+      where: { estateId: estate.id, purpose: { contains: 'demo' } },
+      data: { purpose: 'Estate operations' },
+    });
+
     process.stdout.write('Demo wording removed from live estate data.\n');
   } finally {
     await prisma.$disconnect();
