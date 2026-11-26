@@ -63,13 +63,6 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
   }
 
   /// One failing optional read must never block the dashboard.
-  Future<T?> _attempt<T extends Object>(Future<T> Function() load) async {
-    try {
-      return await load();
-    } catch (_) {
-      return null;
-    }
-  }
 
   Future<void> _load() async {
     setState(() => _busy = true);
@@ -77,43 +70,30 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
       _estates = await widget.repository.loadManagedEstates();
       final estateId = _estates.firstOrNull?.id;
       if (estateId == null) return;
-      final results = await Future.wait<dynamic>([
-        _attempt<EstateManagerDashboardSummary>(
-          () => widget.repository.loadManagerDashboard(estateId),
-        ),
-        _attempt<EstateTreasurySummary>(
-          () => widget.repository.loadTreasurySummary(estateId),
-        ),
-        _attempt<Map<String, dynamic>>(
-          () => widget.repository.loadManagerReportSummary(estateId),
-        ),
-        _attempt<List<HouseholdMemberRecord>>(
-          () => widget.repository.loadEstateHousehold(estateId),
-        ),
-        _attempt<List<IdentityVerificationRecord>>(
-          () => widget.repository.loadEstateIdentityVerifications(estateId),
-        ),
-        _attempt<List<PropertyLocationRecord>>(
-          () => widget.repository.loadPropertyLocations(estateId),
-        ),
-        _attempt<List<EstateServiceOrderRecord>>(
-          () => widget.repository.loadEstateServiceOrders(estateId),
-        ),
-        _attempt<Map<String, dynamic>>(
-          () => widget.repository.loadAuditLog(estateId),
-        ),
+      // Each section loads independently: a slow or cancelled request must not
+      // leave the whole dashboard showing zeros.
+      Future<void> load(Future<void> Function() apply) async {
+        try {
+          await apply();
+        } catch (_) {
+          // Keep the previous value; one section failing never blanks the page.
+        }
+        if (mounted) setState(() {});
+      }
+
+      await Future.wait([
+        load(() async => _summary = await widget.repository.loadManagerDashboard(estateId)),
+        load(() async => _treasury = await widget.repository.loadTreasurySummary(estateId)),
+        load(() async => _report = await widget.repository.loadManagerReportSummary(estateId)),
+        load(() async => _household = await widget.repository.loadEstateHousehold(estateId)),
+        load(() async => _identity = await widget.repository.loadEstateIdentityVerifications(estateId)),
+        load(() async => _locations = await widget.repository.loadPropertyLocations(estateId)),
+        load(() async => _serviceOrders = await widget.repository.loadEstateServiceOrders(estateId)),
+        load(() async {
+          final log = await widget.repository.loadAuditLog(estateId);
+          _audit = log['items'] as List<dynamic>? ?? const [];
+        }),
       ]);
-      _summary = results[0] as EstateManagerDashboardSummary?;
-      _treasury = results[1] as EstateTreasurySummary?;
-      _report = (results[2] as Map<String, dynamic>?) ?? const {};
-      _household = (results[3] as List<HouseholdMemberRecord>?) ?? const [];
-      _identity = (results[4] as List<IdentityVerificationRecord>?) ?? const [];
-      _locations = (results[5] as List<PropertyLocationRecord>?) ?? const [];
-      _serviceOrders =
-          (results[6] as List<EstateServiceOrderRecord>?) ?? const [];
-      _audit = ((results[7] as Map<String, dynamic>?) ?? const {})['items']
-              as List<dynamic>? ??
-          const [];
     } catch (error) {
       _error = '$error';
     } finally {
