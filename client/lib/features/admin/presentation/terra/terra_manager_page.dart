@@ -8,17 +8,18 @@ import '../../../../core/utils/formatters.dart';
 import '../../../notifications/presentation/estate_notifications_page.dart';
 import '../../../onboarding/data/estate_application_repository.dart';
 import '../../../resident_access/presentation/resident_access_review_page.dart';
-import '../estate_announcements_api_page.dart';
-import '../estate_charges_page.dart';
-import '../estate_expenses_api_page.dart';
-import '../estate_facilities_admin_page.dart';
-import '../estate_security_incidents_api_page.dart';
-import '../estate_settings_api_page.dart';
-import '../estate_staff_invitations_api_page.dart';
 import '../manager_service_pages.dart';
 import 'terra_residents_pages.dart';
+import 'terra_tenancies_page.dart';
+import 'terra_charges_page.dart';
+import 'terra_expenses_page.dart';
+import 'terra_payouts_page.dart';
+import 'terra_facilities_page.dart';
+import 'terra_security_page.dart';
+import 'terra_notices_page.dart';
+import 'terra_staff_page.dart';
+import 'terra_settings_page.dart';
 import '../ownership_review_api_page.dart';
-import '../tenancy_approval_api_page.dart';
 
 /// Estate manager home in the Terra Crest visual language.
 class TerraManagerPage extends StatefulWidget {
@@ -150,7 +151,7 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
       );
 
   void _openTenancyApprovals() => _open(
-        TenancyApprovalApiPage(
+        TerraTenanciesPage(
           repository: widget.repository,
           estateId: _estateId,
           estateName: _estateName,
@@ -158,33 +159,34 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
       );
 
   void _openEstateCharges() => _open(
-        EstateChargesPage(
+        TerraChargesPage(
           repository: widget.repository,
           estateId: _estateId,
           estateName: _estateName,
-          canReconcileSettlements: _roles.any(
-            (role) => role == 'finance_manager' || role == 'estate_administrator',
-          ),
         ),
       );
 
   void _openEstateExpenses() => _open(
-        EstateExpensesApiPage(
+        TerraExpensesPage(
           repository: widget.repository,
           estateId: _estateId,
           estateName: _estateName,
-          roles: _roles,
         ),
       );
 
-  void _openManagerPayouts() =>
-      _open(ManagerPayoutsPage(serviceContext: _serviceContext));
+  void _openManagerPayouts() => _open(
+        TerraPayoutsPage(
+          repository: widget.repository,
+          estateId: _estateId,
+          estateName: _estateName,
+        ),
+      );
 
   void _openManagerPropertyMap() =>
       _open(ManagerPropertyMapPage(serviceContext: _serviceContext));
 
   void _openEstateFacilities() => _open(
-        EstateFacilitiesAdminPage(
+        TerraFacilitiesPage(
           repository: widget.repository,
           estateId: _estateId,
           estateName: _estateName,
@@ -192,7 +194,7 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
       );
 
   void _openSecurityIncidents() => _open(
-        EstateSecurityIncidentsApiPage(
+        TerraSecurityPage(
           repository: widget.repository,
           estateId: _estateId,
           estateName: _estateName,
@@ -200,7 +202,7 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
       );
 
   void _openEstateAnnouncements() => _open(
-        EstateAnnouncementsApiPage(
+        TerraNoticesPage(
           repository: widget.repository,
           estateId: _estateId,
           estateName: _estateName,
@@ -208,7 +210,7 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
       );
 
   void _openStaffInvitations() => _open(
-        EstateStaffInvitationsApiPage(
+        TerraStaffPage(
           repository: widget.repository,
           estateId: _estateId,
           estateName: _estateName,
@@ -216,9 +218,10 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
       );
 
   void _openEstateSettings() => _open(
-        EstateSettingsApiPage(
+        TerraSettingsPage(
           repository: widget.repository,
           estateId: _estateId,
+          estateName: _estateName,
         ),
       );
 
@@ -984,6 +987,7 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
     return 'Good evening';
   }
 }
+
 
 
 
