@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../core/design/terra_shell.dart';
 import '../../../../core/design/terra_theme.dart';
@@ -6,6 +6,8 @@ import '../../../../core/navigation/app_navigation.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../data/api.dart';
 import '../../../services/presentation/resident_service_pages.dart';
+import 'terra_resident_tabs.dart';
+import 'terra_gateway_page.dart';
 import '../../../notifications/presentation/estate_notifications_page.dart';
 
 /// Resident home — matches the Terra Crest reference design.
@@ -148,22 +150,7 @@ class _TerraResidentPageState extends State<TerraResidentPage> {
                 child: Center(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 1320),
-                    child: wide
-                        ? Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(flex: 3, child: _leftColumn()),
-                              const SizedBox(width: 20),
-                              Expanded(flex: 2, child: _rightColumn()),
-                            ],
-                          )
-                        : Column(
-                            children: [
-                              _leftColumn(),
-                              const SizedBox(height: 18),
-                              _rightColumn(),
-                            ],
-                          ),
+                    child: _tabContent(wide),
                   ),
                 ),
               );
@@ -173,6 +160,56 @@ class _TerraResidentPageState extends State<TerraResidentPage> {
         bottomNavigationBar: _bottomNav(),
       ),
     );
+  }
+
+  Widget _tabContent(bool wide) {
+    if (_tab == 1) {
+      return TerraServicesTab(
+        repository: widget.repository,
+        estateId: _memberships.firstOrNull?.id ?? '',
+        estateName: _estateName,
+        serviceContext: _serviceContext,
+      );
+    }
+    if (_tab == 2) {
+      return TerraKinshipTab(
+        repository: widget.repository,
+        serviceContext: _serviceContext,
+      );
+    }
+    if (_tab == 3) {
+      return TerraProfileTab(
+        account: _account!,
+        estateName: _estateName,
+        propertyLabel: '$_propertyName • $_propertyCode',
+        onSignOut: _signOut,
+      );
+    }
+    return wide
+        ? Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(flex: 3, child: _leftColumn()),
+              const SizedBox(width: 20),
+              Expanded(flex: 2, child: _rightColumn()),
+            ],
+          )
+        : Column(
+            children: [
+              _leftColumn(),
+              const SizedBox(height: 18),
+              _rightColumn(),
+            ],
+          );
+  }
+
+  Future<void> _signOut() async {
+    await widget.repository.signOut();
+    if (!mounted) return;
+    setState(() {
+      _account = null;
+      _error = null;
+    });
   }
 
   Widget _leftColumn() => Column(
@@ -199,7 +236,7 @@ class _TerraResidentPageState extends State<TerraResidentPage> {
               TerraWalletAction(
                 label: 'History',
                 icon: Icons.history_rounded,
-                onTap: () => setState(() => _tab = 2),
+                onTap: _openHistory,
               ),
             ],
           ),
@@ -207,8 +244,6 @@ class _TerraResidentPageState extends State<TerraResidentPage> {
           _quickServices(),
           const SizedBox(height: 22),
           _outstandingPayments(),
-          const SizedBox(height: 18),
-          if (_tab == 2) _historyCard(),
         ],
       );
 
@@ -421,38 +456,34 @@ class _TerraResidentPageState extends State<TerraResidentPage> {
           children: [
             Row(
               children: [
-                const Icon(Icons.lock_outline,
-                    size: 17, color: TerraColors.forest),
+                const Icon(Icons.lock_outline, size: 17, color: TerraColors.forest),
                 const SizedBox(width: 8),
                 const Expanded(
                   child: Text(
-                    'TERMINAL GATEWAY LOGIN',
+                    'TERMINAL GATEWAY',
                     style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
-                        letterSpacing: .6,
-                        color: TerraColors.ink),
+                        letterSpacing: .6),
                   ),
                 ),
-                TerraBadge(label: 'FPS 140-3', tone: TerraBadgeTone.sage),
+                const TerraBadge(label: 'FPS 140-3'),
               ],
             ),
             const SizedBox(height: 8),
             const Text(
-              'Switch Household Account or Authorize Visitor Gate Egress with 4-Digit Security Passcode',
+              'Your household gateway is verified. Open it to view or issue gate passes.',
               style: TextStyle(fontSize: 11, color: TerraColors.muted, height: 1.4),
             ),
-            const SizedBox(height: 14),
-            TerraLabel('Authenticated resident'),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Row(
               children: [
                 CircleAvatar(
-                  radius: 18,
+                  radius: 16,
                   backgroundColor: TerraColors.sage,
                   child: Text(_initials(_displayName),
                       style: const TextStyle(
-                          fontSize: 11,
+                          fontSize: 10,
                           fontWeight: FontWeight.w700,
                           color: TerraColors.forest)),
                 ),
@@ -470,65 +501,14 @@ class _TerraResidentPageState extends State<TerraResidentPage> {
                     ],
                   ),
                 ),
-                TextButton(
-                  onPressed: () => AppNavigation.push(
-                    context,
-                    servicePage('gate-pass'),
-                  ),
-                  child: const Text('Switch',
-                      style: TextStyle(color: TerraColors.forest)),
-                ),
+                const TerraBadge(label: '4 / 4 Verified'),
               ],
             ),
-            const SizedBox(height: 12),
-            Row(
-              children: const [
-                Expanded(
-                    child: Text('Child Barrier Security Key',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600))),
-                TerraBadge(label: '4 / 4 Verified'),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: List.generate(
-                4,
-                (_) => Container(
-                  width: 10,
-                  height: 10,
-                  decoration: const BoxDecoration(
-                    color: TerraColors.forest,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            GridView.count(
-              crossAxisCount: 3,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 8,
-              crossAxisSpacing: 8,
-              childAspectRatio: 1.7,
-              children: [
-                for (final key in ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'Del', '0', 'OK'])
-                  OutlinedButton(
-                    onPressed: () {},
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: TerraColors.line),
-                      foregroundColor: TerraColors.ink,
-                    ),
-                    child: Text(key),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
-                onPressed: () => AppNavigation.push(context, servicePage('gate-pass')),
+                onPressed: _openGateway,
                 icon: const Icon(Icons.arrow_forward),
                 label: const Text('Enter Sanctuary Gateway'),
               ),
@@ -536,6 +516,23 @@ class _TerraResidentPageState extends State<TerraResidentPage> {
           ],
         ),
       );
+
+  void _openGateway() {
+    AppNavigation.push(
+      context,
+      TerraGatewayPage(
+        repository: widget.repository,
+        estateId: _memberships.firstOrNull?.id ?? '',
+        displayName: _displayName,
+        propertyCode: _propertyCode,
+      ),
+    );
+  }
+
+  void _openHistory() {
+    AppNavigation.push(context, servicePage('levies'));
+  }
+
 
   Widget _telemetryCard() => TerraCard(
         child: Column(
@@ -656,9 +653,9 @@ class _TerraResidentPageState extends State<TerraResidentPage> {
         onTap: (index) => setState(() => _tab = index),
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.security_outlined), label: 'Access'),
           BottomNavigationBarItem(icon: Icon(Icons.grid_view_outlined), label: 'Services'),
           BottomNavigationBarItem(icon: Icon(Icons.family_restroom_outlined), label: 'Kinship'),
+          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
         ],
       );
 
@@ -821,3 +818,4 @@ class _TerraResidentPageState extends State<TerraResidentPage> {
     return 'Good evening';
   }
 }
+
