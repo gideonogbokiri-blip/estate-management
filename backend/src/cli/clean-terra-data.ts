@@ -85,6 +85,15 @@ async function main() {
       data: { description: 'Escrow funding' },
     });
 
+    await prisma.estateServiceOrder.updateMany({
+      where: { estateId: estate.id, provider: 'demo' },
+      data: { provider: 'LANCON Services' },
+    });
+    await prisma.estateServiceOrder.updateMany({
+      where: { estateId: estate.id, fulfilmentCode: { startsWith: 'DEMO-VOUCHER-' } },
+      data: { fulfilmentCode: null },
+    });
+
     process.stdout.write('Demo wording removed from live estate data.\n');
   } finally {
     await prisma.$disconnect();

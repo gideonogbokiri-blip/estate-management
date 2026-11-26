@@ -161,7 +161,10 @@ export class EstateServicesService {
           sourceId: serviceId, description: `Demo service order: ${service.name}`,
           currency: service.currency,
           debitAccount: this.ledger.walletAccount(wallet.id),
-          creditAccount: this.ledger.providerClearing(service.demo ? 'demo' : service.provider, service.currency),
+          creditAccount: this.ledger.providerClearing(
+            service.demo ? 'LANCON' : service.provider,
+            service.currency,
+          ),
           amount: service.amount, occurredAt: now,
         });
         await tx.estateWalletTransaction.create({ data: {
@@ -172,9 +175,9 @@ export class EstateServicesService {
         const order = await tx.estateServiceOrder.create({ data: {
           estateId, serviceId, orderedBy: actorUserId, amount: service.amount,
           currency: service.currency, status: 'FULFILLED',
-          provider: service.demo ? 'demo' : service.provider,
+          provider: service.demo ? 'LANCON Services' : service.provider,
           providerReference: `DEMO-ORDER-${reference}`,
-          fulfilmentCode: `DEMO-VOUCHER-${randomUUID().replace(/-/g, '').slice(0, 12).toUpperCase()}`,
+          fulfilmentCode: `LAN-${randomUUID().replace(/-/g, '').slice(0, 12).toUpperCase()}`,
           paidAt: now, fulfilledAt: now, idempotencyKeyHash: keyHash, payloadHash,
         } });
         await tx.auditEvent.create({ data: {

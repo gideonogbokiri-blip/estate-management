@@ -106,7 +106,7 @@ class _TerraServicesTabState extends State<TerraServicesTab> {
                             style: const TextStyle(fontWeight: FontWeight.w700),
                           ),
                           subtitle: Text(
-                            '${order.provider} · ${order.createdAt}',
+                            '${order.provider} · ${AppFormat.date(order.createdAt)}',
                             style: const TextStyle(fontSize: 11),
                           ),
                         ),
