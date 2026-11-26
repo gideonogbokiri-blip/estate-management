@@ -91,7 +91,7 @@ test('residents cannot create service definitions', async () => {
   );
 });
 
-test('wallet-funded demo order is fulfilled with a labelled voucher', async () => {
+test('wallet-funded service order is fulfilled with a voucher', async () => {
   const { prisma, ledger, setRole, getAudit, getOrders } = fake();
   setRole('ESTATE_MANAGER');
   const service = new EstateServicesService(prisma, ledger);
@@ -99,10 +99,10 @@ test('wallet-funded demo order is fulfilled with a labelled voucher', async () =
   setRole('RESIDENT');
   const order = await service.order('resident-1', 'estate-1', definition.id, key);
   assert.equal(order.status, 'fulfilled');
-  assert.equal(order.demo, true);
-  assert.equal(order.fulfilmentCode.startsWith('DEMO-VOUCHER-'), true);
+  assert.equal(order.provider, 'LANCON Services');
+  assert.equal(order.fulfilmentCode.startsWith('LAN-'), true);
   assert.equal(ledger.lastPosting.debitAccount, 'WALLET:wallet-1');
-  assert.equal(ledger.lastPosting.creditAccount, 'PROVIDER_CLEARING:DEMO:NGN');
+  assert.equal(ledger.lastPosting.creditAccount, 'PROVIDER_CLEARING:LANCON:NGN');
   assert.equal(getOrders().length, 1);
   assert.equal(getAudit().at(-1).action, 'estate_service.ordered_demo');
 });
