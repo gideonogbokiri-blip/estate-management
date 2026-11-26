@@ -2104,6 +2104,8 @@ abstract interface class EstateApplicationApiRepository
     required String amount,
     required String idempotencyKey,
   });
+  Future<List<Map<String, dynamic>>> loadEstateResidents(String estateId);
+  Future<Map<String, dynamic>> loadResidentHistory(String estateId, String residentUserId);
   Future<Map<String, dynamic>> loadManagerReportSummary(String estateId);
   Future<String> fetchReportCsv(String estateId, String type);
   Future<Map<String, dynamic>> loadWalletStatement(String estateId, {String? from, String? to});
@@ -4333,6 +4335,29 @@ class EstateApplicationApiClient implements EstateApplicationApiRepository {
         accessToken: access,
         additionalHeaders: {'Idempotency-Key': idempotencyKey},
         body: {'estateId': estateId, 'amount': amount},
+      ),
+    );
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> loadEstateResidents(String estateId) async {
+    final access = await _requireAccessToken();
+    final response = await _json(
+      _send('GET', '/estate/estates/$estateId/manager/residents', accessToken: access),
+    );
+    return (response['items'] as List? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .toList(growable: false);
+  }
+
+  @override
+  Future<Map<String, dynamic>> loadResidentHistory(String estateId, String residentUserId) async {
+    final access = await _requireAccessToken();
+    return _json(
+      _send(
+        'GET',
+        '/estate/estates/$estateId/manager/residents/$residentUserId/history',
+        accessToken: access,
       ),
     );
   }

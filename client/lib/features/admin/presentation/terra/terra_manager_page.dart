@@ -16,6 +16,7 @@ import '../estate_security_incidents_api_page.dart';
 import '../estate_settings_api_page.dart';
 import '../estate_staff_invitations_api_page.dart';
 import '../manager_service_pages.dart';
+import 'terra_residents_pages.dart';
 import '../ownership_review_api_page.dart';
 import '../tenancy_approval_api_page.dart';
 
@@ -123,6 +124,14 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
   }
 
   void _open(Widget page) => AppNavigation.push(context, page);
+
+  void _openResidents() => _open(
+        TerraResidentsPage(
+          repository: widget.repository,
+          estateId: _estateId,
+          estateName: _estateName,
+        ),
+      );
 
   void _openResidentAccessReview() => _open(
         ResidentAccessReviewPage(
@@ -530,7 +539,7 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
                     (
                       icon: Icons.people_outline,
                       label: 'Residents',
-                      onTap: _openResidentAccessReview,
+                      onTap: _openResidents,
                     ),
                     (
                       icon: Icons.home_outlined,
