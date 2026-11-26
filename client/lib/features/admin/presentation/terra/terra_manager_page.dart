@@ -391,7 +391,7 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
             balance: _collections,
             accountLabel: 'Estate Treasury',
             accountDetail:
-                'Outstanding invoices ${_money(_treasury?.outstandingInvoices)} • '
+                'Outstanding invoices ${_money((_report['invoices'] as Map? ?? const {})['billed']?.toString())} • '
                 '${_treasury?.pendingSettlements ?? 0} settlements awaiting clearing',
             actions: [
               TerraWalletAction(
