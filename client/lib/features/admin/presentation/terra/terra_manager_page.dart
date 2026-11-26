@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../core/config/report_download.dart';
 import '../../../../core/design/terra_shell.dart';
@@ -407,6 +407,7 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
           _greetingCard(),
           const SizedBox(height: 18),
           TerraWalletCard(
+            label: 'MONEY COLLECTED FOR THE ESTATE',
             balance: _collections,
             accountLabel: 'Estate Treasury',
             accountDetail:
@@ -984,3 +985,6 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
     return 'Good evening';
   }
 }
+
+
+

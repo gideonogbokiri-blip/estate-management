@@ -184,8 +184,10 @@ class TerraWalletCard extends StatelessWidget {
     required this.accountDetail,
     required this.actions,
     this.badge,
+    this.label = 'MY WALLET BALANCE',
   });
 
+  final String label;
   final String balance;
   final String accountLabel;
   final String accountDetail;
@@ -210,7 +212,7 @@ class TerraWalletCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const TerraLabel('My wallet balance', color: Color(0xFFCFE0D2)),
+              TerraLabel(label, color: const Color(0xFFCFE0D2)),
               const Spacer(),
               if (badge != null)
                 Container(

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../core/design/terra_shell.dart';
 import '../../../../core/design/terra_theme.dart';
@@ -280,6 +280,7 @@ class _TerraLandlordPageState extends State<TerraLandlordPage> {
                 child: TerraLabel('Rent you should receive'),
               ),
               TerraWalletCard(
+                label: 'RENT YOU SHOULD RECEIVE',
                 balance: _entitlement,
                 accountLabel: 'Rent ledger',
                 accountDetail:
@@ -737,3 +738,6 @@ class _TerraLandlordPageState extends State<TerraLandlordPage> {
     return 'Good evening';
   }
 }
+
+
+
