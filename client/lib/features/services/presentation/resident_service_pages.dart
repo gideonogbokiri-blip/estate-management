@@ -1,7 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 
 import '../../../core/config/report_download.dart';
-import '../../../core/design/dashboard_design.dart';
+import '../../../core/design/terra_theme.dart';
 import '../../../core/design/service_page_scaffold.dart';
 import '../../../core/navigation/app_navigation.dart';
 import '../../../core/utils/formatters.dart';
@@ -184,11 +184,11 @@ class _PayLeviesPageState extends State<PayLeviesPage> {
                   ? const ServiceStateMessage(message: 'No invoices have been issued for your property yet.')
                   : Column(
                       children: [
-                        DashboardSectionTitle(title: 'Outstanding Payments'),
+                        TerraSectionTitle(title: 'Outstanding Payments'),
                         ..._invoices.map(
                           (invoice) => Card(
                             child: ListTile(
-                              leading: const Icon(Icons.receipt_long_outlined, color: DashboardTokens.greenLeaf),
+                              leading: const Icon(Icons.receipt_long_outlined, color: TerraColors.forest),
                               title: Text(
                                 invoice['description']?.toString() ?? invoice['invoiceNumber']?.toString() ?? 'Invoice',
                                 style: const TextStyle(fontWeight: FontWeight.w700),
@@ -274,7 +274,7 @@ class _HouseRentPageState extends State<HouseRentPage> {
                       children: _rows.map(
                         (row) => Card(
                           child: ListTile(
-                            leading: const Icon(Icons.home_outlined, color: DashboardTokens.greenLeaf),
+                            leading: const Icon(Icons.home_outlined, color: TerraColors.forest),
                             title: Text('${row.currency} ${row.amount} · ${row.status}',
                                 style: const TextStyle(fontWeight: FontWeight.w700)),
                             subtitle: Text(
@@ -283,7 +283,7 @@ class _HouseRentPageState extends State<HouseRentPage> {
                               style: const TextStyle(fontSize: 11),
                             ),
                             trailing: row.balance == '0'
-                                ? const Icon(Icons.check_circle, color: DashboardTokens.greenLeaf)
+                                ? const Icon(Icons.check_circle, color: TerraColors.forest)
                                 : TextButton(
                                     onPressed: () => _pay(row),
                                     child: const Text('Pay'),
@@ -427,7 +427,7 @@ class _UtilityServicePageState extends State<UtilityServicePage> {
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    DashboardSectionTitle(title: 'Available ${service.label} services'),
+                    TerraSectionTitle(title: 'Available ${service.label} services'),
                     const SizedBox(height: 6),
                     if (_services.isEmpty)
                       ServiceStateMessage(
@@ -438,8 +438,8 @@ class _UtilityServicePageState extends State<UtilityServicePage> {
                         (item) => Card(
                           child: ListTile(
                             leading: CircleAvatar(
-                              backgroundColor: DashboardTokens.surfaceRaised,
-                              child: Icon(service.icon, color: DashboardTokens.greenLeaf, size: 18),
+                              backgroundColor: TerraColors.surfaceMuted,
+                              child: Icon(service.icon, color: TerraColors.forest, size: 18),
                             ),
                             title: Text(item.name, style: const TextStyle(fontWeight: FontWeight.w700)),
                             subtitle: Text(
@@ -454,7 +454,7 @@ class _UtilityServicePageState extends State<UtilityServicePage> {
                         ),
                       ),
                     const SizedBox(height: 22),
-                    DashboardSectionTitle(title: 'Order history'),
+                    TerraSectionTitle(title: 'Order history'),
                     if (relevantOrders.isEmpty)
                       const ServiceStateMessage(message: 'No orders in this category yet.')
                     else
@@ -528,7 +528,7 @@ class _GatePassPageState extends State<GatePassPage> {
                       children: _passes.map(
                         (pass) => Card(
                           child: ListTile(
-                            leading: const Icon(Icons.qr_code_2_outlined, color: DashboardTokens.greenLeaf),
+                            leading: const Icon(Icons.qr_code_2_outlined, color: TerraColors.forest),
                             title: Text(pass.visitorName, style: const TextStyle(fontWeight: FontWeight.w700)),
                             subtitle: Text(
                               '${pass.propertyLabel} · ${pass.validFrom} – ${pass.validUntil} · ${pass.status}',
@@ -659,7 +659,7 @@ class _MaintenancePageState extends State<MaintenancePage> {
             ),
           ),
           const SizedBox(height: 22),
-          DashboardSectionTitle(title: 'My requests'),
+          TerraSectionTitle(title: 'My requests'),
           if (_loading)
             const Center(child: CircularProgressIndicator())
           else if (_error != null)
@@ -670,7 +670,7 @@ class _MaintenancePageState extends State<MaintenancePage> {
             ..._requests.map(
               (request) => Card(
                 child: ListTile(
-                  leading: const Icon(Icons.build_outlined, color: DashboardTokens.greenLeaf),
+                  leading: const Icon(Icons.build_outlined, color: TerraColors.forest),
                   title: Text(request.category, style: const TextStyle(fontWeight: FontWeight.w700)),
                   subtitle: Text(
                     '${request.description} · ${request.status}',
@@ -751,7 +751,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
                       children: _documents.map(
                         (document) => Card(
                           child: ListTile(
-                            leading: const Icon(Icons.description_outlined, color: DashboardTokens.greenLeaf),
+                            leading: const Icon(Icons.description_outlined, color: TerraColors.forest),
                             title: Text(document.displayName, style: const TextStyle(fontWeight: FontWeight.w700)),
                             subtitle: Text('${document.category} · ${document.status}',
                                 style: const TextStyle(fontSize: 11)),
@@ -779,10 +779,10 @@ class MoreServicesPage extends StatelessWidget {
       title: 'More Services',
       description: '${serviceContext.estateName} · Every service available to you.',
       icon: Icons.apps_outlined,
-      child: DashboardQuickServices(
+      child: TerraQuickServicesGrid(
         services: services
             .map(
-              (service) => DashboardService(
+              (service) => TerraServiceAction(
                 icon: service.icon,
                 label: service.label,
                 onTap: () => openServicePage(context, service.open(serviceContext)),
@@ -793,6 +793,10 @@ class MoreServicesPage extends StatelessWidget {
     );
   }
 }
+
+
+
+
 
 
 

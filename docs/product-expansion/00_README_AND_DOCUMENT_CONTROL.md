@@ -44,6 +44,7 @@ Shared implementation: `client/lib/core/design/dashboard_design.dart`.
 - `09_SECURITY_PRIVACY_AND_COMPLIANCE.md` — controls and compliance gates.
 - `10_IMPLEMENTATION_TRACEABILITY_MATRIX.md` — requirement → code → test → release status.
 - `11_CLIENT_ARCHITECTURE.md` — Flutter layout, layering rules and migration status.
+- `12_TERRA_REDESIGN.md` — visual language, shared components and rebranding decisions.
 
 ## Change control
 

@@ -1,6 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 
-import '../../../core/design/dashboard_design.dart';
+import '../../../core/design/terra_theme.dart';
 import '../../../core/design/service_page_scaffold.dart';
 import '../../../core/navigation/app_navigation.dart';
 import '../../../core/utils/formatters.dart';
@@ -296,7 +296,7 @@ class _LandlordServicePageState extends State<LandlordServicePage> {
                       children: _rows.map(
                         (row) => Card(
                           child: ListTile(
-                            leading: Icon(row.icon, color: DashboardTokens.greenLeaf),
+                            leading: Icon(row.icon, color: TerraColors.forest),
                             title: Text(row.title, style: const TextStyle(fontWeight: FontWeight.w700)),
                             subtitle: Text(row.subtitle, style: const TextStyle(fontSize: 11)),
                             trailing: row.trailing.isEmpty
@@ -321,10 +321,10 @@ class LandlordMoreServicesPage extends StatelessWidget {
       title: 'More Services',
       description: '${serviceContext.estateName} · Every landlord service in one place.',
       icon: Icons.apps_outlined,
-      child: DashboardQuickServices(
+      child: TerraQuickServicesGrid(
         services: landlordServices()
             .map(
-              (service) => DashboardService(
+              (service) => TerraServiceAction(
                 icon: service.icon,
                 label: service.label,
                 onTap: () => openLandlordPage(
@@ -338,6 +338,8 @@ class LandlordMoreServicesPage extends StatelessWidget {
     );
   }
 }
+
+
 
 
 

@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
-import '../../../core/design/dashboard_design.dart';
+import '../../../core/design/terra_theme.dart';
 import '../../../core/design/service_page_scaffold.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/api.dart';
@@ -80,7 +80,7 @@ class _FacilitiesServicePageState extends State<FacilitiesServicePage> {
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    DashboardSectionTitle(title: 'Places you can book'),
+                    TerraSectionTitle(title: 'Places you can book'),
                     if (_facilities.isEmpty)
                       const ServiceStateMessage(
                         message: 'Your estate has not listed any bookable spaces yet.',
@@ -90,7 +90,7 @@ class _FacilitiesServicePageState extends State<FacilitiesServicePage> {
                         (facility) => Card(
                           child: ListTile(
                             leading: const Icon(Icons.calendar_month_outlined,
-                                color: DashboardTokens.greenLeaf),
+                                color: TerraColors.forest),
                             title: Text(facility.name,
                                 style: const TextStyle(fontWeight: FontWeight.w700)),
                             subtitle: Text(
@@ -105,7 +105,7 @@ class _FacilitiesServicePageState extends State<FacilitiesServicePage> {
                         ),
                       ),
                     const SizedBox(height: 22),
-                    DashboardSectionTitle(title: 'Your bookings'),
+                    TerraSectionTitle(title: 'Your bookings'),
                     if (_bookings.isEmpty)
                       const ServiceStateMessage(
                         message: 'You have not booked any facility yet.',
@@ -115,7 +115,7 @@ class _FacilitiesServicePageState extends State<FacilitiesServicePage> {
                         (booking) => Card(
                           child: ListTile(
                             leading: const Icon(Icons.event_available_outlined,
-                                color: DashboardTokens.greenLeaf),
+                                color: TerraColors.forest),
                             title: Text(booking.facilityName,
                                 style: const TextStyle(fontWeight: FontWeight.w700)),
                             subtitle: Text(
@@ -175,7 +175,7 @@ class _EmergencyPageState extends State<EmergencyPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Card(
-            color: DashboardTokens.surfaceRaised,
+            color: TerraColors.surfaceMuted,
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -183,7 +183,7 @@ class _EmergencyPageState extends State<EmergencyPage> {
                 children: [
                   const Text('Need urgent help?',
                       style: TextStyle(
-                          color: DashboardTokens.text,
+                          color: TerraColors.ink,
                           fontWeight: FontWeight.w700,
                           fontSize: 15)),
                   const SizedBox(height: 6),
@@ -191,7 +191,7 @@ class _EmergencyPageState extends State<EmergencyPage> {
                     'Call your estate security office or gate first. Then record the '
                     'issue here so management can follow it up.',
                     style: TextStyle(
-                        color: DashboardTokens.mutedStrong, fontSize: 13, height: 1.4),
+                        color: TerraColors.ink, fontSize: 13, height: 1.4),
                   ),
                   const SizedBox(height: 12),
                   FilledButton.icon(
@@ -215,7 +215,7 @@ class _EmergencyPageState extends State<EmergencyPage> {
             ),
           ),
           const SizedBox(height: 22),
-          DashboardSectionTitle(title: 'Your reports'),
+          TerraSectionTitle(title: 'Your reports'),
           if (_loading)
             const Center(child: CircularProgressIndicator())
           else if (_error != null)
@@ -227,7 +227,7 @@ class _EmergencyPageState extends State<EmergencyPage> {
               (incident) => Card(
                 child: ListTile(
                   leading: const Icon(Icons.warning_amber_outlined,
-                      color: DashboardTokens.amber),
+                      color: TerraColors.amber),
                   title: Text('${incident.reference} · ${incident.category}',
                       style: const TextStyle(fontWeight: FontWeight.w700)),
                   subtitle: Text(
@@ -243,3 +243,5 @@ class _EmergencyPageState extends State<EmergencyPage> {
     );
   }
 }
+
+

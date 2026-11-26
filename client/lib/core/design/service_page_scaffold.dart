@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import 'dashboard_design.dart';
+import 'terra_theme.dart';
 
-/// Common shell for every dedicated service page. Keeps the dark LANCON visual
-/// language consistent and gives each service a real route/page of its own.
+/// Common shell for every dedicated service page, in the Terra Crest visual
+/// language so each service feels like part of one calm, trustworthy product.
 class ServicePageScaffold extends StatelessWidget {
   const ServicePageScaffold({
     super.key,
@@ -25,13 +25,13 @@ class ServicePageScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Theme(
-      data: DashboardTokens.darkShell,
+      data: TerraTheme.light(),
       child: Scaffold(
-        backgroundColor: DashboardTokens.background,
+        backgroundColor: TerraColors.canvas,
         appBar: AppBar(
           title: Row(
             children: [
-              Icon(icon, color: DashboardTokens.greenLeaf, size: 20),
+              Icon(icon, color: TerraColors.forest, size: 20),
               const SizedBox(width: 10),
               Text(title),
             ],
@@ -53,48 +53,14 @@ class ServicePageScaffold extends StatelessWidget {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
                 children: [
-                  DashboardGreeting(
-                    period: 'YOUR ESTATE SERVICE',
-                    title: title,
-                    subtitle: 'What this page helps you do',
-                  ),
-                  const SizedBox(height: 16),
-                  Card(
-                    color: DashboardTokens.surfaceRaised,
-                    child: Padding(
-                      padding: const EdgeInsets.all(14),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Icon(Icons.info_outline,
-                              color: DashboardTokens.greenLeaf, size: 19),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'In plain English',
-                                  style: TextStyle(
-                                    color: DashboardTokens.text,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                const SizedBox(height: 3),
-                                Text(
-                                  description,
-                                  style: const TextStyle(
-                                    color: DashboardTokens.mutedStrong,
-                                    fontSize: 13,
-                                    height: 1.4,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
+                  TerraSectionTitle(title: title),
+                  const SizedBox(height: 6),
+                  Text(
+                    description,
+                    style: const TextStyle(
+                      color: TerraColors.muted,
+                      fontSize: 13,
+                      height: 1.4,
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -110,35 +76,37 @@ class ServicePageScaffold extends StatelessWidget {
 }
 
 class ServiceStateMessage extends StatelessWidget {
-  const ServiceStateMessage({super.key, required this.message, this.error = false, this.onRetry});
+  const ServiceStateMessage({
+    super.key,
+    required this.message,
+    this.error = false,
+    this.onRetry,
+  });
 
   final String message;
   final bool error;
   final VoidCallback? onRetry;
 
   @override
-  Widget build(BuildContext context) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(22),
-          child: Column(
-            children: [
-              Icon(
-                error ? Icons.error_outline : Icons.inbox_outlined,
-                color: error ? DashboardTokens.amber : DashboardTokens.muted,
-                size: 28,
-              ),
-              const SizedBox(height: 10),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: DashboardTokens.mutedStrong, fontSize: 13),
-              ),
-              if (onRetry != null) ...[
-                const SizedBox(height: 12),
-                FilledButton(onPressed: onRetry, child: const Text('Try again')),
-              ],
+  Widget build(BuildContext context) => TerraCard(
+        child: Column(
+          children: [
+            Icon(
+              error ? Icons.error_outline : Icons.inbox_outlined,
+              color: error ? TerraColors.amber : TerraColors.forest,
+              size: 26,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: TerraColors.muted, fontSize: 13),
+            ),
+            if (onRetry != null) ...[
+              const SizedBox(height: 12),
+              FilledButton(onPressed: onRetry, child: const Text('Try again')),
             ],
-          ),
+          ],
         ),
       );
 }

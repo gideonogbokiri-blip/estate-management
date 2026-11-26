@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'core/theme/estate_theme.dart';
+import 'core/design/terra_theme.dart';
+import 'features/landlord/presentation/terra/terra_landlord_page.dart';
 import 'features/onboarding/data/estate_application_repository.dart';
-import 'features/landlord/presentation/landlord_portfolio_api_page.dart';
 
 void main() => runApp(const LandlordPortfolioApp());
 
@@ -12,7 +12,7 @@ class LandlordPortfolioApp extends StatelessWidget {
   Widget build(BuildContext context) => MaterialApp(
     title: 'Landlord portfolio',
     debugShowCheckedModeBanner: false,
-    theme: EstateTheme.light(),
-    home: LandlordPortfolioApiPage(repository: EstateApplicationApiClient()),
+    theme: TerraTheme.light(),
+    home: TerraLandlordPage(repository: EstateApplicationApiClient()),
   );
 }

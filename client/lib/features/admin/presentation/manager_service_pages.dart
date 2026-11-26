@@ -1,7 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 
 import '../../../core/config/report_download.dart';
-import '../../../core/design/dashboard_design.dart';
+import '../../../core/design/terra_theme.dart';
 import '../../../core/design/service_page_scaffold.dart';
 import '../../../core/navigation/app_navigation.dart';
 import '../../../data/api.dart';
@@ -132,7 +132,7 @@ class _ManagerPayoutsPageState extends State<ManagerPayoutsPage> {
                       children: _payouts.map(
                         (payout) => Card(
                           child: ListTile(
-                            leading: const Icon(Icons.payments_outlined, color: DashboardTokens.greenLeaf),
+                            leading: const Icon(Icons.payments_outlined, color: TerraColors.forest),
                             title: Text('${payout.currency} ${payout.amount} · ${payout.status}',
                                 style: const TextStyle(fontWeight: FontWeight.w700)),
                             subtitle: Text(payout.purpose, style: const TextStyle(fontSize: 11)),
@@ -250,7 +250,7 @@ class _ManagerPropertyMapPageState extends State<ManagerPropertyMapPage> {
                   children: _locations.map(
                     (location) => Card(
                       child: ListTile(
-                        leading: const Icon(Icons.location_on_outlined, color: DashboardTokens.greenLeaf),
+                        leading: const Icon(Icons.location_on_outlined, color: TerraColors.forest),
                         title: Text('${location.code} · ${location.verificationStatus}',
                             style: const TextStyle(fontWeight: FontWeight.w700)),
                         subtitle: Text(
@@ -353,7 +353,7 @@ class _ManagerReportsPageState extends State<ManagerReportsPage> {
                       ],
                     ),
                     const SizedBox(height: 20),
-                    DashboardSectionTitle(title: 'Exports'),
+                    TerraSectionTitle(title: 'Exports'),
                     Wrap(
                       spacing: 8,
                       children: [
@@ -393,13 +393,15 @@ class _ReportMetric extends StatelessWidget {
           children: [
             Text(value,
                 style: const TextStyle(
-                    color: DashboardTokens.text, fontSize: 18, fontWeight: FontWeight.w700)),
+                    color: TerraColors.ink, fontSize: 18, fontWeight: FontWeight.w700)),
             const SizedBox(height: 2),
             Text(label,
-                style: const TextStyle(color: DashboardTokens.muted, fontSize: 11)),
+                style: const TextStyle(color: TerraColors.muted, fontSize: 11)),
           ],
         ),
       );
 }
+
+
 
 

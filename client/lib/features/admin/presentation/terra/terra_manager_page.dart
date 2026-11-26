@@ -1,0 +1,986 @@
+import 'package:flutter/material.dart';
+
+import '../../../../core/config/report_download.dart';
+import '../../../../core/design/terra_shell.dart';
+import '../../../../core/design/terra_theme.dart';
+import '../../../../core/navigation/app_navigation.dart';
+import '../../../../core/utils/formatters.dart';
+import '../../../notifications/presentation/estate_notifications_page.dart';
+import '../../../onboarding/data/estate_application_repository.dart';
+import '../../../resident_access/presentation/resident_access_review_page.dart';
+import '../estate_announcements_api_page.dart';
+import '../estate_charges_page.dart';
+import '../estate_expenses_api_page.dart';
+import '../estate_facilities_admin_page.dart';
+import '../estate_security_incidents_api_page.dart';
+import '../estate_settings_api_page.dart';
+import '../estate_staff_invitations_api_page.dart';
+import '../manager_service_pages.dart';
+import '../ownership_review_api_page.dart';
+import '../tenancy_approval_api_page.dart';
+
+/// Estate manager home in the Terra Crest visual language.
+class TerraManagerPage extends StatefulWidget {
+  const TerraManagerPage({super.key, required this.repository});
+
+  final EstateApplicationApiRepository repository;
+
+  @override
+  State<TerraManagerPage> createState() => _TerraManagerPageState();
+}
+
+class _TerraManagerPageState extends State<TerraManagerPage> {
+  EstateAccount? _account;
+  List<ManagedEstateChoice> _estates = const [];
+  EstateManagerDashboardSummary? _summary;
+  EstateTreasurySummary? _treasury;
+  Map<String, dynamic> _report = const {};
+  List<HouseholdMemberRecord> _household = const [];
+  List<IdentityVerificationRecord> _identity = const [];
+  List<PropertyLocationRecord> _locations = const [];
+  List<EstateServiceOrderRecord> _serviceOrders = const [];
+  List<dynamic> _audit = const [];
+  bool _restoring = true;
+  bool _busy = false;
+  String? _error;
+  int _tab = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _restore();
+  }
+
+  Future<void> _restore() async {
+    try {
+      _account = await widget.repository.restoreSession();
+      if (_account != null) await _load();
+    } catch (error) {
+      _error = '$error';
+    } finally {
+      if (mounted) setState(() => _restoring = false);
+    }
+  }
+
+  /// One failing optional read must never block the dashboard.
+  Future<T?> _attempt<T extends Object>(Future<T> Function() load) async {
+    try {
+      return await load();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _load() async {
+    setState(() => _busy = true);
+    try {
+      _estates = await widget.repository.loadManagedEstates();
+      final estateId = _estates.firstOrNull?.id;
+      if (estateId == null) return;
+      final results = await Future.wait<dynamic>([
+        _attempt<EstateManagerDashboardSummary>(
+          () => widget.repository.loadManagerDashboard(estateId),
+        ),
+        _attempt<EstateTreasurySummary>(
+          () => widget.repository.loadTreasurySummary(estateId),
+        ),
+        _attempt<Map<String, dynamic>>(
+          () => widget.repository.loadManagerReportSummary(estateId),
+        ),
+        _attempt<List<HouseholdMemberRecord>>(
+          () => widget.repository.loadEstateHousehold(estateId),
+        ),
+        _attempt<List<IdentityVerificationRecord>>(
+          () => widget.repository.loadEstateIdentityVerifications(estateId),
+        ),
+        _attempt<List<PropertyLocationRecord>>(
+          () => widget.repository.loadPropertyLocations(estateId),
+        ),
+        _attempt<List<EstateServiceOrderRecord>>(
+          () => widget.repository.loadEstateServiceOrders(estateId),
+        ),
+        _attempt<Map<String, dynamic>>(
+          () => widget.repository.loadAuditLog(estateId),
+        ),
+      ]);
+      _summary = results[0] as EstateManagerDashboardSummary?;
+      _treasury = results[1] as EstateTreasurySummary?;
+      _report = (results[2] as Map<String, dynamic>?) ?? const {};
+      _household = (results[3] as List<HouseholdMemberRecord>?) ?? const [];
+      _identity = (results[4] as List<IdentityVerificationRecord>?) ?? const [];
+      _locations = (results[5] as List<PropertyLocationRecord>?) ?? const [];
+      _serviceOrders =
+          (results[6] as List<EstateServiceOrderRecord>?) ?? const [];
+      _audit = ((results[7] as Map<String, dynamic>?) ?? const {})['items']
+              as List<dynamic>? ??
+          const [];
+    } catch (error) {
+      _error = '$error';
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  String get _displayName => _account?.displayName ?? 'Estate Manager';
+  String get _estateName => _estates.firstOrNull?.name ?? 'Terra Crest';
+  String get _estateId => _estates.firstOrNull?.id ?? '';
+  List<String> get _roles => _estates.firstOrNull?.roles ?? const [];
+  String get _collections => _money(_treasury?.collections);
+
+  ManagerServiceContext get _serviceContext => ManagerServiceContext(
+        repository: widget.repository,
+        estateId: _estateId,
+        estateName: _estateName,
+      );
+
+  String _money(String? value) => '₦${AppFormat.amount(value ?? '0')}';
+
+  String _reportValue(String section, String key) {
+    if (section == 'auditEvents') {
+      return _report['auditEvents']?.toString() ?? '0';
+    }
+    return (_report[section] as Map? ?? const {})[key]?.toString() ?? '0';
+  }
+
+  void _open(Widget page) => AppNavigation.push(context, page);
+
+  void _openResidentAccessReview() => _open(
+        ResidentAccessReviewPage(
+          repository: widget.repository,
+          initialEstateId: _estateId.isEmpty ? null : _estateId,
+          showSignOutAction: false,
+        ),
+      );
+
+  void _openOwnershipReview() => _open(
+        OwnershipReviewApiPage(
+          repository: widget.repository,
+          estateId: _estateId,
+          estateName: _estateName,
+        ),
+      );
+
+  void _openTenancyApprovals() => _open(
+        TenancyApprovalApiPage(
+          repository: widget.repository,
+          estateId: _estateId,
+          estateName: _estateName,
+        ),
+      );
+
+  void _openEstateCharges() => _open(
+        EstateChargesPage(
+          repository: widget.repository,
+          estateId: _estateId,
+          estateName: _estateName,
+          canReconcileSettlements: _roles.any(
+            (role) => role == 'finance_manager' || role == 'estate_administrator',
+          ),
+        ),
+      );
+
+  void _openEstateExpenses() => _open(
+        EstateExpensesApiPage(
+          repository: widget.repository,
+          estateId: _estateId,
+          estateName: _estateName,
+          roles: _roles,
+        ),
+      );
+
+  void _openManagerPayouts() =>
+      _open(ManagerPayoutsPage(serviceContext: _serviceContext));
+
+  void _openManagerPropertyMap() =>
+      _open(ManagerPropertyMapPage(serviceContext: _serviceContext));
+
+  void _openEstateFacilities() => _open(
+        EstateFacilitiesAdminPage(
+          repository: widget.repository,
+          estateId: _estateId,
+          estateName: _estateName,
+        ),
+      );
+
+  void _openSecurityIncidents() => _open(
+        EstateSecurityIncidentsApiPage(
+          repository: widget.repository,
+          estateId: _estateId,
+          estateName: _estateName,
+        ),
+      );
+
+  void _openEstateAnnouncements() => _open(
+        EstateAnnouncementsApiPage(
+          repository: widget.repository,
+          estateId: _estateId,
+          estateName: _estateName,
+        ),
+      );
+
+  void _openStaffInvitations() => _open(
+        EstateStaffInvitationsApiPage(
+          repository: widget.repository,
+          estateId: _estateId,
+          estateName: _estateName,
+        ),
+      );
+
+  void _openEstateSettings() => _open(
+        EstateSettingsApiPage(
+          repository: widget.repository,
+          estateId: _estateId,
+        ),
+      );
+
+  Future<void> _sendBills() async {
+    if (_estateId.isEmpty || _busy) return;
+    setState(() => _busy = true);
+    try {
+      final result =
+          await widget.repository.generateRecurringLevies(_estateId);
+      await _load();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Levies: ${result['created']} new, ${result['issued']} issued, '
+            '${result['replayed']} already generated.',
+          ),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Bills could not be sent: $error')),
+      );
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _exportReport(String type) async {
+    if (_estateId.isEmpty) return;
+    try {
+      final csv = await widget.repository.fetchReportCsv(_estateId, type);
+      final slug =
+          _estateName.replaceAll(RegExp(r'[^A-Za-z0-9]+'), '-').toLowerCase();
+      downloadReportCsv('$slug-$type-report.csv', csv);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$type report exported as CSV.')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not export report: $error')),
+      );
+    }
+  }
+
+  void _showProfileSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: TerraColors.surface,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TerraSectionTitle(title: _displayName),
+              const SizedBox(height: 6),
+              Text(_estateName,
+                  style: const TextStyle(color: TerraColors.muted)),
+              const SizedBox(height: 18),
+              ListTile(
+                leading: const Icon(Icons.logout, color: TerraColors.forest),
+                title: const Text('Sign out'),
+                onTap: () async {
+                  final navigator = Navigator.of(context);
+                  await widget.repository.signOut();
+                  if (mounted) navigator.pop();
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_restoring) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator(color: TerraColors.forest)),
+      );
+    }
+    if (_account == null) return _signIn();
+
+    return Theme(
+      data: TerraTheme.light(),
+      child: Scaffold(
+        backgroundColor: TerraColors.canvas,
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(70),
+          child: TerraTopBar(
+            estateName: 'Terra Crest',
+            estateDescriptor: 'Emerald Living Sanctuary • Cluster Alpha-A',
+            userName: _displayName,
+            userSubtitle: 'Estate Manager • $_estateName',
+            tier: 'Estate Manager',
+            statuses: [
+              TerraStatus(
+                label: 'Collections',
+                value: _collections,
+                icon: Icons.account_balance_outlined,
+              ),
+              TerraStatus(
+                label: 'Settlements',
+                value: '${_treasury?.pendingSettlements ?? 0} pending',
+                icon: Icons.swap_horiz_outlined,
+              ),
+              TerraStatus(
+                label: 'Exceptions',
+                value: '${_treasury?.reconciliationExceptions ?? 0} open',
+                icon: Icons.report_problem_outlined,
+              ),
+            ],
+            onNotification: () => AppNavigation.push(
+              context,
+              EstateNotificationsPage(repository: widget.repository),
+            ),
+            onMenu: _showProfileSheet,
+          ),
+        ),
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final wide = constraints.maxWidth >= 1000;
+              return SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 36),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1320),
+                    child: wide
+                        ? Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(flex: 3, child: _leftColumn()),
+                              const SizedBox(width: 20),
+                              Expanded(flex: 2, child: _rightColumn()),
+                            ],
+                          )
+                        : Column(
+                            children: [
+                              _leftColumn(),
+                              const SizedBox(height: 18),
+                              _rightColumn(),
+                            ],
+                          ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        bottomNavigationBar: _bottomNav(),
+      ),
+    );
+  }
+
+  Widget _leftColumn() => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (_error != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 14),
+              child: TerraCard(
+                color: TerraColors.amberWash,
+                child: Text(_error!,
+                    style: const TextStyle(
+                        color: TerraColors.amber, fontSize: 12)),
+              ),
+            ),
+          _greetingCard(),
+          const SizedBox(height: 18),
+          TerraWalletCard(
+            balance: _collections,
+            accountLabel: 'Estate Treasury',
+            accountDetail:
+                'Outstanding invoices ${_money(_treasury?.outstandingInvoices)} • '
+                '${_treasury?.pendingSettlements ?? 0} settlements awaiting clearing',
+            badge: 'Estate Treasury',
+            actions: [
+              TerraWalletAction(
+                label: 'Record spending',
+                icon: Icons.account_balance_wallet_outlined,
+                onTap: _openEstateExpenses,
+              ),
+              TerraWalletAction(
+                label: 'Approvals',
+                icon: Icons.approval_outlined,
+                onTap: _openResidentAccessReview,
+              ),
+              TerraWalletAction(
+                label: 'Send bills',
+                icon: Icons.autorenew_outlined,
+                onTap: _sendBills,
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          _quickServices(),
+        ],
+      );
+
+  Widget _rightColumn() => Column(
+        children: [
+          _treasuryCard(),
+          const SizedBox(height: 18),
+          _reportsCard(),
+          const SizedBox(height: 18),
+          _needsAttentionCard(),
+          const SizedBox(height: 18),
+          _auditCard(),
+        ],
+      );
+
+  Widget _greetingCard() => TerraCard(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                CircleAvatar(
+                  radius: 28,
+                  backgroundColor: TerraColors.sage,
+                  child: Text(
+                    _initials(_displayName),
+                    style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: TerraColors.forest),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TerraLabel('$_greeting • Estate Manager'),
+                      const SizedBox(height: 3),
+                      Text(
+                        _displayName,
+                        style: const TextStyle(
+                          fontFamily: 'Georgia',
+                          fontSize: 30,
+                          fontWeight: FontWeight.w700,
+                          color: TerraColors.ink,
+                          letterSpacing: -.5,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Terra Crest Sanctuary • $_estateName • Cluster Alpha-A',
+                        style: const TextStyle(
+                            fontSize: 11, color: TerraColors.muted),
+                      ),
+                    ],
+                  ),
+                ),
+                const TerraBadge(
+                  label: 'Verified Estate Account',
+                  icon: Icons.verified_outlined,
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                TerraBadge(
+                    label: '${_household.length} household links',
+                    tone: TerraBadgeTone.outline),
+                TerraBadge(
+                    label: '${_identity.where((row) => row.status == 'approved').length} verified IDs',
+                    tone: TerraBadgeTone.outline),
+                TerraBadge(
+                    label: '${_locations.where((row) => row.verificationStatus == 'verified').length} mapped lots',
+                    tone: TerraBadgeTone.outline),
+                TerraBadge(
+                    label: '${_serviceOrders.length} service orders',
+                    tone: TerraBadgeTone.outline),
+              ],
+            ),
+          ],
+        ),
+      );
+
+  Widget _quickServices() => TerraCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const TerraSectionTitle(
+              title: 'Quick Services',
+              trailing: TerraLabel('Terra Crest Ecosystem'),
+            ),
+            const SizedBox(height: 16),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final crossAxisCount = constraints.maxWidth > 560 ? 4 : 3;
+                return GridView.count(
+                  crossAxisCount: crossAxisCount,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  mainAxisSpacing: 10,
+                  crossAxisSpacing: 10,
+                  childAspectRatio: 1.25,
+                  children: [
+                    (
+                      icon: Icons.apartment_outlined,
+                      label: 'Properties',
+                      onTap: _openOwnershipReview,
+                    ),
+                    (
+                      icon: Icons.people_outline,
+                      label: 'Residents',
+                      onTap: _openResidentAccessReview,
+                    ),
+                    (
+                      icon: Icons.home_outlined,
+                      label: 'Tenancies',
+                      onTap: _openTenancyApprovals,
+                    ),
+                    (
+                      icon: Icons.receipt_long_outlined,
+                      label: 'Levies',
+                      onTap: _openEstateCharges,
+                    ),
+                    (
+                      icon: Icons.payments_outlined,
+                      label: 'Payouts',
+                      onTap: _openManagerPayouts,
+                    ),
+                    (
+                      icon: Icons.account_balance_wallet_outlined,
+                      label: 'Expenses',
+                      onTap: _openEstateExpenses,
+                    ),
+                    (
+                      icon: Icons.map_outlined,
+                      label: 'Property map',
+                      onTap: _openManagerPropertyMap,
+                    ),
+                    (
+                      icon: Icons.storefront_outlined,
+                      label: 'Services',
+                      onTap: _openEstateFacilities,
+                    ),
+                    (
+                      icon: Icons.shield_outlined,
+                      label: 'Security',
+                      onTap: _openSecurityIncidents,
+                    ),
+                    (
+                      icon: Icons.campaign_outlined,
+                      label: 'Notices',
+                      onTap: _openEstateAnnouncements,
+                    ),
+                    (
+                      icon: Icons.badge_outlined,
+                      label: 'Staff',
+                      onTap: _openStaffInvitations,
+                    ),
+                    (
+                      icon: Icons.settings_outlined,
+                      label: 'Settings',
+                      onTap: _openEstateSettings,
+                    ),
+                  ].map(
+                    (service) => TerraServiceTile(
+                      icon: service.icon,
+                      label: service.label,
+                      onTap: service.onTap,
+                    ),
+                  ).toList(),
+                );
+              },
+            ),
+          ],
+        ),
+      );
+
+  Widget _treasuryCard() => TerraCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const TerraSectionTitle(
+              title: 'Treasury snapshot',
+              trailing: TerraBadge(label: 'Estate Treasury'),
+            ),
+            const SizedBox(height: 14),
+            GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
+              childAspectRatio: 1.5,
+              children: [
+                TerraMetric(
+                    label: 'Collections',
+                    value: _collections,
+                    icon: Icons.account_balance_outlined),
+                TerraMetric(
+                    label: 'Outstanding',
+                    value: _money(_treasury?.outstandingInvoices),
+                    icon: Icons.request_quote_outlined),
+                TerraMetric(
+                    label: 'Cleared',
+                    value: _money(_treasury?.walletBalances),
+                    icon: Icons.check_circle_outline),
+                TerraMetric(
+                    label: 'Payouts',
+                    value: _reportValue('payouts', 'total'),
+                    icon: Icons.payments_outlined),
+                TerraMetric(
+                    label: 'Exceptions',
+                    value: '${_treasury?.reconciliationExceptions ?? 0}',
+                    icon: Icons.report_problem_outlined),
+                TerraMetric(
+                    label: 'Pending settlements',
+                    value: '${_treasury?.pendingSettlements ?? 0}',
+                    icon: Icons.swap_horiz_outlined),
+              ],
+            ),
+          ],
+        ),
+      );
+
+  Widget _reportsCard() => TerraCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const TerraSectionTitle(
+              title: 'Reports',
+              trailing: TerraLabel('Estate records'),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: [
+                SizedBox(
+                  width: 150,
+                  child: TerraMetric(
+                      label: 'Invoices',
+                      value: _reportValue('invoices', 'total')),
+                ),
+                SizedBox(
+                  width: 150,
+                  child: TerraMetric(
+                      label: 'Billed',
+                      value:
+                          '${_report['currency'] ?? 'NGN'} ${_reportValue('invoices', 'billed')}'),
+                ),
+                SizedBox(
+                  width: 150,
+                  child: TerraMetric(
+                      label: 'Rent outstanding',
+                      value:
+                          '${_report['currency'] ?? 'NGN'} ${_reportValue('rent', 'outstanding')}'),
+                ),
+                SizedBox(
+                  width: 150,
+                  child: TerraMetric(
+                      label: 'Expenses',
+                      value: _reportValue('expenses', 'total')),
+                ),
+                SizedBox(
+                  width: 150,
+                  child: TerraMetric(
+                      label: 'Audit events', value: _reportValue('auditEvents', '')),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: () => _exportReport('wallet'),
+                  icon: const Icon(Icons.download_outlined, size: 16),
+                  label: const Text('Wallet CSV'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => _exportReport('ledger'),
+                  icon: const Icon(Icons.download_outlined, size: 16),
+                  label: const Text('Ledger CSV'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => _exportReport('audit'),
+                  icon: const Icon(Icons.download_outlined, size: 16),
+                  label: const Text('Audit CSV'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+
+  Widget _needsAttentionCard() => TerraCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const TerraSectionTitle(
+              title: 'Needs attention',
+              trailing: TerraLabel('Review queue'),
+            ),
+            const SizedBox(height: 10),
+            if (_summary == null)
+              const TerraEmpty(message: 'Estate activity will appear here.')
+            else
+              ...[
+                _attentionRow(
+                  icon: Icons.person_add_alt_1_outlined,
+                  label: 'Resident access',
+                  count: _summary!.pendingAccessRequests,
+                  onTap: _openResidentAccessReview,
+                ),
+                _attentionRow(
+                  icon: Icons.verified_user_outlined,
+                  label: 'Ownership checks',
+                  count: _summary!.pendingOwnershipReviews,
+                  onTap: _openOwnershipReview,
+                ),
+                _attentionRow(
+                  icon: Icons.key_outlined,
+                  label: 'Tenancy approvals',
+                  count: _summary!.pendingTenancies,
+                  onTap: _openTenancyApprovals,
+                ),
+              ],
+          ],
+        ),
+      );
+
+  Widget _attentionRow({
+    required IconData icon,
+    required String label,
+    required int count,
+    required VoidCallback onTap,
+  }) =>
+      Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: TerraColors.surfaceMuted,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Icon(icon, size: 18, color: TerraColors.forest),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(label,
+                      style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: TerraColors.ink)),
+                ),
+                TerraBadge(
+                  label: '$count pending',
+                  tone: count > 0 ? TerraBadgeTone.amber : TerraBadgeTone.sage,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+  Widget _auditCard() => TerraCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TerraSectionTitle(
+              title: 'Audit trail',
+              trailing: TerraBadge(
+                  label: '${_audit.length} events', tone: TerraBadgeTone.outline),
+            ),
+            const SizedBox(height: 10),
+            if (_audit.isEmpty)
+              const TerraEmpty(message: 'No estate events have been recorded yet.')
+            else
+              ..._audit.take(5).map(_auditRow),
+          ],
+        ),
+      );
+
+  Widget _auditRow(dynamic entry) {
+    final event = entry is Map<String, dynamic> ? entry : <String, dynamic>{};
+    final action = event['action']?.toString() ?? 'Estate event';
+    final actor = event['actorDisplayName']?.toString() ??
+        event['actor']?.toString() ??
+        'Estate staff';
+    final at = event['createdAt']?.toString() ??
+        event['occurredAt']?.toString() ??
+        '';
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.history_toggle_off_outlined,
+              size: 17, color: TerraColors.forest),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(action,
+                    style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: TerraColors.ink)),
+                const SizedBox(height: 2),
+                Text('$actor${at.isEmpty ? '' : ' • $at'}',
+                    style: const TextStyle(
+                        fontSize: 10, color: TerraColors.muted)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _bottomNav() => BottomNavigationBar(
+        currentIndex: _tab,
+        onTap: (index) => setState(() => _tab = index),
+        items: const [
+          BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined), label: 'Home'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.approval_outlined), label: 'Approvals'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.grid_view_outlined), label: 'Services'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.assessment_outlined), label: 'Reports'),
+        ],
+      );
+
+  Widget _signIn() {
+    final email = TextEditingController();
+    final password = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    return Theme(
+      data: TerraTheme.light(),
+      child: Scaffold(
+        backgroundColor: TerraColors.canvas,
+        body: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: TerraCard(
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.eco_outlined,
+                          size: 40, color: TerraColors.forest),
+                      const SizedBox(height: 12),
+                      const Text('Welcome to Terra Crest',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              fontFamily: 'Georgia',
+                              fontSize: 24,
+                              fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 6),
+                      const Text('Sign in to open your estate workspace.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              color: TerraColors.muted, fontSize: 12)),
+                      const SizedBox(height: 22),
+                      TextFormField(
+                        controller: email,
+                        keyboardType: TextInputType.emailAddress,
+                        decoration:
+                            const InputDecoration(labelText: 'Email address'),
+                        validator: (value) => value == null || !value.contains('@')
+                            ? 'Enter a valid email address.'
+                            : null,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: password,
+                        obscureText: true,
+                        decoration:
+                            const InputDecoration(labelText: 'Password'),
+                        validator: (value) => value == null || value.isEmpty
+                            ? 'Enter your password.'
+                            : null,
+                      ),
+                      if (_error != null) ...[
+                        const SizedBox(height: 10),
+                        Text(_error!,
+                            style: const TextStyle(
+                                color: TerraColors.danger, fontSize: 12)),
+                      ],
+                      const SizedBox(height: 18),
+                      FilledButton(
+                        onPressed: () async {
+                          if (!formKey.currentState!.validate()) return;
+                          try {
+                            _account = await widget.repository.signIn(
+                              email: email.text.trim(),
+                              password: password.text,
+                            );
+                            await _load();
+                            if (mounted) setState(() {});
+                          } catch (error) {
+                            if (!mounted) return;
+                            setState(() => _error = '$error');
+                          }
+                        },
+                        child: const Text('Sign in'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static String _initials(String name) => name
+      .trim()
+      .split(RegExp(r'\s+'))
+      .take(2)
+      .map((part) => part.isEmpty ? '' : part[0])
+      .join()
+      .toUpperCase();
+
+  String get _greeting {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  }
+}
