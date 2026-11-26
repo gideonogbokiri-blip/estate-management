@@ -413,7 +413,6 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
             accountDetail:
                 'Outstanding invoices ${_money(_treasury?.outstandingInvoices)} • '
                 '${_treasury?.pendingSettlements ?? 0} settlements awaiting clearing',
-            badge: 'Estate Treasury',
             actions: [
               TerraWalletAction(
                 label: 'Record spending',
@@ -828,9 +827,20 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
         ),
       );
 
+  String _friendlyAuditAction(String raw) {
+    return raw
+        .replaceAll('_', ' ')
+        .replaceAll(RegExp(r'\bdemo\b'), 'preview')
+        .split(' ')
+        .map((word) => word.isEmpty
+            ? word
+            : word[0].toUpperCase() + word.substring(1).toLowerCase())
+        .join(' ');
+  }
+
   Widget _auditRow(dynamic entry) {
     final event = entry is Map<String, dynamic> ? entry : <String, dynamic>{};
-    final action = event['action']?.toString() ?? 'Estate event';
+    final action = _friendlyAuditAction(event['action']?.toString() ?? 'Estate event');
     final actor = event['actorDisplayName']?.toString() ??
         event['actor']?.toString() ??
         'Estate staff';
@@ -855,7 +865,7 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
                         fontWeight: FontWeight.w700,
                         color: TerraColors.ink)),
                 const SizedBox(height: 2),
-                Text('$actor${at.isEmpty ? '' : ' • $at'}',
+                Text('$actor${at.isEmpty ? '' : ' • ${AppFormat.date(at)}'}',
                     style: const TextStyle(
                         fontSize: 10, color: TerraColors.muted)),
               ],

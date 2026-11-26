@@ -48,7 +48,12 @@ export class ReportsService {
     await this.membership(actorUserId, estateId, true);
     const [invoices, rentSchedules, expenses, payouts, auditCount] = await Promise.all([
       this.prisma.estateInvoiceDraft.findMany({
-        where: { estateId }, select: { status: true, total: true, currency: true },
+        where: {
+          estateId,
+          dueDate: { lte: new Date() },
+          status: { in: ['ISSUED', 'PARTIALLY_PAID'] },
+        },
+        select: { status: true, total: true, currency: true, dueDate: true },
       }),
       this.prisma.rentSchedule.findMany({
         where: { estateId }, select: { amount: true, currency: true, payments: { select: { amount: true } } },
