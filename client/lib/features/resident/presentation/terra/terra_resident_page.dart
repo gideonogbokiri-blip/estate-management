@@ -68,7 +68,14 @@ class _TerraResidentPageState extends State<TerraResidentPage> {
           Future.value(<ResidentVisitorPassRecord>[]),
       ]);
       _wallets = results[0] as List<EstateWalletRecord>;
-      _invoices = results[1] as List<Map<String, dynamic>>;
+      final today = DateTime.now();
+      _invoices = (results[1] as List<Map<String, dynamic>>)
+          .where((invoice) {
+            final due = DateTime.tryParse(invoice['dueDate']?.toString() ?? '');
+            final balance = double.tryParse(invoice['balance']?.toString() ?? '0') ?? 0;
+            return balance > 0 && (due == null || !due.isAfter(today));
+          })
+          .toList(growable: false);
       _household = results[2] as List<HouseholdMemberRecord>;
       _properties = results[3] as List<JoinRequestPropertyChoice>;
       _passes = results[4] as List<ResidentVisitorPassRecord>;
