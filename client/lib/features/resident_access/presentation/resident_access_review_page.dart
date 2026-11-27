@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import '../../../core/navigation/auth_redirect.dart';
 
 import '../../../core/theme/estate_theme.dart';
 import '../../onboarding/data/estate_application_repository.dart';
@@ -137,7 +138,7 @@ class _ResidentAccessReviewPageState extends State<ResidentAccessReviewPage> {
   @override
   Widget build(BuildContext context) {
     if (_restoring) return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    if (_account == null) return _buildSignIn();
+    if (_account == null) return singleSignInRedirect();
     final visibleRequests = _requests.where((request) => _filter == 'all' || request.status == _filter).toList();
     final pendingCount = _requests.where((request) => request.status == 'pending').length;
     return Scaffold(
@@ -376,3 +377,4 @@ String _formatDate(String value) {
   return '${parsed.day.toString().padLeft(2, '0')} ${_month(parsed.month)} ${parsed.year}';
 }
 String _month(int month) => const ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][month - 1];
+

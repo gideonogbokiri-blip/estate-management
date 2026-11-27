@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import '../../../core/navigation/auth_redirect.dart';
 
 import '../../../core/theme/estate_theme.dart';
 import '../../onboarding/data/estate_application_repository.dart';
@@ -43,7 +44,7 @@ class _TenantRentApiPageState extends State<TenantRentApiPage> {
   @override
   Widget build(BuildContext context) {
     if (_restoring) return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    if (_account == null) return _signInView();
+    if (_account == null) return singleSignInRedirect();
     return Scaffold(
       appBar: AppBar(
         title: const Text('My tenancy'),
@@ -158,3 +159,4 @@ class _InfoCard extends StatelessWidget {
     child: Padding(padding: const EdgeInsets.all(18), child: Text(message, style: TextStyle(color: error ? EstateColors.red : EstateColors.muted, height: 1.45))),
   );
 }
+

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/estate_theme.dart';
+import '../../../core/navigation/auth_redirect.dart';
 import '../data/security_repository.dart';
 
 class SecurityGateShell extends StatefulWidget {
@@ -265,13 +266,7 @@ class _SecurityGateShellState extends State<SecurityGateShell> {
     future: _gate,
     builder: (context, snapshot) {
       if (snapshot.hasError) {
-        return _GateState(
-          icon: Icons.cloud_off_outlined,
-          title: 'Sign in to gate security',
-          detail: 'Use your estate security account to load an assigned gate.',
-          action: 'Sign in',
-          onAction: _signIn,
-        );
+        return singleSignInRedirect();
       }
       if (!snapshot.hasData) {
         return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -281,9 +276,9 @@ class _SecurityGateShellState extends State<SecurityGateShell> {
         return _GateState(
           icon: Icons.lock_outline,
           title: 'No assigned gate',
-          detail: 'This account has no active gate assignment. Sign in with another account or contact your estate security supervisor.',
+          detail: 'This account has no active gate assignment. Sign in with another security account at /login/ or contact your supervisor.',
           action: 'Switch account',
-          onAction: _signIn,
+          onAction: goToSingleSignIn,
         );
       }
       return Scaffold(

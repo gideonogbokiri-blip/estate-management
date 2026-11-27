@@ -2,6 +2,7 @@
 
 import '../../../../core/design/terra_shell.dart';
 import '../../../../core/design/terra_theme.dart';
+import '../../../../core/navigation/auth_redirect.dart';
 import '../../../../core/navigation/app_navigation.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../notifications/presentation/estate_notifications_page.dart';
@@ -177,7 +178,7 @@ class _TerraLandlordPageState extends State<TerraLandlordPage> {
         body: Center(child: CircularProgressIndicator(color: TerraColors.forest)),
       );
     }
-    if (_account == null) return _signIn();
+    if (_account == null) return singleSignInRedirect();
 
     return Theme(
       data: TerraTheme.light(),
@@ -738,6 +739,7 @@ class _TerraLandlordPageState extends State<TerraLandlordPage> {
     return 'Good evening';
   }
 }
+
 
 
 

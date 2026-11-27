@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import '../../../core/navigation/auth_redirect.dart';
 
 import '../../../core/theme/estate_theme.dart';
 import '../../onboarding/data/estate_application_repository.dart';
@@ -108,7 +109,7 @@ class _ResidentJoinPageState extends State<ResidentJoinPage> {
   @override
   Widget build(BuildContext context) {
     if (_restoring) return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    if (_account == null) return _signInView();
+    if (_account == null) return singleSignInRedirect();
     final currentEstatePending = _history.any((entry) => entry.estateId == _estate?.id && entry.status == 'pending');
     return Scaffold(
       appBar: AppBar(
@@ -237,3 +238,4 @@ class _ErrorCard extends StatelessWidget {
 
 String _label(String value) => value.split('_').map((part) => part.isEmpty ? part : '${part[0].toUpperCase()}${part.substring(1)}').join(' ');
 String _date(String value) { final date = DateTime.tryParse(value)?.toLocal(); return date == null ? 'Submitted' : '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}'; }
+
