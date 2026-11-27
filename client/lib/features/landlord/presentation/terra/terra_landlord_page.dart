@@ -2,6 +2,7 @@
 
 import '../../../../core/design/terra_shell.dart';
 import '../../../../core/design/terra_theme.dart';
+import '../../../../core/design/terra_navigation_rail.dart';
 import '../../../../core/navigation/auth_redirect.dart';
 import '../../../../core/navigation/app_navigation.dart';
 import '../../../../core/utils/formatters.dart';
@@ -139,6 +140,34 @@ class _TerraLandlordPageState extends State<TerraLandlordPage> {
         ),
       );
 
+  String _section = 'home';
+
+  void _selectSection(String id) => setState(() => _section = id);
+
+  Future<void> _signOut() async {
+    await widget.repository.signOut();
+    if (!mounted) return;
+    goToSingleSignIn();
+  }
+
+  List<TerraNavItem> _navigationItems() => [
+        const TerraNavItem(id: 'home', icon: Icons.home_outlined, label: 'Overview', section: 'WORKSPACE'),
+        ...landlordServices().map(
+          (service) => TerraNavItem(
+            id: service.id,
+            icon: service.icon,
+            label: service.label,
+            section: 'MY ESTATE',
+            danger: service.id == 'emergency',
+          ),
+        ),
+      ];
+
+  Widget _sectionPage() => LandlordServicePage(
+        service: _service(_section),
+        serviceContext: _serviceContext,
+      );
+
   void _showMenu() {
     showModalBottomSheet<void>(
       context: context,
@@ -264,35 +293,70 @@ class _TerraLandlordPageState extends State<TerraLandlordPage> {
         body: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final wide = constraints.maxWidth >= 1000;
-              return SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 36),
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 1320),
-                    child: wide
-                        ? Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(flex: 3, child: _leftColumn()),
-                              const SizedBox(width: 20),
-                              Expanded(flex: 2, child: _rightColumn()),
-                            ],
+              final wide = constraints.maxWidth >= 1100;
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TerraNavigationRail(
+                    items: _navigationItems(),
+                    selectedId: _section,
+                    onSelect: _selectSection,
+                    width: wide ? 244 : 64,
+                    header: TerraRailHeader(
+                      estateName: 'Terra Crest',
+                      subtitle: 'Property Owner',
+                      extended: wide,
+                    ),
+                    footer: wide
+                        ? ListTile(
+                            leading: const Icon(Icons.logout_outlined,
+                                color: TerraColors.danger, size: 19),
+                            title: const Text('Sign out',
+                                style: TextStyle(
+                                    color: TerraColors.danger, fontSize: 12)),
+                            onTap: _signOut,
                           )
-                        : Column(
-                            children: [
-                              _leftColumn(),
-                              const SizedBox(height: 18),
-                              _rightColumn(),
-                            ],
+                        : IconButton(
+                            tooltip: 'Sign out',
+                            onPressed: _signOut,
+                            icon: const Icon(Icons.logout_outlined,
+                                color: TerraColors.danger),
                           ),
                   ),
-                ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 36),
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 1320),
+                          child: _section == 'home'
+                              ? wide
+                                  ? Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Expanded(flex: 3, child: _leftColumn()),
+                                        const SizedBox(width: 20),
+                                        Expanded(flex: 2, child: _rightColumn()),
+                                      ],
+                                    )
+                                  : Column(
+                                      children: [
+                                        _leftColumn(),
+                                        const SizedBox(height: 18),
+                                        _rightColumn(),
+                                      ],
+                                    )
+                              : _sectionPage(),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               );
             },
           ),
         ),
-        bottomNavigationBar: _bottomNav(),
       ),
     );
   }

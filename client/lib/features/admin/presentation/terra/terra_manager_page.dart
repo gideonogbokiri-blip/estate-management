@@ -3,6 +3,7 @@
 import '../../../../core/config/report_download.dart';
 import '../../../../core/design/terra_shell.dart';
 import '../../../../core/design/terra_theme.dart';
+import '../../../../core/design/terra_navigation_rail.dart';
 import '../../../../core/design/terra_service_drawer.dart';
 import '../../../../core/navigation/app_navigation.dart';
 import '../../../../core/navigation/auth_redirect.dart';
@@ -125,6 +126,109 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
       return _report['auditEvents']?.toString() ?? '0';
     }
     return (_report[section] as Map? ?? const {})[key]?.toString() ?? '0';
+  }
+
+  String _section = 'home';
+
+  void _selectSection(String id) => setState(() => _section = id);
+
+  Future<void> _signOut() async {
+    await widget.repository.signOut();
+    if (!mounted) return;
+    goToSingleSignIn();
+  }
+
+  List<TerraNavItem> _navigationItems() {
+    final pending = (_report['invoices'] as Map? ?? const {})['issued'] ?? '0';
+    return [
+      const TerraNavItem(id: 'home', icon: Icons.home_outlined, label: 'Overview', section: 'WORKSPACE'),
+      TerraNavItem(id: 'residents', icon: Icons.people_outline, label: 'Residents', section: 'WORKSPACE'),
+      TerraNavItem(id: 'approvals', icon: Icons.how_to_reg_outlined, label: 'Approvals', section: 'WORKSPACE', badge: '$pending'),
+      const TerraNavItem(id: 'ownership', icon: Icons.domain_outlined, label: 'Ownership', section: 'PEOPLE'),
+      const TerraNavItem(id: 'tenancies', icon: Icons.home_outlined, label: 'Tenancies', section: 'PEOPLE'),
+      const TerraNavItem(id: 'household', icon: Icons.family_restroom_outlined, label: 'Household', section: 'PEOPLE'),
+      const TerraNavItem(id: 'levies', icon: Icons.receipt_long_outlined, label: 'Levies', section: 'FINANCE'),
+      const TerraNavItem(id: 'payouts', icon: Icons.payments_outlined, label: 'Payouts', section: 'FINANCE'),
+      const TerraNavItem(id: 'expenses', icon: Icons.account_balance_wallet_outlined, label: 'Expenses', section: 'FINANCE'),
+      const TerraNavItem(id: 'reports', icon: Icons.summarize_outlined, label: 'Reports', section: 'FINANCE'),
+      const TerraNavItem(id: 'map', icon: Icons.map_outlined, label: 'Property map', section: 'ESTATE'),
+      const TerraNavItem(id: 'facilities', icon: Icons.storefront_outlined, label: 'Facilities', section: 'ESTATE'),
+      const TerraNavItem(id: 'security', icon: Icons.shield_outlined, label: 'Security', section: 'ESTATE'),
+      const TerraNavItem(id: 'notices', icon: Icons.campaign_outlined, label: 'Notices', section: 'ESTATE'),
+      const TerraNavItem(id: 'staff', icon: Icons.badge_outlined, label: 'Staff', section: 'ESTATE'),
+      const TerraNavItem(id: 'settings', icon: Icons.settings_outlined, label: 'Settings', section: 'ESTATE'),
+    ];
+  }
+
+  Widget _sectionPage() {
+    final repository = widget.repository;
+    final estateId = _estateId;
+    final estateName = _estateName;
+    switch (_section) {
+      case 'residents':
+        return TerraResidentsPage(
+          repository: repository, estateId: estateId, estateName: estateName);
+      case 'approvals':
+        return ResidentAccessReviewPage(
+          repository: repository, initialEstateId: estateId, showSignOutAction: false);
+      case 'ownership':
+        return OwnershipReviewApiPage(
+          repository: repository, estateId: estateId, estateName: estateName);
+      case 'tenancies':
+        return TerraTenanciesPage(
+          repository: repository, estateId: estateId, estateName: estateName);
+      case 'levies':
+        return TerraChargesPage(
+          repository: repository, estateId: estateId, estateName: estateName);
+      case 'payouts':
+        return TerraPayoutsPage(
+          repository: repository, estateId: estateId, estateName: estateName);
+      case 'expenses':
+        return TerraExpensesPage(
+          repository: repository, estateId: estateId, estateName: estateName);
+      case 'reports':
+        return TerraReportsPage(
+          repository: repository, estateId: estateId, estateName: estateName);
+      case 'map':
+        return ManagerPropertyMapPage(serviceContext: _serviceContext);
+      case 'facilities':
+        return TerraFacilitiesPage(
+          repository: repository, estateId: estateId, estateName: estateName);
+      case 'security':
+        return TerraSecurityPage(
+          repository: repository, estateId: estateId, estateName: estateName);
+      case 'notices':
+        return TerraNoticesPage(
+          repository: repository, estateId: estateId, estateName: estateName);
+      case 'staff':
+        return TerraStaffPage(
+          repository: repository, estateId: estateId, estateName: estateName);
+      case 'settings':
+        return TerraSettingsPage(
+          repository: repository, estateId: estateId, estateName: estateName);
+      case 'household':
+        return TerraCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const TerraSectionTitle(title: 'Household'),
+              const SizedBox(height: 8),
+              const Text(
+                'Household links and dependants are managed from each resident record.',
+                style: TextStyle(color: TerraColors.muted, fontSize: 12),
+              ),
+              const SizedBox(height: 14),
+              FilledButton.icon(
+                onPressed: () => _selectSection('residents'),
+                icon: const Icon(Icons.people_outlined),
+                label: const Text('Open residents'),
+              ),
+            ],
+          ),
+        );
+      default:
+        return const SizedBox.shrink();
+    }
   }
 
   void _open(Widget page) => AppNavigation.push(context, page);
@@ -423,35 +527,70 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
         body: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final wide = constraints.maxWidth >= 1000;
-              return SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 36),
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 1320),
-                    child: wide
-                        ? Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(flex: 3, child: _leftColumn()),
-                              const SizedBox(width: 20),
-                              Expanded(flex: 2, child: _rightColumn()),
-                            ],
+              final wide = constraints.maxWidth >= 1100;
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TerraNavigationRail(
+                    items: _navigationItems(),
+                    selectedId: _section,
+                    onSelect: _selectSection,
+                    width: wide ? 244 : 64,
+                    header: TerraRailHeader(
+                      estateName: 'Terra Crest',
+                      subtitle: 'Estate Manager',
+                      extended: wide,
+                    ),
+                    footer: wide
+                        ? ListTile(
+                            leading: const Icon(Icons.logout_outlined,
+                                color: TerraColors.danger, size: 19),
+                            title: const Text('Sign out',
+                                style: TextStyle(
+                                    color: TerraColors.danger, fontSize: 12)),
+                            onTap: _signOut,
                           )
-                        : Column(
-                            children: [
-                              _leftColumn(),
-                              const SizedBox(height: 18),
-                              _rightColumn(),
-                            ],
+                        : IconButton(
+                            tooltip: 'Sign out',
+                            onPressed: _signOut,
+                            icon: const Icon(Icons.logout_outlined,
+                                color: TerraColors.danger),
                           ),
                   ),
-                ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 36),
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 1320),
+                          child: _section == 'home'
+                              ? wide
+                                  ? Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Expanded(flex: 3, child: _leftColumn()),
+                                        const SizedBox(width: 20),
+                                        Expanded(flex: 2, child: _rightColumn()),
+                                      ],
+                                    )
+                                  : Column(
+                                      children: [
+                                        _leftColumn(),
+                                        const SizedBox(height: 18),
+                                        _rightColumn(),
+                                      ],
+                                    )
+                              : _sectionPage(),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               );
             },
           ),
         ),
-        bottomNavigationBar: _bottomNav(),
       ),
     );
   }
