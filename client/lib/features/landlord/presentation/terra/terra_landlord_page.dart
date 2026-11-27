@@ -139,6 +139,51 @@ class _TerraLandlordPageState extends State<TerraLandlordPage> {
         ),
       );
 
+  void _showMenu() {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: TerraColors.surface,
+      isScrollControlled: true,
+      builder: (context) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: .85,
+        maxChildSize: .95,
+        builder: (context, controller) => ListView(
+          controller: controller,
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+          children: [
+            TerraSectionTitle(
+              title: 'All services',
+              trailing: TerraBadge(label: '${landlordServices().length}'),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Open any service from here. Each one has its own page.',
+              style: TextStyle(color: TerraColors.muted, fontSize: 12),
+            ),
+            const SizedBox(height: 16),
+            ...landlordServices().map(
+              (service) => ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(service.icon, color: TerraColors.forest, size: 20),
+                title: Text(service.label,
+                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                subtitle: Text(service.description,
+                    style: const TextStyle(fontSize: 10, color: TerraColors.muted)),
+                trailing: const Icon(Icons.chevron_right,
+                    size: 16, color: TerraColors.muted),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _openService(service.id);
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _showProfileSheet() {
     showModalBottomSheet<void>(
       context: context,
@@ -213,7 +258,7 @@ class _TerraLandlordPageState extends State<TerraLandlordPage> {
               context,
               EstateNotificationsPage(repository: widget.repository),
             ),
-            onMenu: _showProfileSheet,
+            onMenu: _showMenu,
           ),
         ),
         body: SafeArea(
@@ -307,8 +352,6 @@ class _TerraLandlordPageState extends State<TerraLandlordPage> {
               ),
             ],
           ),
-          const SizedBox(height: 18),
-          _quickServices(),
         ],
       );
 

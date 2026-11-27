@@ -3,6 +3,7 @@
 import '../../../../core/config/report_download.dart';
 import '../../../../core/design/terra_shell.dart';
 import '../../../../core/design/terra_theme.dart';
+import '../../../../core/design/terra_service_drawer.dart';
 import '../../../../core/navigation/app_navigation.dart';
 import '../../../../core/navigation/auth_redirect.dart';
 import '../../../../core/utils/formatters.dart';
@@ -20,6 +21,7 @@ import 'terra_security_page.dart';
 import 'terra_notices_page.dart';
 import 'terra_staff_page.dart';
 import 'terra_settings_page.dart';
+import 'terra_reports_page.dart';
 import '../ownership_review_api_page.dart';
 
 /// Estate manager home in the Terra Crest visual language.
@@ -127,6 +129,68 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
 
   void _open(Widget page) => AppNavigation.push(context, page);
 
+  void _showMenu() {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: TerraColors.surface,
+      isScrollControlled: true,
+      builder: (context) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: .85,
+        maxChildSize: .95,
+        builder: (context, controller) => ListView(
+          controller: controller,
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+          children: [
+            TerraSectionTitle(
+              title: 'All services',
+              trailing: TerraBadge(label: '${_managerMenuServices().length}'),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Open any service from here. Each one has its own page.',
+              style: TextStyle(color: TerraColors.muted, fontSize: 12),
+            ),
+            const SizedBox(height: 16),
+            ..._managerMenuServices().map(
+              (service) => ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(service.icon, color: TerraColors.forest, size: 20),
+                title: Text(service.label,
+                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                subtitle: Text(service.section,
+                    style: const TextStyle(fontSize: 10, color: TerraColors.muted)),
+                trailing: const Icon(Icons.chevron_right,
+                    size: 16, color: TerraColors.muted),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  service.onTap();
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<TerraMenuService> _managerMenuServices() => [
+        TerraMenuService(label: 'Residents', icon: Icons.people_outline, section: 'People', onTap: _openResidents),
+        TerraMenuService(label: 'Approvals', icon: Icons.how_to_reg_outlined, section: 'People', onTap: _openResidentAccessReview),
+        TerraMenuService(label: 'Ownership', icon: Icons.domain_outlined, section: 'People', onTap: _openOwnershipReview),
+        TerraMenuService(label: 'Tenancies', icon: Icons.home_outlined, section: 'People', onTap: _openTenancyApprovals),
+        TerraMenuService(label: 'Levies', icon: Icons.receipt_long_outlined, section: 'Finance', onTap: _openEstateCharges),
+        TerraMenuService(label: 'Payouts', icon: Icons.payments_outlined, section: 'Finance', onTap: _openManagerPayouts),
+        TerraMenuService(label: 'Expenses', icon: Icons.account_balance_wallet_outlined, section: 'Finance', onTap: _openEstateExpenses),
+        TerraMenuService(label: 'Reports', icon: Icons.summarize_outlined, section: 'Finance', onTap: _openManagerReports),
+        TerraMenuService(label: 'Property map', icon: Icons.map_outlined, section: 'Estate', onTap: _openManagerPropertyMap),
+        TerraMenuService(label: 'Facilities', icon: Icons.storefront_outlined, section: 'Estate', onTap: _openEstateFacilities),
+        TerraMenuService(label: 'Security', icon: Icons.shield_outlined, section: 'Estate', onTap: _openSecurityIncidents),
+        TerraMenuService(label: 'Notices', icon: Icons.campaign_outlined, section: 'Estate', onTap: _openEstateAnnouncements),
+        TerraMenuService(label: 'Staff', icon: Icons.badge_outlined, section: 'Estate', onTap: _openStaffInvitations),
+        TerraMenuService(label: 'Settings', icon: Icons.settings_outlined, section: 'Estate', onTap: _openEstateSettings),
+      ];
+
   void _openResidents() => _open(
         TerraResidentsPage(
           repository: widget.repository,
@@ -169,6 +233,14 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
 
   void _openEstateExpenses() => _open(
         TerraExpensesPage(
+          repository: widget.repository,
+          estateId: _estateId,
+          estateName: _estateName,
+        ),
+      );
+
+  void _openManagerReports() => _open(
+        TerraReportsPage(
           repository: widget.repository,
           estateId: _estateId,
           estateName: _estateName,
@@ -345,7 +417,7 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
               context,
               EstateNotificationsPage(repository: widget.repository),
             ),
-            onMenu: _showProfileSheet,
+            onMenu: _showMenu,
           ),
         ),
         body: SafeArea(
@@ -424,8 +496,6 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
               ),
             ],
           ),
-          const SizedBox(height: 18),
-          _quickServices(),
         ],
       );
 
