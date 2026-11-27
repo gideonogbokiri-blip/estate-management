@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+﻿import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { createHash, randomUUID } from 'node:crypto';
 import { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
@@ -6,8 +6,8 @@ import { PrivateDocumentsService } from '../private-documents/private-documents.
 import { EstateNotificationsService } from './notifications.service.js';
 import type { CreateSecurityIncidentDto, ReviewSecurityIncidentDto } from './incidents.dto.js';
 
-const MANAGERS = ['ESTATE_ADMINISTRATOR', 'ESTATE_MANAGER'] as const;
-const REVIEWERS = ['ESTATE_ADMINISTRATOR', 'ESTATE_MANAGER', 'SECURITY_OFFICER'] as const;
+const MANAGERS = ['ESTATE_ADMINISTRATOR', 'ESTATE_CHAIRMAN', 'ESTATE_MANAGER'] as const;
+const REVIEWERS = ['ESTATE_ADMINISTRATOR', 'ESTATE_CHAIRMAN', 'ESTATE_MANAGER', 'SECURITY_OFFICER'] as const;
 const STATUS_TO_DB: Record<string, 'REPORTED' | 'ACKNOWLEDGED' | 'INVESTIGATING' | 'RESOLVED' | 'CLOSED'> = {
   reported: 'REPORTED', acknowledged: 'ACKNOWLEDGED', investigating: 'INVESTIGATING', resolved: 'RESOLVED', closed: 'CLOSED',
 };
@@ -211,3 +211,4 @@ export class SecurityIncidentsService {
       evidence: item.evidence.map((entry) => this.evidenceView(entry, false)) };
   }
 }
+

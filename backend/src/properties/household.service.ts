@@ -1,9 +1,9 @@
-import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+﻿import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, type EstateRole } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import type { AddHouseholdMemberDto, DecideHouseholdMemberDto, EndHouseholdMemberDto } from './household.dto.js';
 
-const MANAGEMENT_ROLES: EstateRole[] = ['ESTATE_ADMINISTRATOR', 'ESTATE_MANAGER', 'FINANCE_MANAGER'];
+const MANAGEMENT_ROLES: EstateRole[] = ['ESTATE_ADMINISTRATOR', 'ESTATE_CHAIRMAN', 'ESTATE_MANAGER', 'FINANCE_MANAGER'];
 const ACTIVE_STATUSES = ['ACTIVE', 'PENDING_APPROVAL'];
 
 @Injectable()
@@ -233,3 +233,4 @@ export class HouseholdService {
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
   }
 }
+

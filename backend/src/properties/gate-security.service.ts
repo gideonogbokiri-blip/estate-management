@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+﻿import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { createHash, randomUUID } from 'node:crypto';
 import { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
@@ -9,7 +9,7 @@ const { createGateVisitCheckOutUseCase } = require('../../modules/visitors/check
 const { createCurrentGateVisitorsUseCase } = require('../../modules/visitors/list-current-gate-visitors.js') as { createCurrentGateVisitorsUseCase: (ports: any) => (input: any) => Promise<any> };
 const { createManualAdmissionUseCase, ManualAdmissionUseCaseError } = require('../../modules/visitors/create-manual-admission.js') as { createManualAdmissionUseCase: (ports: any) => (input: any) => Promise<any>; ManualAdmissionUseCaseError: new (...args: any[]) => Error & { code: string } };
 
-const MANAGER_ROLES = ['ESTATE_ADMINISTRATOR', 'ESTATE_MANAGER'] as const;
+const MANAGER_ROLES = ['ESTATE_ADMINISTRATOR', 'ESTATE_CHAIRMAN', 'ESTATE_MANAGER'] as const;
 const txRetry = async <T>(prisma: PrismaService, work: (tx: Prisma.TransactionClient) => Promise<T>) => {
   for (let attempt = 0; ; attempt += 1) {
     try { return await prisma.$transaction(work, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }); }
@@ -94,7 +94,7 @@ export class GateSecurityService {
       findPassForVerificationUpdate: async (tx: Prisma.TransactionClient, scope: any) => {
         await tx.$queryRaw`SELECT id FROM estate_visitor_passes WHERE estate_id = ${scope.estateId}::uuid AND credential_hash = ${scope.credentialHash} FOR UPDATE`;
         const pass = await tx.estateVisitorPass.findFirst({ where: { estateId: scope.estateId, credentialHash: scope.credentialHash }, include: { property: { select: { code: true, unitNumber: true } }, host: { select: { displayName: true } } } });
-        return pass ? { ...pass, propertyLabel: [pass.property.code, pass.property.unitNumber].filter(Boolean).join(' · '), hostDisplayName: pass.host.displayName } : null;
+        return pass ? { ...pass, propertyLabel: [pass.property.code, pass.property.unitNumber].filter(Boolean).join(' Â· '), hostDisplayName: pass.host.displayName } : null;
       },
       readCheckInIdempotency: async (tx: Prisma.TransactionClient, scope: any) => tx.estateGateCheckInIdempotency.findUnique({ where: { actorUserId_estateId_gateId_idempotencyKeyHash: { actorUserId: scope.actorUserId, estateId: scope.estateId, gateId: scope.gateId, idempotencyKeyHash: scope.idempotencyKeyHash } } }),
       claimCheckInIdempotency: async (tx: Prisma.TransactionClient, scope: any) => tx.estateGateCheckInIdempotency.upsert({
@@ -172,7 +172,7 @@ export class GateSecurityService {
       projectCurrentGateVisitor: async (value: any) => {
         const propertyId = value.pass?.propertyId ?? value.visit.propertyId;
         const property = await value.tx.estateProperty.findFirst({ where: { id: propertyId, estateId: value.gateContext.estateId }, select: { code: true, unitNumber: true } });
-        const propertyLabel = property ? [property.code, property.unitNumber].filter(Boolean).join(' · ') : '';
+        const propertyLabel = property ? [property.code, property.unitNumber].filter(Boolean).join(' Â· ') : '';
         if (!value.pass) {
           return { visitId: value.visit.id, estateId: value.visit.estateId, gateId: value.visit.gateId,
             propertyId, visitorName: value.visit.visitorDisplayName, propertyLabel, checkedInAt: value.visit.checkedInAt };
@@ -225,7 +225,7 @@ export class GateSecurityService {
           visitorName: pass.visitorDisplayName,
           propertyLabel: [pass.property.code, pass.property.unitNumber]
             .filter(Boolean)
-            .join(' · '),
+            .join(' Â· '),
           hostDisplayName: pass.host.displayName,
           validUntil: pass.validUntil.toISOString(),
           vehicleSummary: pass.vehicleSummary,
@@ -253,7 +253,7 @@ export class GateSecurityService {
           select: { id: true, estateId: true, code: true, unitNumber: true },
         });
         return property
-          ? { ...property, displayLabel: [property.code, property.unitNumber].filter(Boolean).join(' · ') }
+          ? { ...property, displayLabel: [property.code, property.unitNumber].filter(Boolean).join(' Â· ') }
           : null;
       },
       generateVisitId: async () => randomUUID(),
@@ -350,7 +350,7 @@ export class GateSecurityService {
         })
       : [];
     const propertyLabels = new Map(
-      properties.map((property) => [property.id, [property.code, property.unitNumber].filter(Boolean).join(' · ')]),
+      properties.map((property) => [property.id, [property.code, property.unitNumber].filter(Boolean).join(' Â· ')]),
     );
     return { items: items.map((event) => ({ id: event.id, estateId: event.estateId, gateId: event.gateId,
       propertyId: event.propertyId, passId: event.passId, visitId: event.visitId,
@@ -426,3 +426,4 @@ export class GateSecurityService {
     throw error instanceof Error ? error : new Error('Gate operation failed.');
   }
 }
+

@@ -1,7 +1,7 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+﻿import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 
-const MANAGER_ROLES = ['ESTATE_ADMINISTRATOR', 'ESTATE_MANAGER', 'FINANCE_MANAGER'] as const;
+const MANAGER_ROLES = ['ESTATE_ADMINISTRATOR', 'ESTATE_CHAIRMAN', 'ESTATE_MANAGER', 'FINANCE_MANAGER'] as const;
 
 @Injectable()
 export class EstateDashboardService {
@@ -69,3 +69,4 @@ export class EstateDashboardService {
     };
   }
 }
+

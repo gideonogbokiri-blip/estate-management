@@ -1,11 +1,11 @@
-import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+﻿import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { createHash, randomUUID } from 'node:crypto';
 import { Prisma } from '../generated/prisma/client.js';
 import type { Prisma as PrismaTypes } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import type { CreateEstateChargeDto, CreateEstateChargeVersionDto, CreateEstateInvoiceDraftDto, CreateEstateSettlementPolicyDto, RecordEstateInvoiceSettlementDto } from './charges.dto.js';
 
-const MANAGER_ROLES = ['ESTATE_ADMINISTRATOR', 'ESTATE_MANAGER', 'FINANCE_MANAGER'] as const;
+const MANAGER_ROLES = ['ESTATE_ADMINISTRATOR', 'ESTATE_CHAIRMAN', 'ESTATE_MANAGER', 'FINANCE_MANAGER'] as const;
 
 @Injectable()
 export class EstateChargesService {
@@ -248,7 +248,7 @@ export class EstateChargesService {
     try {
       return await this.prisma.$transaction(async (tx) => {
         const membership = await tx.estateMembership.findFirst({ where: {
-          userId: actorUserId, estateId, status: 'ACTIVE', role: { in: ['ESTATE_ADMINISTRATOR', 'FINANCE_MANAGER'] }, estate: { status: 'ACTIVE' },
+          userId: actorUserId, estateId, status: 'ACTIVE', role: { in: ['ESTATE_ADMINISTRATOR', 'ESTATE_CHAIRMAN', 'FINANCE_MANAGER'] }, estate: { status: 'ACTIVE' },
         }, select: { id: true } });
         if (!membership) throw new ForbiddenException('Active estate finance or administrator access is required to reconcile bank transfers.');
 
@@ -679,3 +679,4 @@ export class EstateChargesService {
     };
   }
 }
+

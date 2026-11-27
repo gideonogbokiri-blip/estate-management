@@ -1,4 +1,4 @@
-import { Type } from 'class-transformer';
+﻿import { Type } from 'class-transformer';
 import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsIn, IsOptional, IsString, Matches, MaxLength, ValidateNested } from 'class-validator';
 
 const MONEY = /^\d{1,10}(?:\.\d{1,2})?$/;
@@ -16,7 +16,7 @@ export class CreateExpensePayeeDto {
 }
 
 export class ExpenseApprovalStageDto {
-  @IsIn(['ESTATE_ADMINISTRATOR', 'FINANCE_MANAGER']) role!: string;
+  @IsIn(['ESTATE_ADMINISTRATOR', 'ESTATE_CHAIRMAN', 'FINANCE_MANAGER']) role!: string;
   @IsOptional() @IsString() @Matches(MONEY) maximumAmount?: string;
 }
 
@@ -66,3 +66,4 @@ export class ReconcileEstateExpenseDto {
   @IsString() @Matches(/^\d{4}-\d{2}-\d{2}$/) receivedAt!: string;
   @IsString() @MaxLength(1000) verificationNote!: string;
 }
+

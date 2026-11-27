@@ -1,9 +1,9 @@
-import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+﻿import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import type { CreateEstateAnnouncementDto } from './announcements.dto.js';
 
-const STAFF_ROLES = ['ESTATE_ADMINISTRATOR', 'ESTATE_MANAGER'] as const;
+const STAFF_ROLES = ['ESTATE_ADMINISTRATOR', 'ESTATE_CHAIRMAN', 'ESTATE_MANAGER'] as const;
 
 @Injectable()
 export class EstateAnnouncementsService {
@@ -118,3 +118,4 @@ export class EstateAnnouncementsService {
     };
   }
 }
+

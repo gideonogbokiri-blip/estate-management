@@ -44,7 +44,8 @@ Hosted demo credentials (all demo accounts use the same short password; emails a
 | Platform super administrator | sa@testlancon.com | lancon123 |
 | Security officer | pcs@testlancon.com | lancon123 |
 | Landlord | pcl@testlancon.com | lancon123 |
-| Estate approver (payout decisions) | pca@testlancon.com | lancon123 |
+| Estate chairman (payout approvals) | chairman@testlancon.com | lancon123 |
+| Estate administrator (payout initiation) | pca@testlancon.com | lancon123 |
 
 The landlord account was added with `npm run seed:landlord-demo -- --confirm-landlord-demo --allow-remote-demo-seed`; it has verified 100% ownership of `PC-002` and an active LANDLORD membership. Its sign-in, estate list, portfolio and ownership-scoped maintenance reads all returned 200 against the hosted API.
 

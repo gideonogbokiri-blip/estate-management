@@ -1,4 +1,4 @@
-import {
+﻿import {
   BadRequestException,
   ConflictException,
   ForbiddenException,
@@ -14,7 +14,7 @@ import type {
   OwnershipQueryDto,
 } from './ownership.dto.js';
 
-const MANAGER_ROLES = ['ESTATE_ADMINISTRATOR', 'ESTATE_MANAGER'] as const;
+const MANAGER_ROLES = ['ESTATE_ADMINISTRATOR', 'ESTATE_CHAIRMAN', 'ESTATE_MANAGER'] as const;
 
 @Injectable()
 export class OwnershipService {
@@ -402,3 +402,4 @@ function utcToday() { return new Date().toISOString().slice(0, 10); }
 function dateRangesOverlap(aFrom: string, aTo: string | null, bFrom: string, bTo: string | null) {
   return (aTo === null || bFrom <= aTo) && (bTo === null || aFrom <= bTo);
 }
+

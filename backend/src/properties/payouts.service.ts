@@ -12,6 +12,7 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { LedgerService } from './ledger.service.js';
 
 const ADMIN = 'ESTATE_ADMINISTRATOR';
+const CHAIRMAN = 'ESTATE_CHAIRMAN';
 const FINANCE = 'FINANCE_MANAGER';
 const CURRENCY = 'NGN';
 
@@ -157,7 +158,9 @@ export class EstatePayoutService {
     const payout = await this.prisma.estatePayoutRequest.findUnique({ where: { id: payoutId } });
     if (!payout) throw new NotFoundException('Payout request not found.');
     const membership = await this.membership(actorUserId, payout.estateId);
-    if (membership?.role !== ADMIN) throw new ForbiddenException('Only an authorized approver can decide payouts.');
+    if (membership?.role !== CHAIRMAN) {
+      throw new ForbiddenException('Only the estate chairman can decide payouts.');
+    }
     if (payout.initiatedBy === actorUserId) throw new ForbiddenException('Self-approval is not permitted.');
     if (payout.status !== 'pending_approval') throw new ConflictException('Payout is not awaiting approval.');
 
@@ -253,3 +256,4 @@ export class EstatePayoutService {
     return execution;
   }
 }
+

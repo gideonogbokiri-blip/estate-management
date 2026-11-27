@@ -1,9 +1,9 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+﻿import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { EstateRole, Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import type { UpdateEstateSettingsDto } from './estate-settings.dto.js';
 
-const VIEW_ROLES = ['ESTATE_ADMINISTRATOR', 'ESTATE_MANAGER'] as const;
+const VIEW_ROLES = ['ESTATE_ADMINISTRATOR', 'ESTATE_CHAIRMAN', 'ESTATE_MANAGER'] as const;
 
 @Injectable()
 export class EstateSettingsService {
@@ -53,3 +53,4 @@ export class EstateSettingsService {
     return membership;
   }
 }
+

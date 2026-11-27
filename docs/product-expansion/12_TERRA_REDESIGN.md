@@ -27,6 +27,10 @@ Matches the mockups: top status bar, profile greeting card, deep-green wallet ca
 
 The live demo estate is now **Terra Crest** (Emerald Living Sanctuary, Cluster Alpha-A); primary resident **Dr. Funke Adeyemi**, property **A-104 / Villa Lotus 12**, wallet **₦125,000.00** in a GTBank escrow account. Applied by `npm run seed:terra-crest -- --confirm-terra-crest --allow-remote-demo-seed`.
 
+## Estate Chairman role
+
+An `ESTATE_CHAIRMAN` role was added as the distinct payout approver. The chairman account is `chairman@testlancon.com` / `lancon123`; the previous demo approver account is now an estate administrator so initiation and approval are held by different people. Only `ESTATE_CHAIRMAN` can decide a payout. The single sign-in page routes this role to `/admin/`.
+
 ## Demo-data policy
 
 Per the user's decision: keep the simulated funding/payment flows working, but remove demo-only wording from the UI. No "DEMO MODE" badges, no `DEMO-…` voucher text, no "demo service" suffixes. Paystack activation remains the final step and is unchanged.

@@ -1,10 +1,10 @@
-import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+﻿import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import type { CreateEstateBudgetDto, DecideEstateBudgetDto } from './expenses.dto.js';
 
-const FINANCE_ROLES = ['ESTATE_ADMINISTRATOR', 'ESTATE_MANAGER', 'FINANCE_MANAGER'] as const;
-const APPROVER_ROLES = ['ESTATE_ADMINISTRATOR', 'FINANCE_MANAGER'] as const;
+const FINANCE_ROLES = ['ESTATE_ADMINISTRATOR', 'ESTATE_CHAIRMAN', 'ESTATE_MANAGER', 'FINANCE_MANAGER'] as const;
+const APPROVER_ROLES = ['ESTATE_ADMINISTRATOR', 'ESTATE_CHAIRMAN', 'FINANCE_MANAGER'] as const;
 
 @Injectable()
 export class EstateBudgetsService {
@@ -148,3 +148,4 @@ export class EstateBudgetsService {
     if (!membership) throw new ForbiddenException('Active estate finance access is required.');
   }
 }
+

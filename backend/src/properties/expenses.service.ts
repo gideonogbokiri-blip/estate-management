@@ -1,12 +1,12 @@
-import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+﻿import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { createHash, randomUUID } from 'node:crypto';
 import { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { EstateNotificationsService } from './notifications.service.js';
 import type { ConfigureExpensePolicyDto, CreateExpenseCategoryDto, CreateExpensePayeeDto, CreateExpenseRequestDto, ReconcileEstateExpenseDto, SubmitExpenseDecisionDto } from './expenses.dto.js';
 
-const FINANCE_ROLES = ['ESTATE_ADMINISTRATOR', 'ESTATE_MANAGER', 'FINANCE_MANAGER'] as const;
-const POLICY_ROLES = ['ESTATE_ADMINISTRATOR', 'FINANCE_MANAGER'] as const;
+const FINANCE_ROLES = ['ESTATE_ADMINISTRATOR', 'ESTATE_CHAIRMAN', 'ESTATE_MANAGER', 'FINANCE_MANAGER'] as const;
+const POLICY_ROLES = ['ESTATE_ADMINISTRATOR', 'ESTATE_CHAIRMAN', 'FINANCE_MANAGER'] as const;
 
 @Injectable()
 export class EstateExpensesService {
@@ -362,3 +362,4 @@ export class EstateExpensesService {
   }
   private hash(value: string) { return createHash('sha256').update(value, 'utf8').digest('hex'); }
 }
+

@@ -1,4 +1,4 @@
-import {
+﻿import {
   ConflictException,
   ForbiddenException,
   BadRequestException,
@@ -20,7 +20,7 @@ import { StructureError, StructureNodeTypes, validateStructureNodeDraft } from '
 
 const { createPropertyArchiveUseCase } = require('../../modules/properties/archive-property.js') as { createPropertyArchiveUseCase: (ports: any) => (input: any) => Promise<any> };
 
-const MANAGER_ROLES = ['ESTATE_ADMINISTRATOR', 'ESTATE_MANAGER'] as const;
+const MANAGER_ROLES = ['ESTATE_ADMINISTRATOR', 'ESTATE_CHAIRMAN', 'ESTATE_MANAGER'] as const;
 const STATUS_TO_DB: Record<string, PropertyStatus> = {
   active: PropertyStatus.ACTIVE,
   under_development: PropertyStatus.UNDER_DEVELOPMENT,
@@ -727,3 +727,4 @@ export class PropertiesService {
       && (error as { code?: unknown }).code === 'P2002';
   }
 }
+

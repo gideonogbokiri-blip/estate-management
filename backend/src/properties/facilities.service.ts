@@ -1,10 +1,10 @@
-import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+﻿import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { createHash, randomUUID } from 'node:crypto';
 import { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import type { CreateEstateFacilityDto, CreateFacilityBookingDto, ReviewFacilityBookingDto } from './facilities.dto.js';
 
-const MANAGERS = ['ESTATE_ADMINISTRATOR', 'ESTATE_MANAGER'] as const;
+const MANAGERS = ['ESTATE_ADMINISTRATOR', 'ESTATE_CHAIRMAN', 'ESTATE_MANAGER'] as const;
 const digest = (value: string) => createHash('sha256').update(value, 'utf8').digest('hex');
 
 @Injectable()
@@ -251,3 +251,4 @@ export class EstateFacilitiesService {
   }
   private lagosParts(value: Date) { const parts = new Intl.DateTimeFormat('en-GB', { timeZone: 'Africa/Lagos', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(value); const get = (type: string) => parts.find((part) => part.type === type)?.value ?? '0'; return { date: `${get('year')}-${get('month')}-${get('day')}`, hour: Number(get('hour')), minute: Number(get('minute')) }; }
 }
+

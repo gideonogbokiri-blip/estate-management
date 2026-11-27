@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+﻿import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
@@ -13,7 +13,7 @@ const { MaintenanceCommand, planMaintenanceTransition, planMaintenanceUpdate } =
   planMaintenanceUpdate: (request: any, input: any) => any;
 };
 
-const MANAGER_ROLES = ['ESTATE_ADMINISTRATOR', 'ESTATE_MANAGER'] as const;
+const MANAGER_ROLES = ['ESTATE_ADMINISTRATOR', 'ESTATE_CHAIRMAN', 'ESTATE_MANAGER'] as const;
 const STATUS_TO_DB: Record<string, string> = {
   submitted: 'SUBMITTED', under_review: 'UNDER_REVIEW', assigned: 'ASSIGNED',
   in_progress: 'IN_PROGRESS', awaiting_parts: 'AWAITING_PARTS', resolved: 'RESOLVED',
@@ -107,7 +107,7 @@ export class MaintenanceService {
     return { items: requests.map((request) => ({
       id: request.id, requestId: request.id, estateId, reference: request.reference, category: request.category,
       priority: request.priority, description: request.description, status: request.status.toLowerCase(),
-      propertyLabel: [request.property.code, request.property.unitNumber].filter(Boolean).join(' · '),
+      propertyLabel: [request.property.code, request.property.unitNumber].filter(Boolean).join(' Â· '),
       submittedAt: request.submittedAt.toISOString(), updatedAt: request.updatedAt.toISOString(),
       residentVisibleUpdates: request.updates.map((update) => ({ body: update.body, occurredAt: update.occurredAt.toISOString() })),
     })), page, pageSize, total, totalPages: Math.ceil(total / pageSize) };
@@ -185,7 +185,7 @@ export class MaintenanceService {
           reference: request.reference,
           propertyLabel: [request.property.code, request.property.unitNumber]
             .filter(Boolean)
-            .join(' · '),
+            .join(' Â· '),
           category: request.category,
           priority: request.priority,
           description: request.description,
@@ -239,7 +239,7 @@ export class MaintenanceService {
     return { items: requests.map((request) => ({
       id: request.id, estateId, propertyId: request.propertyId, reference: request.reference,
       category: request.category, priority: request.priority, status: request.status.toLowerCase(), description: request.description,
-      propertyLabel: [request.property.code, request.property.unitNumber].filter(Boolean).join(' · '),
+      propertyLabel: [request.property.code, request.property.unitNumber].filter(Boolean).join(' Â· '),
       requesterDisplayName: request.requester.displayName, assigneeUserId: request.assigneeUserId,
       assigneeDisplayName: request.assignee?.displayName ?? null, submittedAt: request.submittedAt.toISOString(),
       residentVisibleUpdates: request.updates.map((update) => ({ body: update.body, occurredAt: update.occurredAt.toISOString() })),
@@ -354,3 +354,4 @@ export class MaintenanceService {
     throw error;
   }
 }
+

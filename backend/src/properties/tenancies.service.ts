@@ -1,4 +1,4 @@
-import {
+﻿import {
   BadRequestException,
   ConflictException,
   ForbiddenException,
@@ -9,7 +9,7 @@ import { Prisma, RentFrequency, TenancyStatus } from '../generated/prisma/client
 import { PrismaService } from '../prisma/prisma.service.js';
 import type { ApproveTenancyDto, CreateTenancyDto, TenancyQueryDto, TerminateTenancyDto } from './tenancies.dto.js';
 
-const MANAGER_ROLES = ['ESTATE_ADMINISTRATOR', 'ESTATE_MANAGER'] as const;
+const MANAGER_ROLES = ['ESTATE_ADMINISTRATOR', 'ESTATE_CHAIRMAN', 'ESTATE_MANAGER'] as const;
 const FINANCE_MANAGER_ROLES = [...MANAGER_ROLES, 'FINANCE_MANAGER'] as const;
 
 @Injectable()
@@ -353,3 +353,4 @@ function tenancyEndDate(record: { status: TenancyStatus; effectiveTo: Date | nul
 function dateRangesOverlap(aFrom: string, aTo: string | null, bFrom: string, bTo: string | null) {
   return (aTo === null || bFrom <= aTo) && (bTo === null || aFrom <= bTo);
 }
+

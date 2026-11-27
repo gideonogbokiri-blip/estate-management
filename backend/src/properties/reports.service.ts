@@ -1,8 +1,8 @@
-import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
+﻿import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
 import { Prisma, type EstateRole } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
-const MANAGEMENT_ROLES: EstateRole[] = ['ESTATE_ADMINISTRATOR', 'ESTATE_MANAGER', 'FINANCE_MANAGER'];
+const MANAGEMENT_ROLES: EstateRole[] = ['ESTATE_ADMINISTRATOR', 'ESTATE_CHAIRMAN', 'ESTATE_MANAGER', 'FINANCE_MANAGER'];
 
 type Range = { from?: string; to?: string };
 
@@ -222,3 +222,4 @@ export class ReportsService {
     })) };
   }
 }
+
