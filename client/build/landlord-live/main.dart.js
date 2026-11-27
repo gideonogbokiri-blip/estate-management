@@ -74397,7 +74397,7 @@ A.agT.prototype={
 $0(){return A.anC(this.b,new A.vt(this.a.a.c,null),t.X)},
 $S:0}
 A.agU.prototype={
-$2(a,b){var s,r=null,q=b.b>=1100,p=this.a,o=p.a3m(),n=p.ay,m=q?244:64,l=p.ga5M()
+$2(a,b){var s,r=null,q=b.b>=700,p=this.a,o=p.a3m(),n=p.ay,m=q?244:64,l=p.ga5M()
 l=q?A.a_w(r,r,B.CS,l,r,B.QT,r):A.q8(r,r,B.CY,r,r,l,r,r,"Sign out")
 if(n==="home"){s=t.p
 s=q?A.d9(A.c([A.fN(p.JS(),3),B.Lc,A.fN(p.KR(),2)],s),B.S,B.r,B.w,0):A.de(A.c([p.JS(),B.dZ,p.KR()],s),B.O,B.r,B.w)}else s=new A.ql(p.Lh(n),p.gLi(),r)

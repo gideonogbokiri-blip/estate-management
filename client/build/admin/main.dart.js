@@ -94790,7 +94790,7 @@ A.aym.prototype={
 $0(){return A.fV(this.b,new A.AJ(this.a.a.c,null),t.X)},
 $S:0}
 A.ayn.prototype={
-$2(a,b){var s,r,q,p,o=null,n="WORKSPACE",m=b.b>=1100,l=this.a,k=t.F5.a(J.a7(l.w,"invoices")),j=J.a7(k==null?B.dc:k,"issued")
+$2(a,b){var s,r,q,p,o=null,n="WORKSPACE",m=b.b>=700,l=this.a,k=t.F5.a(J.a7(l.w,"invoices")),j=J.a7(k==null?B.dc:k,"issued")
 k=A.b([B.We,new A.dM("residents",B.pq,"Residents",n,o),new A.dM("approvals",B.pv,"Approvals",n,A.l(j==null?"0":j)),B.Wg,B.Wb,B.W8,B.Wa,B.Wd,B.W9,B.W7,B.Wc,B.Wi,B.Wf,B.Wj,B.Wh,B.W6],t.M5)
 s=l.CW
 r=m?244:64

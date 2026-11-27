@@ -293,7 +293,7 @@ class _TerraLandlordPageState extends State<TerraLandlordPage> {
         body: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final wide = constraints.maxWidth >= 1100;
+              final wide = constraints.maxWidth >= 700;
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -846,6 +846,7 @@ class _TerraLandlordPageState extends State<TerraLandlordPage> {
     return 'Good evening';
   }
 }
+
 
 
 

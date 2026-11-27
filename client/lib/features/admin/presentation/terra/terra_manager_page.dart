@@ -527,7 +527,7 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
         body: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final wide = constraints.maxWidth >= 1100;
+              final wide = constraints.maxWidth >= 700;
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -1197,6 +1197,7 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
     return 'Good evening';
   }
 }
+
 
 
 
