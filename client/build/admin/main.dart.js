@@ -94283,7 +94283,7 @@ return s==null?null:s.ZW()},
 $S:0}
 A.ay_.prototype={
 $2(a,b){var s,r=null,q=b.b,p=t.p,o=A.b([],p)
-if(q>=700){s=this.a
+if(q>=1000){s=this.a
 o.push(new A.E9(s.S_(),s.cx,s.gajz(),244,new A.Ry("Terra Crest","Estate Manager",!0,r),A.iV(r,r,B.JI,s.gTR(),r,B.a1i,r),r))}s=this.a
 if(s.cx==="home")q=q>=1100?A.bC(A.b([A.d3(s.RK(),3),B.Us,A.d3(s.T2(),2)],p),B.q,B.j,B.l,0):A.aO(A.b([s.RK(),B.b8,s.T2()],p),B.t,B.j,B.l)
 else q=s.ajv()

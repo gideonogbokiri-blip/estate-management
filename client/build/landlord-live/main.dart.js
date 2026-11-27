@@ -73709,7 +73709,7 @@ return s==null?null:s.Qj()},
 $S:0}
 A.agk.prototype={
 $2(a,b){var s,r,q=null,p=b.b,o=t.p,n=A.c([],o)
-if(p>=700){s=this.a
+if(p>=1000){s=this.a
 n.push(new A.yI(s.Jz(),s.ch,s.ga4R(),244,new A.JW("Terra Crest","Property Owner",q),A.Gs(q,q,B.CR,s.gLb(),q,B.QW,q),q))}s=this.a
 r=s.ch
 if(r==="home")p=p>=1100?A.cV(A.c([A.fI(s.Jo(),3),B.L9,A.fI(s.Kq(),2)],o),B.P,B.r,B.w,0):A.d_(A.c([s.Jo(),B.dZ,s.Kq()],o),B.L,B.r,B.w)
