@@ -528,6 +528,7 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
           child: LayoutBuilder(
             builder: (context, constraints) {
               final wide = constraints.maxWidth >= 700;
+              final twoColumns = constraints.maxWidth >= 1100;
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -564,7 +565,7 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
                         child: ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 1320),
                           child: _section == 'home'
-                              ? wide
+                              ? twoColumns
                                   ? Row(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
@@ -1197,6 +1198,7 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
     return 'Good evening';
   }
 }
+
 
 
 

@@ -94790,15 +94790,15 @@ A.aym.prototype={
 $0(){return A.fV(this.b,new A.AJ(this.a.a.c,null),t.X)},
 $S:0}
 A.ayn.prototype={
-$2(a,b){var s,r,q,p,o=null,n="WORKSPACE",m=b.b>=700,l=this.a,k=t.F5.a(J.a7(l.w,"invoices")),j=J.a7(k==null?B.dc:k,"issued")
-k=A.b([B.We,new A.dM("residents",B.pq,"Residents",n,o),new A.dM("approvals",B.pv,"Approvals",n,A.l(j==null?"0":j)),B.Wg,B.Wb,B.W8,B.Wa,B.Wd,B.W9,B.W7,B.Wc,B.Wi,B.Wf,B.Wj,B.Wh,B.W6],t.M5)
-s=l.CW
-r=m?244:64
-q=l.gakN()
-q=m?A.jM(o,o,B.JF,q,o,B.a1a,o):A.e_(o,o,o,B.JO,o,o,q,o,o,o,"Sign out")
+$2(a,b){var s,r,q,p,o=null,n="WORKSPACE",m=b.b,l=m>=700,k=this.a,j=t.F5.a(J.a7(k.w,"invoices")),i=J.a7(j==null?B.dc:j,"issued")
+j=A.b([B.We,new A.dM("residents",B.pq,"Residents",n,o),new A.dM("approvals",B.pv,"Approvals",n,A.l(i==null?"0":i)),B.Wg,B.Wb,B.W8,B.Wa,B.Wd,B.W9,B.W7,B.Wc,B.Wi,B.Wf,B.Wj,B.Wh,B.W6],t.M5)
+s=k.CW
+r=l?244:64
+q=k.gakN()
+q=l?A.jM(o,o,B.JF,q,o,B.a1a,o):A.e_(o,o,o,B.JO,o,o,q,o,o,o,"Sign out")
 if(s==="home"){p=t.p
-p=m?A.bD(A.b([A.d5(l.S2(),3),B.Un,A.d5(l.Tl(),2)],p),B.q,B.j,B.l,0):A.aS(A.b([l.S2(),B.b6,l.Tl()],p),B.t,B.j,B.l)}else p=l.ak5()
-return A.bD(A.b([new A.Ep(k,s,l.gak9(),r,new A.RE("Terra Crest","Estate Manager",m,o),q,o),A.d5(A.wm(A.da(new A.cr(B.Dl,p,o),o,o),B.Il,B.aa),1)],t.p),B.cw,B.j,B.l,0)},
+m=m>=1100?A.bD(A.b([A.d5(k.S2(),3),B.Un,A.d5(k.Tl(),2)],p),B.q,B.j,B.l,0):A.aS(A.b([k.S2(),B.b6,k.Tl()],p),B.t,B.j,B.l)}else m=k.ak5()
+return A.bD(A.b([new A.Ep(j,s,k.gak9(),r,new A.RE("Terra Crest","Estate Manager",l,o),q,o),A.d5(A.wm(A.da(new A.cr(B.Dl,m,o),o,o),B.Il,B.aa),1)],t.p),B.cw,B.j,B.l,0)},
 $S:592}
 A.axW.prototype={
 $1(a){return a.e==="approved"},

@@ -294,6 +294,7 @@ class _TerraLandlordPageState extends State<TerraLandlordPage> {
           child: LayoutBuilder(
             builder: (context, constraints) {
               final wide = constraints.maxWidth >= 700;
+              final twoColumns = constraints.maxWidth >= 1100;
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -330,7 +331,7 @@ class _TerraLandlordPageState extends State<TerraLandlordPage> {
                         child: ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 1320),
                           child: _section == 'home'
-                              ? wide
+                              ? twoColumns
                                   ? Row(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
@@ -846,6 +847,7 @@ class _TerraLandlordPageState extends State<TerraLandlordPage> {
     return 'Good evening';
   }
 }
+
 
 
 
