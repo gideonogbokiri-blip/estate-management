@@ -3,6 +3,7 @@
 import '../../../../core/design/terra_shell.dart';
 import '../../../../core/design/terra_theme.dart';
 import '../../../../core/design/terra_navigation_rail.dart';
+import '../../../../core/design/terra_service_drawer.dart';
 import '../../../../core/navigation/auth_redirect.dart';
 import '../../../../core/navigation/app_navigation.dart';
 import '../../../../core/utils/formatters.dart';
@@ -140,6 +141,7 @@ class _TerraLandlordPageState extends State<TerraLandlordPage> {
         ),
       );
 
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   String _section = 'home';
 
   void _selectSection(String id) => setState(() => _section = id);
@@ -257,7 +259,25 @@ class _TerraLandlordPageState extends State<TerraLandlordPage> {
     return Theme(
       data: TerraTheme.light(),
       child: Scaffold(
+        key: _scaffoldKey,
         backgroundColor: TerraColors.canvas,
+        drawer: TerraServiceDrawer(
+          estateName: 'Terra Crest',
+          userName: _displayName,
+          services: _navigationItems()
+              .where((item) => item.id != 'home')
+              .map(
+                (item) => TerraMenuService(
+                  label: item.label,
+                  icon: item.icon,
+                  section: item.section,
+                  danger: item.danger,
+                  onTap: () => _selectSection(item.id),
+                ),
+              )
+              .toList(),
+          onSignOut: _signOut,
+        ),
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(70),
           child: TerraTopBar(
@@ -287,7 +307,7 @@ class _TerraLandlordPageState extends State<TerraLandlordPage> {
               context,
               EstateNotificationsPage(repository: widget.repository),
             ),
-            onMenu: _showMenu,
+            onMenu: () => _scaffoldKey.currentState?.openDrawer(),
           ),
         ),
         body: SafeArea(
@@ -298,32 +318,25 @@ class _TerraLandlordPageState extends State<TerraLandlordPage> {
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  TerraNavigationRail(
-                    items: _navigationItems(),
-                    selectedId: _section,
-                    onSelect: _selectSection,
-                    width: wide ? 244 : 64,
-                    header: TerraRailHeader(
-                      estateName: 'Terra Crest',
-                      subtitle: 'Property Owner',
-                      extended: wide,
+                  if (wide)
+                    TerraNavigationRail(
+                      items: _navigationItems(),
+                      selectedId: _section,
+                      onSelect: _selectSection,
+                      width: 244,
+                      header: TerraRailHeader(
+                        estateName: 'Terra Crest',
+                        subtitle: 'Property Owner',
+                      ),
+                      footer: ListTile(
+                        leading: const Icon(Icons.logout_outlined,
+                            color: TerraColors.danger, size: 19),
+                        title: const Text('Sign out',
+                            style: TextStyle(
+                                color: TerraColors.danger, fontSize: 12)),
+                        onTap: _signOut,
+                      ),
                     ),
-                    footer: wide
-                        ? ListTile(
-                            leading: const Icon(Icons.logout_outlined,
-                                color: TerraColors.danger, size: 19),
-                            title: const Text('Sign out',
-                                style: TextStyle(
-                                    color: TerraColors.danger, fontSize: 12)),
-                            onTap: _signOut,
-                          )
-                        : IconButton(
-                            tooltip: 'Sign out',
-                            onPressed: _signOut,
-                            icon: const Icon(Icons.logout_outlined,
-                                color: TerraColors.danger),
-                          ),
-                  ),
                   Expanded(
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.fromLTRB(20, 20, 20, 36),

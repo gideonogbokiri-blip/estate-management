@@ -10,6 +10,7 @@ class TerraMenuService {
     required this.onTap,
     this.section = 'Services',
     this.danger = false,
+    this.badge,
   });
 
   final String label;
@@ -17,6 +18,7 @@ class TerraMenuService {
   final VoidCallback onTap;
   final String section;
   final bool danger;
+  final String? badge;
 }
 
 /// The app's single navigation surface: every service, grouped by section,
@@ -133,8 +135,25 @@ class TerraServiceDrawer extends StatelessWidget {
                       fontSize: 13,
                     ),
                   ),
-                  trailing: const Icon(Icons.chevron_right,
-                      size: 16, color: TerraColors.muted),
+                  trailing: service.badge != null
+                      ? Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 7, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: TerraColors.sage,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            service.badge!,
+                            style: const TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w700,
+                              color: TerraColors.forest,
+                            ),
+                          ),
+                        )
+                      : const Icon(Icons.chevron_right,
+                          size: 16, color: TerraColors.muted),
                   onTap: () {
                     Navigator.of(context).pop();
                     service.onTap();

@@ -128,6 +128,7 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
     return (_report[section] as Map? ?? const {})[key]?.toString() ?? '0';
   }
 
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   String _section = 'home';
 
   void _selectSection(String id) => setState(() => _section = id);
@@ -491,7 +492,25 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
     return Theme(
       data: TerraTheme.light(),
       child: Scaffold(
+        key: _scaffoldKey,
         backgroundColor: TerraColors.canvas,
+        drawer: TerraServiceDrawer(
+          estateName: 'Terra Crest',
+          userName: _displayName,
+          services: _navigationItems()
+              .where((item) => item.id != 'home')
+              .map(
+                (item) => TerraMenuService(
+                  label: item.label,
+                  icon: item.icon,
+                  section: item.section,
+                  badge: item.badge,
+                  onTap: () => _selectSection(item.id),
+                ),
+              )
+              .toList(),
+          onSignOut: _signOut,
+        ),
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(70),
           child: TerraTopBar(
@@ -521,7 +540,7 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
               context,
               EstateNotificationsPage(repository: widget.repository),
             ),
-            onMenu: _showMenu,
+            onMenu: () => _scaffoldKey.currentState?.openDrawer(),
           ),
         ),
         body: SafeArea(
@@ -532,31 +551,25 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  TerraNavigationRail(
+                  if (wide)
+                    TerraNavigationRail(
                     items: _navigationItems(),
                     selectedId: _section,
                     onSelect: _selectSection,
-                    width: wide ? 244 : 64,
+                    width: 244,
                     header: TerraRailHeader(
                       estateName: 'Terra Crest',
                       subtitle: 'Estate Manager',
                       extended: wide,
                     ),
-                    footer: wide
-                        ? ListTile(
-                            leading: const Icon(Icons.logout_outlined,
-                                color: TerraColors.danger, size: 19),
-                            title: const Text('Sign out',
-                                style: TextStyle(
-                                    color: TerraColors.danger, fontSize: 12)),
-                            onTap: _signOut,
-                          )
-                        : IconButton(
-                            tooltip: 'Sign out',
-                            onPressed: _signOut,
-                            icon: const Icon(Icons.logout_outlined,
-                                color: TerraColors.danger),
-                          ),
+                    footer: ListTile(
+                      leading: const Icon(Icons.logout_outlined,
+                          color: TerraColors.danger, size: 19),
+                      title: const Text('Sign out',
+                          style: TextStyle(
+                              color: TerraColors.danger, fontSize: 12)),
+                      onTap: _signOut,
+                    ),
                   ),
                   Expanded(
                     child: SingleChildScrollView(
