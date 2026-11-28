@@ -53,7 +53,7 @@ async function main() {
 
     for (const plan of ESTATES) {
       const existing = await prisma.estate.findFirst({ where: { name: plan.name }, select: { id: true } });
-      const estateId = existing?.id ?? await (async () => {
+      const estateId: string = existing?.id ?? await (async () => {
         const application = await prisma.estateApplication.create({
           data: {
             applicationCode: `APP-${plan.code}-${hash(plan.code).slice(0, 6).toUpperCase()}`,
