@@ -44,6 +44,124 @@ export class ReportsService {
     };
   }
 
+  async treasuryHistory(actorUserId: string, estateId: string, kind: string) {
+    await this.membership(actorUserId, estateId, true);
+    const account = `ESTATE_COLLECTION:${estateId}:NGN`;
+
+    if (kind === 'collections' || kind === 'cleared') {
+      const entries = await this.prisma.ledgerEntry.findMany({
+        where: { accountCode: account, journal: { estateId, status: 'posted' } },
+        select: {
+          direction: true, amount: true, currency: true,
+          journal: { select: { reference: true, description: true, occurredAt: true, sourceType: true } },
+        },
+        orderBy: { journal: { occurredAt: 'desc' } },
+        take: 100,
+      });
+      return {
+        items: entries.map((entry) => ({
+          reference: entry.journal.reference,
+          detail: entry.journal.description,
+          type: entry.direction === 'credit' ? 'credit' : 'debit',
+          amount: entry.amount.toString(),
+          currency: entry.currency,
+          source: entry.journal.sourceType,
+          date: entry.journal.occurredAt.toISOString(),
+        })),
+      };
+    }
+
+    if (kind === 'outstanding') {
+      const invoices = await this.prisma.estateInvoiceDraft.findMany({
+        where: {
+          estateId, dueDate: { lte: new Date() },
+          status: { in: ['ISSUED', 'PARTIALLY_PAID'] },
+        },
+        select: {
+          id: true, invoiceNumber: true, total: true, currency: true, dueDate: true,
+          chargeVersion: { select: { name: true } },
+          settlements: { select: { amount: true } },
+        },
+        orderBy: { dueDate: 'asc' }, take: 100,
+      });
+      return {
+        items: invoices.map((invoice) => ({
+          reference: invoice.invoiceNumber,
+          detail: invoice.chargeVersion.name,
+          amount: invoice.total.sub(
+            invoice.settlements.reduce(
+              (sum, item) => sum.plus(item.amount), new Prisma.Decimal(0),
+            ),
+          ).toString(),
+          currency: invoice.currency,
+          date: invoice.dueDate.toISOString(),
+          status: 'outstanding',
+        })),
+      };
+    }
+
+    if (kind === 'payouts') {
+      const payouts = await this.prisma.estatePayoutRequest.findMany({
+        where: { estateId },
+        select: {
+          id: true, amount: true, currency: true, purpose: true, status: true, createdAt: true,
+          beneficiary: { select: { displayName: true } },
+        },
+        orderBy: { createdAt: 'desc' }, take: 100,
+      });
+      return {
+        items: payouts.map((payout) => ({
+          reference: payout.id.slice(0, 8).toUpperCase(),
+          detail: `${payout.purpose} · ${payout.beneficiary.displayName}`,
+          amount: payout.amount.toString(), currency: payout.currency,
+          date: payout.createdAt.toISOString(), status: payout.status,
+        })),
+      };
+    }
+
+    if (kind === 'exceptions') {
+      const events = await this.prisma.providerWebhookEvent.findMany({
+        where: { status: 'quarantined' },
+        select: {
+          id: true, provider: true, eventType: true, status: true,
+          error: true, receivedAt: true,
+        },
+        orderBy: { receivedAt: 'desc' }, take: 100,
+      });
+      return {
+        items: events.map((event) => ({
+          reference: event.id.slice(0, 8).toUpperCase(),
+          detail: `${event.provider} · ${event.eventType}`,
+          amount: '0', currency: 'NGN',
+          date: event.receivedAt.toISOString(), status: event.status,
+          note: event.error,
+        })),
+      };
+    }
+
+    if (kind === 'pending_settlements') {
+      const intents = await this.prisma.walletFundingIntent.findMany({
+        where: { estateId, status: 'awaiting_provider' },
+        select: {
+          id: true, providerReference: true, amount: true, currency: true,
+          createdAt: true, expiresAt: true,
+        },
+        orderBy: { createdAt: 'desc' }, take: 100,
+      });
+      return {
+        items: intents.map((intent) => ({
+          reference: intent.providerReference ?? intent.id.slice(0, 8).toUpperCase(),
+          detail: 'Awaiting provider confirmation',
+          amount: intent.amount.toString(), currency: intent.currency,
+          date: intent.createdAt.toISOString(), status: 'awaiting_provider',
+          note: `Expires ${intent.expiresAt.toISOString()}`,
+        })),
+      };
+    }
+
+    return { items: [] };
+  }
+
   async managerSummary(actorUserId: string, estateId: string) {
     await this.membership(actorUserId, estateId, true);
     const [invoices, rentSchedules, expenses, payouts, auditCount] = await Promise.all([

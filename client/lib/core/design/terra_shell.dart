@@ -15,6 +15,7 @@ class TerraTopBar extends StatelessWidget {
     this.onNotification,
     this.onProfile,
     this.onMenu,
+    this.menuOnLeft = false,
   });
 
   final String estateName;
@@ -26,6 +27,7 @@ class TerraTopBar extends StatelessWidget {
   final VoidCallback? onNotification;
   final VoidCallback? onProfile;
   final VoidCallback? onMenu;
+  final bool menuOnLeft;
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +39,12 @@ class TerraTopBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
       child: Row(
         children: [
+          if (menuOnLeft && onMenu != null)
+            IconButton(
+              tooltip: 'Menu',
+              onPressed: onMenu,
+              icon: const Icon(Icons.menu, color: TerraColors.ink, size: 21),
+            ),
           const _Logo(),
           const SizedBox(width: 12),
           Column(

@@ -23,6 +23,15 @@ export class ReportsController {
     return this.reports.managerSummary(request.actor.userId, estateId);
   }
 
+  @Get('treasury/history/:kind')
+  treasuryHistory(
+    @Req() request: AuthenticatedRequest,
+    @Param('estateId', ParseUUIDPipe) estateId: string,
+    @Param('kind') kind: string,
+  ) {
+    return this.reports.treasuryHistory(request.actor.userId, estateId, kind);
+  }
+
   @Get('statements/wallet')
   async walletStatement(@Req() request: AuthenticatedRequest, @Param('estateId', ParseUUIDPipe) estateId: string,
     @Query('from') from: string | undefined, @Query('to') to: string | undefined,

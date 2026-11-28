@@ -27,6 +27,7 @@
     "seed:terra-crest": "node dist/src/cli/seed-terra-crest.js",
     "terra:clean-data": "node dist/src/cli/clean-terra-data.js",
     "terra:levies": "node dist/src/cli/seed-terra-levies.js",
+    "seed:signup-estates": "node dist/src/cli/seed-signup-estates.js",
     "seed:chairman-demo": "node dist/src/cli/seed-chairman-demo.js",
     "demo:reset-credentials": "node dist/src/cli/reset-demo-credentials.js",
     "notifications:deliver": "node dist/src/cli/deliver-notifications.js",

@@ -23,6 +23,8 @@ import 'terra_notices_page.dart';
 import 'terra_staff_page.dart';
 import 'terra_settings_page.dart';
 import 'terra_reports_page.dart';
+import 'terra_treasury_history_page.dart';
+import 'terra_security_personnel_page.dart';
 import '../ownership_review_api_page.dart';
 
 /// Estate manager home in the Terra Crest visual language.
@@ -155,6 +157,7 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
       const TerraNavItem(id: 'map', icon: Icons.map_outlined, label: 'Property map', section: 'ESTATE'),
       const TerraNavItem(id: 'facilities', icon: Icons.storefront_outlined, label: 'Facilities', section: 'ESTATE'),
       const TerraNavItem(id: 'security', icon: Icons.shield_outlined, label: 'Security', section: 'ESTATE'),
+      const TerraNavItem(id: 'personnel', icon: Icons.security_outlined, label: 'Security personnel', section: 'ESTATE'),
       const TerraNavItem(id: 'notices', icon: Icons.campaign_outlined, label: 'Notices', section: 'ESTATE'),
       const TerraNavItem(id: 'staff', icon: Icons.badge_outlined, label: 'Staff', section: 'ESTATE'),
       const TerraNavItem(id: 'settings', icon: Icons.settings_outlined, label: 'Settings', section: 'ESTATE'),
@@ -203,6 +206,9 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
           repository: repository, estateId: estateId, estateName: estateName);
       case 'staff':
         return TerraStaffPage(
+          repository: repository, estateId: estateId, estateName: estateName);
+      case 'personnel':
+        return TerraSecurityPersonnelPage(
           repository: repository, estateId: estateId, estateName: estateName);
       case 'settings':
         return TerraSettingsPage(
@@ -519,6 +525,7 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
             userName: _displayName,
             userSubtitle: 'Estate Manager • $_estateName',
             tier: 'Estate Manager',
+            menuOnLeft: true,
             statuses: [
               TerraStatus(
                 label: 'Collections',
@@ -849,33 +856,104 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
               crossAxisSpacing: 10,
               childAspectRatio: 1.5,
               children: [
-                TerraMetric(
-                    label: 'Collections',
-                    value: _collections,
-                    icon: Icons.account_balance_outlined),
-                TerraMetric(
-                    label: 'Outstanding',
-                    value: _money(_treasury?.outstandingInvoices),
-                    icon: Icons.request_quote_outlined),
-                TerraMetric(
-                    label: 'Cleared',
-                    value: _money(_treasury?.walletBalances),
-                    icon: Icons.check_circle_outline),
-                TerraMetric(
-                    label: 'Payouts',
-                    value: _reportValue('payouts', 'total'),
-                    icon: Icons.payments_outlined),
-                TerraMetric(
-                    label: 'Exceptions',
-                    value: '${_treasury?.reconciliationExceptions ?? 0}',
-                    icon: Icons.report_problem_outlined),
-                TerraMetric(
-                    label: 'Pending settlements',
-                    value: '${_treasury?.pendingSettlements ?? 0}',
-                    icon: Icons.swap_horiz_outlined),
+                _treasuryTile(
+                  label: 'Collections',
+                  value: _collections,
+                  icon: Icons.account_balance_outlined,
+                  kind: 'collections',
+                  title: 'Collection history',
+                ),
+                _treasuryTile(
+                  label: 'Outstanding',
+                  value: _money(_treasury?.outstandingInvoices),
+                  icon: Icons.request_quote_outlined,
+                  kind: 'outstanding',
+                  title: 'Outstanding history',
+                ),
+                _treasuryTile(
+                  label: 'Cleared',
+                  value: _money(_treasury?.walletBalances),
+                  icon: Icons.check_circle_outline,
+                  kind: 'cleared',
+                  title: 'Cleared history',
+                ),
+                _treasuryTile(
+                  label: 'Payouts',
+                  value: _reportValue('payouts', 'total'),
+                  icon: Icons.payments_outlined,
+                  kind: 'payouts',
+                  title: 'Payout history',
+                ),
+                _treasuryTile(
+                  label: 'Exceptions',
+                  value: '${_treasury?.reconciliationExceptions ?? 0}',
+                  icon: Icons.report_problem_outlined,
+                  kind: 'exceptions',
+                  title: 'Exceptions',
+                ),
+                _treasuryTile(
+                  label: 'Pending settlements',
+                  value: '${_treasury?.pendingSettlements ?? 0}',
+                  icon: Icons.swap_horiz_outlined,
+                  kind: 'pending_settlements',
+                  title: 'Pending settlements',
+                ),
               ],
             ),
           ],
+        ),
+      );
+
+  Widget _treasuryTile({
+    required String label,
+    required String value,
+    required IconData icon,
+    required String kind,
+    required String title,
+  }) =>
+      Material(
+        color: TerraColors.surfaceMuted,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => _open(
+            TerraTreasuryHistoryPage(
+              repository: widget.repository,
+              estateId: _estateId,
+              title: title,
+              kind: kind,
+              icon: icon,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TerraLabel(label),
+                const SizedBox(height: 8),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontFamily: 'Georgia',
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: TerraColors.ink,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Row(
+                  children: [
+                    Text('View history',
+                        style: TextStyle(
+                            fontSize: 10, color: TerraColors.forest)),
+                    Icon(Icons.chevron_right,
+                        size: 13, color: TerraColors.forest),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ),
       );
 
@@ -1211,6 +1289,7 @@ class _TerraManagerPageState extends State<TerraManagerPage> {
     return 'Good evening';
   }
 }
+
 
 
 

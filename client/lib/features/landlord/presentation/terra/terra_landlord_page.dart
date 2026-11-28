@@ -286,6 +286,7 @@ class _TerraLandlordPageState extends State<TerraLandlordPage> {
             userName: _displayName,
             userSubtitle: 'Property Owner • $_estateName',
             tier: 'Property Owner',
+            menuOnLeft: true,
             statuses: [
               TerraStatus(
                 label: 'Verified properties',
@@ -860,6 +861,7 @@ class _TerraLandlordPageState extends State<TerraLandlordPage> {
     return 'Good evening';
   }
 }
+
 
 
 
